@@ -2863,6 +2863,9 @@ function determinarTipoDia(fecha, jornada) {
         // NUEVO: Si ayer fue festivo Y hoy también es festivo → FEST-FEST
         // Ejemplo: día 1 noviembre (festivo Todos los Santos) → día 2 noviembre (domingo/festivo)
         return 'FEST-FEST';
+      } else if (dayOfWeek === 0) {
+        // DOMINGO → Siempre FESTIVO para usar jornal de 375,42€ (02-08_FESTIVO)
+        return 'FESTIVO';
       } else if (esFestivoHoy && !esFestivoManana) {
         return 'FEST-LAB';
       } else if (esFestivoManana) {

@@ -1992,7 +1992,9 @@ const SheetsAPI = {
             const pos = trabajador.posicion;
             const color = trabajador.color;
             const esTrinca = trabajador.trincador === true || trabajador.trincador === 'true';
-            const noEsRojo = !(color === 0 || color === '0' || color === 'Red' || color === 'red');
+            // El color viene mapeado desde getCenso() como string: 'red', 'orange', 'yellow', 'blue', 'green'
+            // Solo excluir los que están en rojo (color 0 = 'red')
+            const noEsRojo = !(color === 'red');
 
             return esTrinca && noEsRojo && pos > posicionInicio && pos <= posicionFin && pos <= LIMITE_SP;
           }).length;
@@ -2002,7 +2004,9 @@ const SheetsAPI = {
             const pos = trabajador.posicion;
             const color = trabajador.color;
             const esTrinca = trabajador.trincador === true || trabajador.trincador === 'true';
-            const noEsRojo = !(color === 0 || color === '0' || color === 'Red' || color === 'red');
+            // El color viene mapeado desde getCenso() como string: 'red', 'orange', 'yellow', 'blue', 'green'
+            // Solo excluir los que están en rojo (color 0 = 'red')
+            const noEsRojo = !(color === 'red');
 
             return esTrinca && noEsRojo && pos <= LIMITE_SP &&
                    ((pos > posicionInicio && pos <= LIMITE_SP) || (pos >= 1 && pos <= posicionFin));
