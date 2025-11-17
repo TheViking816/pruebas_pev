@@ -550,7 +550,7 @@ async function syncCensoFromCSV() {
   try {
     const censoURL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vTrMuapybwZUEGPR1vsP9p1_nlWvznyl0sPD4xWsNJ7HdXCj1ABY1EpU1um538HHZQyJtoAe5Niwrxq/pub?gid=841547354&single=true&output=csv';
 
-    console.log('📥 Sincronizando censo desde CSV...');
+    console.log('📥 Sincronizando censo desde CSV (formato ancho)...');
 
     const response = await fetch(censoURL, {
       headers: {
@@ -574,42 +574,64 @@ async function syncCensoFromCSV() {
       return { success: false, message: 'CSV vacío' };
     }
 
-    // Primera línea son headers
-    const headers = lines[0].split(',').map(h => h.trim().replace(/"/g, '').toLowerCase());
-    console.log('📋 Headers CSV Censo:', headers);
+    console.log(`📋 CSV tiene ${lines.length} líneas`);
 
-    // Parsear datos
+    // El CSV tiene formato ancho: cada 3 columnas son un bloque (posición, chapa, color)
+    // Datos empiezan en fila 6 (índice 5) hasta fila 55 (índice 54)
+    // Hay 11 bloques de 3 columnas: A-C, D-F, G-I, J-L, M-O, P-R, S-U, V-X, Y-AA, AB-AD, AE-AG
+
     const censoItems = [];
-    for (let i = 1; i < lines.length; i++) {
-      const values = lines[i].split(',').map(v => v.trim().replace(/"/g, ''));
+    const dataStartRow = 5;  // Fila 6 en Excel = índice 5
+    const dataEndRow = 54;   // Fila 55 en Excel = índice 54
+    const blocksCount = 11;  // 11 bloques de 3 columnas
 
-      if (values.length < 3) continue; // Necesitamos al menos 3 columnas
+    // Procesar cada fila de datos
+    for (let rowIdx = dataStartRow; rowIdx <= dataEndRow && rowIdx < lines.length; rowIdx++) {
+      // Parsear CSV correctamente manejando comas dentro de comillas
+      const values = parseCSVLine(lines[rowIdx]);
 
-      const item = {};
-      headers.forEach((header, idx) => {
-        item[header] = values[idx];
-      });
+      // Procesar cada bloque de 3 columnas
+      for (let block = 0; block < blocksCount; block++) {
+        const colStart = block * 3;
 
-      // Mapear al formato esperado por Supabase
-      // Espera: chapa, posicion, color (0-4), trincador (T o vacío)
-      const censoMapped = {
-        chapa: item.chapa || item.id,
-        posicion: parseInt(item.posicion || item.position || item.pos || 0),
-        color: parseColorValue(item.color || item.colour || item.estado || '0'),
-        trincador: (item.trincador || item.trinca || item.especialidad || '').trim().toUpperCase() === 'T'
-      };
+        // Verificar que hay suficientes columnas
+        if (colStart + 2 >= values.length) continue;
 
-      // Validar datos mínimos
-      if (censoMapped.chapa) {
-        censoItems.push(censoMapped);
+        const posicionStr = values[colStart]?.trim() || '';
+        const chapaStr = values[colStart + 1]?.trim() || '';
+        const colorStr = values[colStart + 2]?.trim() || '';
+
+        // Saltar si no hay datos válidos
+        if (!posicionStr || !chapaStr) continue;
+
+        const posicion = parseInt(posicionStr);
+        if (isNaN(posicion) || posicion <= 0) continue;
+
+        // Parsear color (puede ser número 0-4 o texto)
+        const color = parseColorValue(colorStr || '0');
+
+        censoItems.push({
+          chapa: chapaStr,
+          posicion: posicion,
+          color: color,
+          trincador: false // Se actualizará después si es necesario
+        });
       }
     }
 
-    console.log(`✅ ${censoItems.length} items de censo parseados del CSV`);
+    // Ordenar por posición
+    censoItems.sort((a, b) => a.posicion - b.posicion);
+
+    console.log(`✅ ${censoItems.length} items de censo parseados del CSV (pivotado)`);
+
+    // Debug: mostrar algunos ejemplos
+    if (censoItems.length > 0) {
+      console.log('📋 Primeros 5 items:', censoItems.slice(0, 5));
+      console.log('📋 Últimos 5 items:', censoItems.slice(-5));
+    }
 
     if (censoItems.length > 0) {
       // BORRAR datos anteriores y insertar nuevos
-      // Primero eliminar todos los registros
       const { error: deleteError } = await supabase
         .from('censo')
         .delete()
@@ -653,6 +675,33 @@ async function syncCensoFromCSV() {
     console.error('❌ Error sincronizando censo desde CSV:', error);
     return { success: false, message: error.message };
   }
+}
+
+/**
+ * Parsea una línea CSV manejando comas dentro de comillas
+ */
+function parseCSVLine(line) {
+  const result = [];
+  let current = '';
+  let inQuotes = false;
+
+  for (let i = 0; i < line.length; i++) {
+    const char = line[i];
+
+    if (char === '"') {
+      inQuotes = !inQuotes;
+    } else if (char === ',' && !inQuotes) {
+      result.push(current.trim().replace(/^"|"$/g, ''));
+      current = '';
+    } else {
+      current += char;
+    }
+  }
+
+  // Añadir último valor
+  result.push(current.trim().replace(/^"|"$/g, ''));
+
+  return result;
 }
 
 /**
