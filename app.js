@@ -168,6 +168,13 @@ function formatearFecha(fecha) {
 document.addEventListener('DOMContentLoaded', () => {
   console.log('Portal Estiba VLC - Iniciando aplicación...');
 
+  // CRÍTICO: Inicializar Supabase primero
+  if (typeof initSupabase === 'function') {
+    initSupabase();
+  } else {
+    console.error('❌ La función initSupabase no está disponible. Verifica que supabase.js esté cargado antes de app.js');
+  }
+
   // Inicializar funciones que no dependen del login
   initAddJornalManual();
   initReportJornal();

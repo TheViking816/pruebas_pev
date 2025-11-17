@@ -139,7 +139,11 @@ self.addEventListener('fetch', event => {
         return fetch(request)
           .then(networkResponse => {
             // Cachear si es exitoso y es una petición GET
-            if (networkResponse && networkResponse.status === 200 && request.method === 'GET') {
+            // Solo cachear URLs con esquema http/https (no chrome-extension, etc.)
+            const url = new URL(request.url);
+            const isHttpOrHttps = url.protocol === 'http:' || url.protocol === 'https:';
+
+            if (networkResponse && networkResponse.status === 200 && request.method === 'GET' && isHttpOrHttps) {
               const responseClone = networkResponse.clone();
               caches.open(CACHE_NAME).then(cache => {
                 cache.put(request, responseClone);
