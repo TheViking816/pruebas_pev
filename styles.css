@@ -3046,3 +3046,22 @@ body::before {
   padding-right: 2rem;
   appearance: none;
 }
+/* --- TAMAÑO MEDIANO/COMPACTO SOLO EN MÓVIL (Pestaña Mis Jornales) --- */
+@media (max-width: 768px) {
+  #jornales-stats .stat-card {
+    /* Reducir el espacio interno de la tarjeta */
+    padding: 1.5rem; 
+    min-height: auto;
+  }
+
+  #jornales-stats .stat-value {
+    /* Reducir el número grande (Total Jornales) a un tamaño más compacto */
+    font-size: 1.8rem; 
+    font-weight: 800;
+  }
+
+  #jornales-stats .stat-label {
+    /* Reducir el texto descriptivo */
+    font-size: 0.85rem; 
+  }
+}
