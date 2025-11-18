@@ -3448,6 +3448,159 @@ async function loadSueldometro() {
 
     const monthNamesShort = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'];
 
+    // Función auxiliar para generar acordeón móvil
+    const generarAcordeonMovil = (j, idx, year, month, quincena) => {
+      const accordionId = `accordion-${year}-${month}-${quincena}-${idx}`;
+      const lockKey = `${j.fecha}_${j.jornada.replace(/\s+a\s+/g, '-').replace(/\s+/g, '')}`;
+      const lockedData = lockedValues[lockKey] || {};
+
+      let movimientosValue;
+      if (j.tipo_operativa === 'Trincador') {
+        movimientosValue = lockedData.movimientos !== undefined ? lockedData.movimientos : 0;
+      } else {
+        movimientosValue = lockedData.movimientos !== undefined ? lockedData.movimientos : (j.tipo_operativa === 'Contenedor' ? 120 : 0);
+      }
+
+      let primaValue = lockedData.prima !== undefined ? lockedData.prima : j.prima;
+      const horasRelevoValue = lockedData.horasRelevo || 0;
+      const horasRemateValue = lockedData.horasRemate || 0;
+      const barrasTrincaValue = j.tipo_operativa === 'Trincador' ? movimientosValue : 0;
+      const tipoOperacionTrincaValue = lockedData.tipoOperacionTrincaPersonalizada || null;
+
+      // Recalcular prima
+      if (j.tipo_operativa === 'Contenedor' && !j.es_jornal_fijo) {
+        const salarioInfo = tablaSalarial.find(s => s.clave_jornada === j.clave_jornada);
+        if (salarioInfo) {
+          primaValue = movimientosValue < 120
+            ? movimientosValue * salarioInfo.coef_prima_menor120
+            : movimientosValue * salarioInfo.coef_prima_mayor120;
+        }
+      }
+
+      if (j.tipo_operativa === 'Trincador' && barrasTrincaValue > 0 && tipoOperacionTrincaValue) {
+        const { horario_trinca, jornada_trinca } = mapearTipoDiaParaTrincaDestrinca(j.tipo_dia, j.jornada);
+        const tarifa = buscarTarifaTrincaDestrinca(tarifasTrincaDestrinca, horario_trinca, jornada_trinca, tipoOperacionTrincaValue);
+        primaValue = barrasTrincaValue * tarifa;
+      }
+
+      const tarifaRelevoAcc = calcularTarifaRelevo(j.jornada.replace(/\s+a\s+/g, '-').replace(/\s+/g, ''), j.tipo_dia);
+      const importeRelevoAcc = tarifaRelevoAcc ? (horasRelevoValue * tarifaRelevoAcc) : 0;
+      const tarifaRemateAcc = calcularTarifaRemate(j.jornada.replace(/\s+a\s+/g, '-').replace(/\s+/g, ''), j.tipo_dia);
+      const importeRemateAcc = tarifaRemateAcc ? (horasRemateValue * tarifaRemateAcc) : 0;
+
+      const brutoAcc = j.salario_base + primaValue + importeRelevoAcc + importeRemateAcc;
+      const netoAcc = brutoAcc * (1 - irpfPorcentaje / 100);
+
+      // Generar campos según tipo
+      let camposHTML = '';
+
+      // Base siempre visible
+      camposHTML += `
+        <div class="accordion-field">
+          <label>Base</label>
+          <div style="padding: 0.5rem; background: #f1f5f9; border-radius: 6px; font-weight: 500;">
+            ${j.salario_base.toFixed(2)}€${j.incluye_complemento ? '*' : ''}
+          </div>
+        </div>`;
+
+      if (j.es_jornal_fijo) {
+        camposHTML += `
+          <div class="accordion-field">
+            <label>Tipo</label>
+            <div style="padding: 0.5rem; background: #f1f5f9; border-radius: 6px;">Fijo OC</div>
+          </div>`;
+      } else if (j.tipo_operativa === 'Contenedor') {
+        camposHTML += `
+          <div class="accordion-field">
+            <label>Movimientos</label>
+            <input type="number" class="acc-movimientos-input" value="${movimientosValue}" min="0" data-jornal-index="${idx}">
+          </div>
+          <div class="accordion-field span-2">
+            <label>Prima</label>
+            <input type="number" class="acc-prima-input" value="${primaValue.toFixed(2)}" min="0" step="0.01" data-jornal-index="${idx}">
+          </div>`;
+      } else if (j.tipo_operativa === 'Trincador') {
+        camposHTML += `
+          <div class="accordion-field">
+            <label>Barras</label>
+            <input type="number" class="acc-barras-input" value="${barrasTrincaValue}" min="0" data-jornal-index="${idx}">
+          </div>
+          <div class="accordion-field">
+            <label>Op.</label>
+            <select class="acc-tipo-op-select" data-jornal-index="${idx}">
+              <option value="" ${!tipoOperacionTrincaValue ? 'selected' : ''}>-</option>
+              <option value="TRINCA" ${tipoOperacionTrincaValue === 'TRINCA' ? 'selected' : ''}>T</option>
+              <option value="DESTRINCA" ${tipoOperacionTrincaValue === 'DESTRINCA' ? 'selected' : ''}>D</option>
+            </select>
+          </div>
+          <div class="accordion-field span-2">
+            <label>Prima</label>
+            <input type="number" class="acc-prima-input" value="${primaValue.toFixed(2)}" min="0" step="0.01" data-jornal-index="${idx}">
+          </div>`;
+      } else {
+        camposHTML += `
+          <div class="accordion-field">
+            <label>Prima</label>
+            <input type="number" class="acc-prima-input" value="${primaValue.toFixed(2)}" min="0" step="0.01" data-jornal-index="${idx}">
+          </div>`;
+      }
+
+      // Relevo y Remate
+      if (tarifaRelevoAcc !== null) {
+        camposHTML += `
+          <div class="accordion-field">
+            <label>Relevo</label>
+            <select class="acc-relevo-select" data-jornal-index="${idx}">
+              <option value="0" ${horasRelevoValue === 0 ? 'selected' : ''}>No</option>
+              <option value="1" ${horasRelevoValue > 0 ? 'selected' : ''}>Sí</option>
+            </select>
+          </div>`;
+      }
+      if (tarifaRemateAcc !== null) {
+        camposHTML += `
+          <div class="accordion-field">
+            <label>Remate</label>
+            <select class="acc-remate-select" data-jornal-index="${idx}">
+              <option value="0" ${horasRemateValue === 0 ? 'selected' : ''}>0h</option>
+              <option value="1" ${horasRemateValue === 1 ? 'selected' : ''}>1h</option>
+              <option value="2" ${horasRemateValue === 2 ? 'selected' : ''}>2h</option>
+            </select>
+          </div>`;
+      }
+
+      return `
+        <div class="accordion-item" id="${accordionId}" data-lock-key="${lockKey}">
+          <div class="accordion-header" onclick="this.parentElement.classList.toggle('open')">
+            <div class="accordion-header-left">
+              <span class="accordion-date">${formatearFecha(j.fecha)}</span>
+              <span class="accordion-jornada">${j.jornada}</span>
+              <span class="accordion-puesto">${j.puesto_display}</span>
+            </div>
+            <div class="accordion-header-right">
+              <span class="accordion-total acc-bruto-value">${brutoAcc.toFixed(2)}€</span>
+              <svg class="accordion-chevron" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+              </svg>
+            </div>
+          </div>
+          <div class="accordion-content">
+            <div class="accordion-body">
+              <div class="accordion-fields">${camposHTML}</div>
+              <div class="accordion-footer">
+                <div class="accordion-footer-item">
+                  <div class="accordion-footer-label">Bruto</div>
+                  <div class="accordion-footer-value bruto acc-bruto-footer">${brutoAcc.toFixed(2)}€</div>
+                </div>
+                <div class="accordion-footer-item">
+                  <div class="accordion-footer-label">Neto</div>
+                  <div class="accordion-footer-value neto acc-neto-value">${netoAcc.toFixed(2)}€</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>`;
+    };
+
     // Función auxiliar para calcular tarifa de horas de relevo
     const calcularTarifaRelevo = (jornada, tipoDia) => {
       // No hay relevo en 02-08
@@ -3943,6 +4096,10 @@ async function loadSueldometro() {
               `}).join('')}
             </tbody>
           </table>
+        </div>
+        <!-- ACORDEÓN MÓVIL -->
+        <div class="jornales-accordion">
+          ${jornalesQuincena.map((j, idx) => generarAcordeonMovil(j, idx, year, month, quincena)).join('')}
         </div>
         ${tieneComplemento ? `
           <div class="complemento-nota" style="font-size: 0.85rem; color: #666; margin-top: 0.5rem; padding: 0.5rem; background: #f9f9f9; border-radius: 4px;">
