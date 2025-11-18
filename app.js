@@ -43,6 +43,7 @@ const ENLACES_DATA = [
   { titulo: 'Listado Ingreso CPE', url: 'https://drive.google.com/file/d/1YzLn6JHmCdQMrMlpNByIsdlYW3iU0P43/view?usp=drive_link', categoria: 'Información', color: 'green' },
   { titulo: 'Previsión Demandas', url: 'https://noray.cpevalencia.com/PrevisionDemanda.asp', categoria: 'Información', color: 'green' },
   { titulo: 'Chapero CPE', url: 'https://noray.cpevalencia.com/Chapero.asp', categoria: 'Información', color: 'green' },
+  { titulo: 'Worker Hub CSP', url: 'https://workerhub.marvalsa.com/login', categoria: 'Información', color: 'green' },
 
   // Comunicaciones
   { titulo: 'Comunicación Contingencia', url: 'https://docs.google.com/forms/d/e/1FAIpQLSdxLm9xqP4FOv61h3-YoyRFzkxKcfAGir_YYRi5e4PTFisEAw/viewform', categoria: 'Comunicaciones', color: 'purple' },
@@ -2367,6 +2368,9 @@ function renderEnlaces() {
   const container = document.getElementById('enlaces-content');
   if (!container) return;
 
+  // Limpiar contenedor para evitar duplicados
+  container.innerHTML = '';
+
   const categorias = [...new Set(ENLACES_DATA.map(e => e.categoria))];
 
   categorias.forEach(categoria => {
@@ -2416,6 +2420,9 @@ function renderEnlaces() {
 function renderNoticias() {
   const container = document.getElementById('noticias-content');
   if (!container) return;
+
+  // Limpiar contenedor para evitar duplicados
+  container.innerHTML = '';
 
   NOTICIAS_DATA.forEach(noticia => {
     const card = document.createElement('div');
