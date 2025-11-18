@@ -670,10 +670,14 @@ function updateUIForAuthenticatedUser() {
   const userChapa = document.getElementById('user-chapa');
   const sidebar = document.getElementById('sidebar');
   const mainContent = document.getElementById('main-content');
+  const headerTitle = document.getElementById('header-title');
 
   // Mostrar sidebar y ajustar layout
   if (sidebar) sidebar.classList.remove('hidden');
   if (mainContent) mainContent.classList.remove('no-sidebar');
+
+  // Cambiar título del header a "PEV" después del login
+  if (headerTitle) headerTitle.textContent = 'PEV';
 
   if (userInfo) userInfo.classList.remove('hidden');
   if (userChapa) userChapa.textContent = AppState.currentUserName || `Chapa ${AppState.currentUser}`;
@@ -3814,15 +3818,24 @@ async function loadSueldometro() {
       const tieneJornalesOC = jornalesQuincena.some(j => j.es_jornal_fijo);
       const badgeCenso = tieneJornalesOC ? ' <span class="badge-oc">OC</span>' : ' <span class="badge-green">SP</span>';
 
-      const quincenaLabel = quincena === 1 ? '1-15' : '16-fin';
+      // Calcular el último día del mes
+      const lastDayOfMonth = new Date(year, month, 0).getDate();
+      const quincenaLabel = quincena === 1 ? '1-15' : `16-${lastDayOfMonth}`;
       const monthName = monthNamesShort[month - 1]; // Usar monthNamesShort
       const emoji = quincena === 1 ? '📅' : '🗓️';
 
       const card = document.createElement('div');
       card.className = 'quincena-card';
       card.innerHTML = `
-        <div class="quincena-header">
-          <h3>${emoji} ${quincenaLabel} ${monthName.toUpperCase()} ${year}</h3>
+        <div class="quincena-header" onclick="this.parentElement.classList.toggle('collapsed')">
+          <div class="quincena-header-left">
+            <span class="quincena-toggle">
+              <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+              </svg>
+            </span>
+            <h3>${emoji} ${quincenaLabel} ${monthName.toUpperCase()} ${year}</h3>
+          </div>
           <div class="quincena-total">
             <div class="total-box bruto-box">
               <div class="total-icon">💰</div>
@@ -3840,6 +3853,7 @@ async function loadSueldometro() {
             </div>
           </div>
         </div>
+        <div class="quincena-content">
         <div class="jornales-table">
           <table>
             <thead>
@@ -4092,6 +4106,7 @@ async function loadSueldometro() {
             <strong>*</strong> Los puestos Trincador y Trincador de Coches incluyen un complemento de 46,94€ en el salario base.
           </div>
         ` : ''}
+        </div>
       `;
 
       content.appendChild(card);
