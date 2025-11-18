@@ -3103,6 +3103,10 @@ async function loadSueldometro() {
     }
   }
 
+  // Actualizar el valor mostrado en el header del control IRPF
+  const irpfDisplayValue = document.getElementById('irpf-display-value');
+  if (irpfDisplayValue) irpfDisplayValue.textContent = `${irpfPorcentaje}%`;
+
   if (irpfLockBtn) {
     irpfLockBtn.textContent = irpfLocked ? '🔒' : '🔓';
     irpfLockBtn.title = irpfLocked ? 'IRPF bloqueado - Click para desbloquear' : 'IRPF desbloqueado - Click para bloquear';
@@ -5035,6 +5039,10 @@ async function loadSueldometro() {
       // Guardar en localStorage
       localStorage.setItem(irpfKey, nuevoIRPF.toString());
       irpfPorcentaje = nuevoIRPF;
+
+      // Actualizar el valor mostrado en el header del control IRPF
+      const irpfDisplayValue = document.getElementById('irpf-display-value');
+      if (irpfDisplayValue) irpfDisplayValue.textContent = `${nuevoIRPF}%`;
 
       console.log(`💰 IRPF actualizado y guardado: ${nuevoIRPF}%`);
       console.log(`💾 Guardado en localStorage con clave: ${irpfKey}`);

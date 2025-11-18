@@ -1250,6 +1250,18 @@ body::before {
     grid-template-columns: 1fr;
   }
 
+  .stat-card {
+    padding: 1.25rem;
+  }
+
+  .stat-value {
+    font-size: 2rem;
+  }
+
+  .stat-label {
+    font-size: 1rem;
+  }
+
   .user-chapa {
     display: none;
   }
@@ -1823,9 +1835,54 @@ body::before {
   background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
   border: 2px solid var(--puerto-orange);
   border-radius: 12px;
-  padding: 1rem 1.5rem;
   margin-bottom: 1.5rem;
   box-shadow: var(--shadow-md);
+  overflow: hidden;
+}
+
+.irpf-control-header {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.75rem 1rem;
+  cursor: pointer;
+  user-select: none;
+  background: linear-gradient(135deg, var(--puerto-orange), #e07b00);
+  color: white;
+  font-weight: 600;
+}
+
+.irpf-control-header:hover {
+  background: linear-gradient(135deg, #e07b00, var(--puerto-orange));
+}
+
+.irpf-toggle {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform 0.3s ease;
+}
+
+.irpf-toggle svg {
+  width: 1.25rem;
+  height: 1.25rem;
+}
+
+.irpf-control.collapsed .irpf-toggle {
+  transform: rotate(-90deg);
+}
+
+.irpf-header-text {
+  flex: 1;
+}
+
+.irpf-display-value {
+  background: white;
+  color: var(--puerto-orange);
+  padding: 0.25rem 0.5rem;
+  border-radius: 4px;
+  font-weight: 700;
+  font-size: 0.9rem;
 }
 
 .irpf-control-content {
@@ -1833,6 +1890,15 @@ body::before {
   align-items: center;
   justify-content: center;
   gap: 1rem;
+  padding: 1rem 1.5rem;
+  transition: max-height 0.3s ease, padding 0.3s ease, opacity 0.3s ease;
+}
+
+.irpf-control.collapsed .irpf-control-content {
+  max-height: 0;
+  padding: 0 1.5rem;
+  opacity: 0;
+  overflow: hidden;
 }
 
 .irpf-control label {

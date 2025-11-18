@@ -317,7 +317,16 @@
           <div class="spinner"></div>
           <p>Calculando salarios...</p>
         </div>
-        <div id="sueldometro-irpf-control" class="irpf-control" style="display: none;">
+        <div id="sueldometro-irpf-control" class="irpf-control collapsed" style="display: none;">
+          <div class="irpf-control-header" onclick="this.parentElement.classList.toggle('collapsed')">
+            <span class="irpf-toggle">
+              <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+              </svg>
+            </span>
+            <span class="irpf-header-text">Configurar % IRPF</span>
+            <span id="irpf-display-value" class="irpf-display-value">15%</span>
+          </div>
           <div class="irpf-control-content">
             <label for="irpf-input">
               <span class="irpf-label">% IRPF:</span>
