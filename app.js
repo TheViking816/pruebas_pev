@@ -3289,12 +3289,12 @@ async function loadSueldometro() {
 
           // Jornada 14-20
           '14-20_LABORABLE': 179.75,
-          '14-20_SABADO': 179.75,
+          '14-20_SABADO': 270,
           '14-20_FESTIVO': 408.92,
 
           // Jornada 20-02
           '20-02_LABORABLE': 253.75,
-          '20-02_SABADO': 253.75,
+          '20-02_SABADO': 416.12,
           '20-02_FESTIVO': 253.75
         };
 
