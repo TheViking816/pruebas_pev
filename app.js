@@ -3840,20 +3840,6 @@ async function loadSueldometro() {
             </div>
           </div>
         </div>
-        <div class="quincena-summary">
-          <div class="summary-item">
-            <span class="summary-label">Jornales:</span>
-            <span class="summary-value">${jornalesQuincena.length}</span>
-          </div>
-          <div class="summary-item">
-            <span class="summary-label">Base:</span>
-            <span class="summary-value">${totalBaseQuincena.toFixed(2)}€</span>
-          </div>
-          <div class="summary-item">
-            <span class="summary-label">Prima:</span>
-            <span class="summary-value">${totalPrimaExtrasQuincena.toFixed(2)}€</span>
-          </div>
-        </div>
         <div class="jornales-table">
           <table>
             <thead>
@@ -4134,12 +4120,6 @@ async function loadSueldometro() {
                 nuevoTotalPrimaExtrasQuincena += (brutoFila - baseFila); // Prima y extras
             }
         });
-
-        // Actualizar el resumen de la quincena en el DOM
-        const summaryItems = card.querySelectorAll('.quincena-summary .summary-value');
-        if (summaryItems[0]) summaryItems[0].textContent = `${jornalesQuincena.length}`; // Jornales
-        if (summaryItems[1]) summaryItems[1].textContent = `${nuevoTotalBaseQuincena.toFixed(2)}€`; // Base
-        if (summaryItems[2]) summaryItems[2].textContent = `${nuevoTotalPrimaExtrasQuincena.toFixed(2)}€`; // Prima
 
         // Actualizar bruto y neto en el header de la quincena
         const brutoValueHeader = card.querySelector('.quincena-total .bruto-value');
@@ -4731,6 +4711,280 @@ async function loadSueldometro() {
           }
 
           console.log(`${!isLocked ? '🔒' : '🔓'} Prima y movimientos ${!isLocked ? 'bloqueados' : 'desbloqueados'} para ${lockKey}`);
+        });
+      });
+
+      // Event listeners para inputs de movimientos en ACORDEÓN
+      card.querySelectorAll('.acc-movimientos-input').forEach(input => {
+        input.addEventListener('input', (e) => {
+          const movimientos = parseFloat(e.target.value) || 0;
+          const jornalIndex = parseInt(e.target.dataset.jornalIndex);
+          const jornal = jornalesQuincena[jornalIndex];
+          const accordionItem = e.target.closest('.accordion-item');
+          const lockKey = accordionItem.dataset.lockKey;
+
+          // Extraer fecha y jornada del lockKey
+          const [fecha, jornada] = lockKey.split('_');
+
+          // Guardar movimientos
+          if (!lockedValues[lockKey]) lockedValues[lockKey] = {};
+          lockedValues[lockKey].movimientos = movimientos;
+          saveLockedValues(fecha, jornada);
+
+          // Recalcular prima según movimientos
+          const primaInput = accordionItem.querySelector('.acc-prima-input');
+          let nuevaPrima = 0;
+          const salarioInfo = tablaSalarial.find(s => s.clave_jornada === jornal.clave_jornada);
+
+          if (salarioInfo && jornal.tipo_operativa === 'Contenedor') {
+            if (movimientos < 120) {
+              nuevaPrima = movimientos * salarioInfo.coef_prima_menor120;
+            } else {
+              nuevaPrima = movimientos * salarioInfo.coef_prima_mayor120;
+            }
+            if (primaInput) primaInput.value = nuevaPrima.toFixed(2);
+            jornal.prima = nuevaPrima;
+
+            // Guardar prima también
+            lockedValues[lockKey].prima = nuevaPrima;
+            saveLockedValues(fecha, jornada);
+          } else {
+            nuevaPrima = parseFloat(primaInput?.value || 0);
+          }
+
+          // Calcular horas de relevo
+          const relevoSelect = accordionItem.querySelector('.acc-relevo-select');
+          const horasRelevo = relevoSelect ? parseInt(relevoSelect.value) : 0;
+          const tarifaRelevo = calcularTarifaRelevo(jornal.jornada.replace(/\s+a\s+/g, '-').replace(/\s+/g, ''), jornal.tipo_dia);
+          const importeRelevo = tarifaRelevo ? (horasRelevo * tarifaRelevo) : 0;
+
+          // Calcular horas de remate
+          const remateSelect = accordionItem.querySelector('.acc-remate-select');
+          const horasRemate = remateSelect ? parseInt(remateSelect.value) : 0;
+          const tarifaRemate = calcularTarifaRemate(jornal.jornada.replace(/\s+a\s+/g, '-').replace(/\s+/g, ''), jornal.tipo_dia);
+          const importeRemate = tarifaRemate ? (horasRemate * tarifaRemate) : 0;
+
+          const nuevoTotal = jornal.salario_base + nuevaPrima + importeRelevo + importeRemate;
+          const nuevoNeto = nuevoTotal * (1 - irpfPorcentaje / 100);
+
+          // Actualizar UI del acordeón
+          const brutoHeader = accordionItem.querySelector('.accordion-header-right .acc-bruto-value');
+          const brutoFooter = accordionItem.querySelector('.acc-bruto-footer');
+          const netoValue = accordionItem.querySelector('.acc-neto-value');
+
+          if (brutoHeader) brutoHeader.textContent = `${nuevoTotal.toFixed(2)}€`;
+          if (brutoFooter) brutoFooter.textContent = `${nuevoTotal.toFixed(2)}€`;
+          if (netoValue) netoValue.textContent = `${nuevoNeto.toFixed(2)}€`;
+
+          // Actualizar el jornal en el array global
+          jornal.total = nuevoTotal;
+          const globalJornal = jornalesConSalario.find(gJ => gJ.fecha === jornal.fecha && gJ.jornada === jornal.jornada && gJ.chapa === jornal.chapa);
+          if (globalJornal) {
+            globalJornal.total = nuevoTotal;
+            globalJornal.prima = nuevaPrima;
+          }
+
+          // También actualizar la fila de la tabla si existe
+          const tableRow = document.querySelector(`tr[data-lock-key="${lockKey}"]`);
+          if (tableRow) {
+            const movimientosTableInput = tableRow.querySelector('.movimientos-input');
+            const primaTableInput = tableRow.querySelector('.prima-input');
+            if (movimientosTableInput) movimientosTableInput.value = movimientos;
+            if (primaTableInput) primaTableInput.value = nuevaPrima.toFixed(2);
+            const brutoTableValue = tableRow.querySelector('.bruto-value strong');
+            const netoTableValue = tableRow.querySelector('.neto-value strong');
+            if (brutoTableValue) brutoTableValue.textContent = `${nuevoTotal.toFixed(2)}€`;
+            if (netoTableValue) netoTableValue.textContent = `${nuevoNeto.toFixed(2)}€`;
+          }
+
+          actualizarTotales();
+        });
+      });
+
+      // Event listeners para inputs de prima en ACORDEÓN
+      card.querySelectorAll('.acc-prima-input').forEach(input => {
+        input.addEventListener('input', (e) => {
+          const nuevaPrima = parseFloat(e.target.value) || 0;
+          const jornalIndex = parseInt(e.target.dataset.jornalIndex);
+          const jornal = jornalesQuincena[jornalIndex];
+          const accordionItem = e.target.closest('.accordion-item');
+          const lockKey = accordionItem.dataset.lockKey;
+
+          // Extraer fecha y jornada del lockKey
+          const [fecha, jornada] = lockKey.split('_');
+
+          // Guardar prima
+          if (!lockedValues[lockKey]) lockedValues[lockKey] = {};
+          lockedValues[lockKey].prima = nuevaPrima;
+          saveLockedValues(fecha, jornada);
+
+          // Recalcular movimientos si es Contenedor
+          const movimientosInput = accordionItem.querySelector('.acc-movimientos-input');
+          if (movimientosInput && jornal.tipo_operativa === 'Contenedor') {
+            const salarioInfo = tablaSalarial.find(s => s.clave_jornada === jornal.clave_jornada);
+            if (salarioInfo) {
+              const movimientosMenor = nuevaPrima / salarioInfo.coef_prima_menor120;
+              let movimientosCalculados;
+              if (movimientosMenor < 120) {
+                movimientosCalculados = Math.round(movimientosMenor);
+              } else {
+                movimientosCalculados = Math.round(nuevaPrima / salarioInfo.coef_prima_mayor120);
+              }
+              movimientosInput.value = movimientosCalculados;
+              lockedValues[lockKey].movimientos = movimientosCalculados;
+              saveLockedValues(fecha, jornada);
+            }
+          }
+
+          // Calcular horas de relevo
+          const relevoSelect = accordionItem.querySelector('.acc-relevo-select');
+          const horasRelevo = relevoSelect ? parseInt(relevoSelect.value) : 0;
+          const tarifaRelevo = calcularTarifaRelevo(jornal.jornada.replace(/\s+a\s+/g, '-').replace(/\s+/g, ''), jornal.tipo_dia);
+          const importeRelevo = tarifaRelevo ? (horasRelevo * tarifaRelevo) : 0;
+
+          // Calcular horas de remate
+          const remateSelect = accordionItem.querySelector('.acc-remate-select');
+          const horasRemate = remateSelect ? parseInt(remateSelect.value) : 0;
+          const tarifaRemate = calcularTarifaRemate(jornal.jornada.replace(/\s+a\s+/g, '-').replace(/\s+/g, ''), jornal.tipo_dia);
+          const importeRemate = tarifaRemate ? (horasRemate * tarifaRemate) : 0;
+
+          const nuevoTotal = jornal.salario_base + nuevaPrima + importeRelevo + importeRemate;
+          const nuevoNeto = nuevoTotal * (1 - irpfPorcentaje / 100);
+
+          // Actualizar UI del acordeón
+          const brutoHeader = accordionItem.querySelector('.accordion-header-right .acc-bruto-value');
+          const brutoFooter = accordionItem.querySelector('.acc-bruto-footer');
+          const netoValue = accordionItem.querySelector('.acc-neto-value');
+
+          if (brutoHeader) brutoHeader.textContent = `${nuevoTotal.toFixed(2)}€`;
+          if (brutoFooter) brutoFooter.textContent = `${nuevoTotal.toFixed(2)}€`;
+          if (netoValue) netoValue.textContent = `${nuevoNeto.toFixed(2)}€`;
+
+          // Actualizar el jornal en el array global
+          jornal.total = nuevoTotal;
+          jornal.prima = nuevaPrima;
+          const globalJornal = jornalesConSalario.find(gJ => gJ.fecha === jornal.fecha && gJ.jornada === jornal.jornada && gJ.chapa === jornal.chapa);
+          if (globalJornal) {
+            globalJornal.total = nuevoTotal;
+            globalJornal.prima = nuevaPrima;
+          }
+
+          // También actualizar la fila de la tabla si existe
+          const tableRow = document.querySelector(`tr[data-lock-key="${lockKey}"]`);
+          if (tableRow) {
+            const primaTableInput = tableRow.querySelector('.prima-input');
+            const movimientosTableInput = tableRow.querySelector('.movimientos-input');
+            if (primaTableInput) primaTableInput.value = nuevaPrima.toFixed(2);
+            if (movimientosTableInput && jornal.tipo_operativa === 'Contenedor') {
+              movimientosTableInput.value = lockedValues[lockKey].movimientos || 0;
+            }
+            const brutoTableValue = tableRow.querySelector('.bruto-value strong');
+            const netoTableValue = tableRow.querySelector('.neto-value strong');
+            if (brutoTableValue) brutoTableValue.textContent = `${nuevoTotal.toFixed(2)}€`;
+            if (netoTableValue) netoTableValue.textContent = `${nuevoNeto.toFixed(2)}€`;
+          }
+
+          actualizarTotales();
+        });
+      });
+
+      // Event listeners para selects de relevo en ACORDEÓN
+      card.querySelectorAll('.acc-relevo-select').forEach(select => {
+        select.addEventListener('change', (e) => {
+          const horasRelevo = parseInt(e.target.value) || 0;
+          const jornalIndex = parseInt(e.target.dataset.jornalIndex);
+          const jornal = jornalesQuincena[jornalIndex];
+          const accordionItem = e.target.closest('.accordion-item');
+          const lockKey = accordionItem.dataset.lockKey;
+          const [fecha, jornada] = lockKey.split('_');
+
+          // Guardar horas de relevo
+          if (!lockedValues[lockKey]) lockedValues[lockKey] = {};
+          lockedValues[lockKey].horasRelevo = horasRelevo;
+          saveLockedValues(fecha, jornada);
+
+          // Obtener prima actual
+          const primaInput = accordionItem.querySelector('.acc-prima-input');
+          const prima = parseFloat(primaInput?.value || 0);
+
+          // Calcular tarifa de relevo
+          const tarifaRelevo = calcularTarifaRelevo(jornal.jornada.replace(/\s+a\s+/g, '-').replace(/\s+/g, ''), jornal.tipo_dia);
+          const importeRelevo = tarifaRelevo ? (horasRelevo * tarifaRelevo) : 0;
+
+          // Calcular horas de remate
+          const remateSelect = accordionItem.querySelector('.acc-remate-select');
+          const horasRemate = remateSelect ? parseInt(remateSelect.value) : 0;
+          const tarifaRemate = calcularTarifaRemate(jornal.jornada.replace(/\s+a\s+/g, '-').replace(/\s+/g, ''), jornal.tipo_dia);
+          const importeRemate = tarifaRemate ? (horasRemate * tarifaRemate) : 0;
+
+          const nuevoTotal = jornal.salario_base + prima + importeRelevo + importeRemate;
+          const nuevoNeto = nuevoTotal * (1 - irpfPorcentaje / 100);
+
+          // Actualizar UI del acordeón
+          const brutoHeader = accordionItem.querySelector('.accordion-header-right .acc-bruto-value');
+          const brutoFooter = accordionItem.querySelector('.acc-bruto-footer');
+          const netoValue = accordionItem.querySelector('.acc-neto-value');
+
+          if (brutoHeader) brutoHeader.textContent = `${nuevoTotal.toFixed(2)}€`;
+          if (brutoFooter) brutoFooter.textContent = `${nuevoTotal.toFixed(2)}€`;
+          if (netoValue) netoValue.textContent = `${nuevoNeto.toFixed(2)}€`;
+
+          // Actualizar el jornal
+          jornal.total = nuevoTotal;
+          const globalJornal = jornalesConSalario.find(gJ => gJ.fecha === jornal.fecha && gJ.jornada === jornal.jornada && gJ.chapa === jornal.chapa);
+          if (globalJornal) globalJornal.total = nuevoTotal;
+
+          actualizarTotales();
+        });
+      });
+
+      // Event listeners para selects de remate en ACORDEÓN
+      card.querySelectorAll('.acc-remate-select').forEach(select => {
+        select.addEventListener('change', (e) => {
+          const horasRemate = parseInt(e.target.value) || 0;
+          const jornalIndex = parseInt(e.target.dataset.jornalIndex);
+          const jornal = jornalesQuincena[jornalIndex];
+          const accordionItem = e.target.closest('.accordion-item');
+          const lockKey = accordionItem.dataset.lockKey;
+          const [fecha, jornada] = lockKey.split('_');
+
+          // Guardar horas de remate
+          if (!lockedValues[lockKey]) lockedValues[lockKey] = {};
+          lockedValues[lockKey].horasRemate = horasRemate;
+          saveLockedValues(fecha, jornada);
+
+          // Obtener prima actual
+          const primaInput = accordionItem.querySelector('.acc-prima-input');
+          const prima = parseFloat(primaInput?.value || 0);
+
+          // Calcular tarifa de relevo
+          const relevoSelect = accordionItem.querySelector('.acc-relevo-select');
+          const horasRelevo = relevoSelect ? parseInt(relevoSelect.value) : 0;
+          const tarifaRelevo = calcularTarifaRelevo(jornal.jornada.replace(/\s+a\s+/g, '-').replace(/\s+/g, ''), jornal.tipo_dia);
+          const importeRelevo = tarifaRelevo ? (horasRelevo * tarifaRelevo) : 0;
+
+          // Calcular tarifa de remate
+          const tarifaRemate = calcularTarifaRemate(jornal.jornada.replace(/\s+a\s+/g, '-').replace(/\s+/g, ''), jornal.tipo_dia);
+          const importeRemate = tarifaRemate ? (horasRemate * tarifaRemate) : 0;
+
+          const nuevoTotal = jornal.salario_base + prima + importeRelevo + importeRemate;
+          const nuevoNeto = nuevoTotal * (1 - irpfPorcentaje / 100);
+
+          // Actualizar UI del acordeón
+          const brutoHeader = accordionItem.querySelector('.accordion-header-right .acc-bruto-value');
+          const brutoFooter = accordionItem.querySelector('.acc-bruto-footer');
+          const netoValue = accordionItem.querySelector('.acc-neto-value');
+
+          if (brutoHeader) brutoHeader.textContent = `${nuevoTotal.toFixed(2)}€`;
+          if (brutoFooter) brutoFooter.textContent = `${nuevoTotal.toFixed(2)}€`;
+          if (netoValue) netoValue.textContent = `${nuevoNeto.toFixed(2)}€`;
+
+          // Actualizar el jornal
+          jornal.total = nuevoTotal;
+          const globalJornal = jornalesConSalario.find(gJ => gJ.fecha === jornal.fecha && gJ.jornada === jornal.jornada && gJ.chapa === jornal.chapa);
+          if (globalJornal) globalJornal.total = nuevoTotal;
+
+          actualizarTotales();
         });
       });
 
