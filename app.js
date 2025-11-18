@@ -5047,8 +5047,62 @@ async function loadSueldometro() {
       console.log(`💾 Guardado en localStorage con clave: ${irpfKey}`);
 
       // Actualizar todos los valores neto sin recargar la página
-      // Se recalcularán con `actualizarTotales`
-      actualizarTotales();
+      // Recalcular todos los netos individuales en cada fila
+      document.querySelectorAll('tr[data-lock-key]').forEach(row => {
+        const brutoElement = row.querySelector('.bruto-value strong');
+        const netoElement = row.querySelector('.neto-value strong');
+        if (brutoElement && netoElement) {
+          const bruto = parseFloat(brutoElement.textContent.replace('€', '')) || 0;
+          const nuevoNeto = bruto * (1 - nuevoIRPF / 100);
+          netoElement.textContent = `${nuevoNeto.toFixed(2)}€`;
+        }
+      });
+
+      // Recalcular totales de cada quincena
+      document.querySelectorAll('.quincena-card').forEach(card => {
+        let totalBrutoQuincena = 0;
+        let totalNetoQuincena = 0;
+
+        card.querySelectorAll('tr[data-lock-key]').forEach(row => {
+          const brutoElement = row.querySelector('.bruto-value strong');
+          if (brutoElement) {
+            const bruto = parseFloat(brutoElement.textContent.replace('€', '')) || 0;
+            totalBrutoQuincena += bruto;
+            totalNetoQuincena += bruto * (1 - nuevoIRPF / 100);
+          }
+        });
+
+        const brutoHeader = card.querySelector('.quincena-total .bruto-value');
+        const netoHeader = card.querySelector('.quincena-total .neto-value');
+        if (brutoHeader) brutoHeader.textContent = `${totalBrutoQuincena.toFixed(2)}€`;
+        if (netoHeader) netoHeader.textContent = `${totalNetoQuincena.toFixed(2)}€`;
+      });
+
+      // Recalcular estadísticas globales
+      let totalGlobalBruto = 0;
+      let contadorJornales = 0;
+
+      document.querySelectorAll('tr[data-lock-key] .bruto-value strong').forEach(el => {
+        totalGlobalBruto += parseFloat(el.textContent.replace('€', '')) || 0;
+        contadorJornales++;
+      });
+
+      const totalGlobalNeto = totalGlobalBruto * (1 - nuevoIRPF / 100);
+      const promedioBruto = contadorJornales > 0 ? totalGlobalBruto / contadorJornales : 0;
+
+      const statCards = document.querySelectorAll('.stat-card .stat-value');
+      if (statCards.length >= 4) {
+        statCards[0].textContent = `${contadorJornales}`;
+        statCards[1].textContent = `${totalGlobalBruto.toFixed(2)}€`;
+        statCards[2].textContent = `${totalGlobalNeto.toFixed(2)}€`;
+        statCards[3].textContent = `${promedioBruto.toFixed(2)}€`;
+      }
+
+      // Actualizar label del neto con el nuevo porcentaje
+      const netoLabel = document.querySelectorAll('.stat-card .stat-label')[2];
+      if (netoLabel) netoLabel.textContent = `Total Neto (Anual - ${nuevoIRPF}% IRPF)`;
+
+      console.log(`🔄 Valores neto recalculados con IRPF ${nuevoIRPF}%`);
     };
 
     // Event listeners para cambios en IRPF

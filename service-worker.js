@@ -9,15 +9,20 @@
  */
 
 const CACHE_NAME = 'estiba-vlc-v1';
-const urlsToCache = [
+
+// Recursos locales que SIEMPRE deben cachearse (fallarán la instalación si no existen)
+const localResources = [
   './',
   './index.html',
   './styles.css',
   './app.js',
-  // './sheets.js', // ¡ELIMINADO! Ya no se usa como archivo separado.
   './manifest.json',
-  
-  // Añadidas las URLs de tus imágenes de Imgur para precache
+  './supabase.js'
+];
+
+// Recursos externos que se cachearán bajo demanda (no bloquean la instalación)
+const externalResources = [
+  // Imágenes de Imgur
   'https://i.imgur.com/Q91Pi44.png', // Icono principal (y usado en notificaciones)
   'https://i.imgur.com/7F1BWQ2.jpeg', // Logo principal
   'https://i.imgur.com/xcHiyAn.jpeg', // Img login/foro
@@ -26,15 +31,9 @@ const urlsToCache = [
   'https://i.imgur.com/C3UpaWV.jpeg', // Img jornales/sueldometro
   'https://i.imgur.com/gUw97fH.jpeg', // Img puertas
   'https://i.imgur.com/iHJOi0K.jpeg', // Img censo
-
-  // Recursos externos que deben ser cacheados
-  'https://cdn.tailwindcss.com', // Tailwind CSS CDN
-  'https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap',
-  'https://fonts.gstatic.com', // Fuente para Inter font
-  'https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js', // jsPDF CDN
-  'https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js', // jsPDF Autotable CDN
-  'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2', // Supabase CDN
-  './supabase.js' // Tu archivo supabase.js local
+  // CDNs externos
+  'https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js',
+  'https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js'
 ];
 
 // Instalación - cachear recursos estáticos
@@ -42,15 +41,32 @@ self.addEventListener('install', event => {
   console.log('[Service Worker] Instalando...');
   event.waitUntil(
     caches.open(CACHE_NAME)
-      .then(cache => {
-        console.log('[Service Worker] Cacheando recursos estáticos');
-        return cache.addAll(urlsToCache.map(url => new Request(url, { cache: 'reload' })))
-          .catch(err => {
-            console.warn('[Service Worker] Error cacheando algunos recursos:', err);
-            // No fallar la instalación si algunos recursos no se pueden cachear
-          });
+      .then(async cache => {
+        // Primero cachear recursos locales (críticos)
+        console.log('[Service Worker] Cacheando recursos locales');
+        await cache.addAll(localResources.map(url => new Request(url, { cache: 'reload' })));
+
+        // Luego intentar cachear recursos externos (no bloquean si fallan)
+        console.log('[Service Worker] Intentando cachear recursos externos');
+        const externalPromises = externalResources.map(async url => {
+          try {
+            const request = new Request(url, {
+              cache: 'reload',
+              mode: 'cors',
+              credentials: 'omit'
+            });
+            const response = await fetch(request);
+            if (response.ok) {
+              await cache.put(url, response);
+              console.log('[Service Worker] Cacheado:', url);
+            }
+          } catch (err) {
+            console.warn('[Service Worker] No se pudo cachear:', url);
+          }
+        });
+        await Promise.allSettled(externalPromises);
       })
-      .then(() => self.skipWaiting()) // Permite que el nuevo Service Worker se active inmediatamente
+      .then(() => self.skipWaiting())
   );
 });
 
