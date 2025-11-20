@@ -3390,16 +3390,31 @@ body::before {
   animation: slideUp 0.4s ease;
 }
 
+/* 80-100%: Calienta que sales - Verde claro */
+.calc-resultado-item.probability-very-high {
+  background: linear-gradient(135deg, #34d399, #10b981);
+  box-shadow: 0 8px 20px rgba(52, 211, 153, 0.3);
+}
+
+/* 60-80%: Bastante probable - Verde oscuro */
 .calc-resultado-item.probability-high {
-  background: linear-gradient(135deg, #10b981, #059669);
-  box-shadow: 0 8px 20px rgba(16, 185, 129, 0.3);
+  background: linear-gradient(135deg, #059669, #047857);
+  box-shadow: 0 8px 20px rgba(5, 150, 105, 0.3);
 }
 
+/* 40-60%: Va a estar justo - Amarillo */
 .calc-resultado-item.probability-medium {
-  background: linear-gradient(135deg, #f59e0b, #d97706);
-  box-shadow: 0 8px 20px rgba(245, 158, 11, 0.3);
+  background: linear-gradient(135deg, #fbbf24, #f59e0b);
+  box-shadow: 0 8px 20px rgba(251, 191, 36, 0.3);
 }
 
+/* 20-40%: Poco probable - Naranja */
+.calc-resultado-item.probability-low-medium {
+  background: linear-gradient(135deg, #f97316, #ea580c);
+  box-shadow: 0 8px 20px rgba(249, 115, 22, 0.3);
+}
+
+/* 0-20%: Dificil - Rojo */
 .calc-resultado-item.probability-low {
   background: linear-gradient(135deg, #ef4444, #b91c1c);
   box-shadow: 0 8px 20px rgba(239, 68, 68, 0.3);
