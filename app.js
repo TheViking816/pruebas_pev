@@ -6109,14 +6109,57 @@ async function loadCalculadora() {
           });
         }
 
-        // Calcular puntuacion de "no trabajar" basada en la distancia total
-        var puntuacionNoTrabajar = 5; // Base minima
+        // Calcular puntuacion de "no trabajar" basada en si la puerta rebasa al usuario
+        var puntuacionNoTrabajar = 2; // Base minima
         if (puntuacionesJornadas.length > 0) {
-          var ultimaJornada = puntuacionesJornadas[puntuacionesJornadas.length - 1];
-          if (!ultimaJornada.saleContratado && !ultimaJornada.sinDatos) {
-            // Si no sale ni en la ultima jornada, aumentar prob de no trabajar
-            var faltanteTotal = Math.abs(ultimaJornada.margen);
-            puntuacionNoTrabajar = Math.min(50, 10 + faltanteTotal * 0.3);
+          // Verificar si el usuario sale contratado en alguna jornada
+          var saleEnAlguna = false;
+          var ultimaJornadaValida = null;
+
+          for (var k = 0; k < puntuacionesJornadas.length; k++) {
+            if (!puntuacionesJornadas[k].sinDatos) {
+              ultimaJornadaValida = puntuacionesJornadas[k];
+              if (puntuacionesJornadas[k].saleContratado) {
+                saleEnAlguna = true;
+              }
+            }
+          }
+
+          if (saleEnAlguna) {
+            // Si sale en alguna jornada, probabilidad de no trabajar muy baja
+            puntuacionNoTrabajar = 2;
+          } else if (ultimaJornadaValida) {
+            // Si no sale en ninguna, ver que tan lejos queda
+            var faltanteTotal = Math.abs(ultimaJornadaValida.margen);
+            var coberturaTotal = ultimaJornadaValida.demandaEventuales / Math.max(1, ultimaJornadaValida.distanciaNecesaria);
+
+            // Calcular cobertura acumulada de todas las jornadas
+            var demandaAcumuladaTotal = 0;
+            var distanciaInicial = 0;
+            if (puntuacionesJornadas.length > 0 && !puntuacionesJornadas[0].sinDatos) {
+              distanciaInicial = calcularDistanciaEfectiva(puertaActual, posUsuarioCalc);
+            }
+            for (var k = 0; k < puntuacionesJornadas.length; k++) {
+              if (!puntuacionesJornadas[k].sinDatos) {
+                demandaAcumuladaTotal += puntuacionesJornadas[k].demandaEventuales;
+              }
+            }
+
+            var coberturaAcumulada = demandaAcumuladaTotal / Math.max(1, distanciaInicial);
+
+            if (coberturaAcumulada >= 1) {
+              // La demanda total cubre la distancia, muy probable que trabaje
+              puntuacionNoTrabajar = Math.max(2, 8 - (coberturaAcumulada - 1) * 5);
+            } else if (coberturaAcumulada >= 0.8) {
+              // Casi cubre, baja probabilidad de no trabajar
+              puntuacionNoTrabajar = 10;
+            } else if (coberturaAcumulada >= 0.5) {
+              // Cubre la mitad
+              puntuacionNoTrabajar = 20;
+            } else {
+              // Cubre poco
+              puntuacionNoTrabajar = Math.min(40, 30 + (1 - coberturaAcumulada) * 20);
+            }
           }
         }
 
