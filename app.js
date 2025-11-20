@@ -700,7 +700,7 @@ function updateUIForAuthenticatedUser() {
         existingSpans.forEach(span => span.remove());
 
         // Verificar si el usuario actual tiene la especialidad de trincador
-        const userCenso = censo.find(c => c.chapa === AppState.currentUser.toString());
+        const userCenso = AppState.currentUser ? censo.find(c => c.chapa === AppState.currentUser.toString()) : null;
         const esTrincador = userCenso && (userCenso.trincador === true || userCenso.trincador === 'true');
 
         if (posicionesObj) {
@@ -1766,6 +1766,12 @@ function groupByQuincena(jornales) {
   const map = new Map();
 
   jornales.forEach(jornal => {
+    // Validar que el jornal tenga fecha
+    if (!jornal.fecha) {
+      console.warn('⚠️ Jornal sin fecha en groupByQuincena, saltando:', jornal);
+      return;
+    }
+
     let day, month, year;
 
     // Parsear fecha: soportar tanto dd/mm/yyyy como yyyy-mm-dd (ISO)
@@ -3179,11 +3185,14 @@ async function loadSueldometro() {
       return;
     }
 
-    // 2. Agrupar por quincena
-    const quincenasMap = groupByQuincena(jornales);
-
-    // 3. Calcular salario para cada jornal
+    // 2. Calcular salario para cada jornal
     const jornalesConSalario = jornales.map((jornal, index) => {
+      // Validar que el jornal tenga los campos necesarios
+      if (!jornal.jornada || !jornal.puesto || !jornal.fecha) {
+        console.warn('⚠️ Jornal incompleto, saltando:', jornal);
+        return null;
+      }
+
       // Normalizar jornada: "08 a 14" → "08-14", "20 a 02" → "20-02"
       let jornada = jornal.jornada.replace(/\s+a\s+/g, '-').replace(/\s+/g, '').trim();
 
@@ -3402,7 +3411,10 @@ async function loadSueldometro() {
         es_jornal_fijo: esJornalFijo,
         incluye_complemento: incluyeComplemento
       };
-    });
+    }).filter(j => j !== null); // Filtrar jornales nulos (incompletos)
+
+    // 3. Agrupar por quincena (DESPUÉS de filtrar jornales incompletos)
+    const quincenasMap = groupByQuincena(jornalesConSalario);
 
     // 4. Calcular estadísticas globales (iniciales)
     // Estos totales se recalcularán después con `actualizarTotales`
@@ -3460,6 +3472,12 @@ async function loadSueldometro() {
 
     // Función auxiliar para generar acordeón móvil
     const generarAcordeonMovil = (j, idx, year, month, quincena) => {
+      // Validar que el jornal tenga los campos necesarios
+      if (!j.jornada || !j.fecha) {
+        console.warn('⚠️ Jornal incompleto en acordeón móvil, saltando:', j);
+        return ''; // Retornar string vacío para no romper el HTML
+      }
+
       const accordionId = `accordion-${year}-${month}-${quincena}-${idx}`;
       const lockKey = `${j.fecha}_${j.jornada.replace(/\s+a\s+/g, '-').replace(/\s+/g, '')}`;
       const lockedData = lockedValues[lockKey] || {};
@@ -3878,6 +3896,12 @@ async function loadSueldometro() {
             </thead>
             <tbody id="tbody-${year}-${month}-${quincena}">
               ${jornalesQuincena.map((j, idx) => { // Usar jornalesQuincena
+                // Validar que el jornal tenga los campos necesarios
+                if (!j.jornada || !j.fecha) {
+                  console.warn('⚠️ Jornal incompleto en sueldómetro, saltando:', j);
+                  return ''; // Retornar string vacío para no romper el HTML
+                }
+
                 const rowId = `row-${year}-${month}-${quincena}-${idx}`;
                 const lockKey = `${j.fecha}_${j.jornada.replace(/\s+a\s+/g, '-').replace(/\s+/g, '')}`;
 
@@ -6070,8 +6094,14 @@ async function loadCalculadora() {
           // - Si no sale: puntuacion basada en que tan cerca queda
           var puntuacion;
           if (saleContratado) {
-            // Base alta + bonus por margen (maximo ~70 puntos)
-            puntuacion = 35 + Math.min(35, margen * 1.2);
+            // AJUSTE PARA OC: Ser más estricto cuando el margen es pequeño
+            if (esUsuarioOC && margen <= 3) {
+              // Si el margen es muy pequeño (≤3), reducir puntuación base
+              puntuacion = 28 + Math.min(20, margen * 3);
+            } else {
+              // Base alta + bonus por margen (maximo ~70 puntos)
+              puntuacion = 35 + Math.min(35, margen * 1.2);
+            }
           } else {
             // Puntuacion basada en proporcion de cobertura
             // Si demanda cubre 90% de la distancia = puntuacion alta

@@ -1206,7 +1206,7 @@ async function getUsuarios() {
   try {
     const { data, error } = await supabase
       .from('usuarios')
-      .select('id, chapa, nombre, email, posicion, activo, password_hash')
+      .select('id, chapa, nombre, email, activo, password_hash')
       // TEMPORAL: Sin filtro de activo para debug
       // .eq('activo', true)
       .order('chapa', { ascending: true });
@@ -1242,7 +1242,7 @@ async function verificarLogin(chapa, password) {
   try {
     const { data, error } = await supabase
       .from('usuarios')
-      .select('id, chapa, nombre, posicion, password_hash')
+      .select('id, chapa, nombre, password_hash')
       .eq('chapa', chapa)
       .eq('activo', true)
       .single();
@@ -1265,8 +1265,7 @@ async function verificarLogin(chapa, password) {
         user: {
           id: data.id,
           chapa: data.chapa,
-          nombre: data.nombre,
-          posicion: data.posicion
+          nombre: data.nombre
         }
       };
     }
@@ -1284,8 +1283,7 @@ async function verificarLogin(chapa, password) {
         user: {
           id: data.id,
           chapa: data.chapa,
-          nombre: data.nombre,
-          posicion: data.posicion
+          nombre: data.nombre
         }
       };
     } else {
