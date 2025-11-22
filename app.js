@@ -6126,26 +6126,29 @@ async function loadCalculadora() {
 
           if (saleContratado) {
             // Sale contratado: probabilidad modulada por el margen
-            // Ajustado para ser menos categorico con margenes grandes
-            // y mas cercano a 50/50 con margenes pequeños
-            if (margen >= 70) {
-              probBaseSalir = 0.95; // Margen muy amplio pero no 98%
-            } else if (margen >= 50) {
-              probBaseSalir = 0.90 + (margen - 50) * 0.0025; // 90-95%
-            } else if (margen >= 30) {
-              probBaseSalir = 0.82 + (margen - 30) * 0.004; // 82-90%
-            } else if (margen >= 15) {
-              probBaseSalir = 0.70 + (margen - 15) * 0.008; // 70-82%
-            } else if (margen >= 5) {
-              probBaseSalir = 0.58 + (margen - 5) * 0.012; // 58-70%
+            // Escala mas suavizada y proporcional al margen real
+            // El margen es: demanda - posiciones hasta el usuario
+            // Margen alto = mucha holgura, pero nunca 99% porque es estimacion
+            if (margen >= 100) {
+              probBaseSalir = 0.88; // Margen muy amplio, pero es estimacion
+            } else if (margen >= 80) {
+              probBaseSalir = 0.82 + (margen - 80) * 0.003; // 82-88%
+            } else if (margen >= 60) {
+              probBaseSalir = 0.75 + (margen - 60) * 0.0035; // 75-82%
+            } else if (margen >= 40) {
+              probBaseSalir = 0.65 + (margen - 40) * 0.005; // 65-75%
+            } else if (margen >= 20) {
+              probBaseSalir = 0.55 + (margen - 20) * 0.005; // 55-65%
+            } else if (margen >= 10) {
+              probBaseSalir = 0.48 + (margen - 10) * 0.007; // 48-55%
             } else if (margen >= 0) {
-              probBaseSalir = 0.52 + margen * 0.012; // 52-58%
+              probBaseSalir = 0.42 + margen * 0.006; // 42-48%
             } else {
-              probBaseSalir = 0.50; // Justo en el limite
+              probBaseSalir = 0.38; // Justo en el limite
             }
             // Ajuste para OC con margen pequeño
             if (esUsuarioOC && margen <= 3) {
-              probBaseSalir = Math.min(probBaseSalir, 0.55 + margen * 0.03);
+              probBaseSalir = Math.min(probBaseSalir, 0.45 + margen * 0.02);
             }
           } else {
             // No sale contratado segun la simulacion directa
@@ -6154,33 +6157,35 @@ async function loadCalculadora() {
             // la demanda de esta jornada lo alcanzara muy probablemente
             if (estaJustoDetras && distanciaDirectaDetras > 0 && distanciaDirectaDetras <= demandaEventuales) {
               // El usuario esta a pocas posiciones detras y la demanda es suficiente
-              // Usar la misma escala que cuando sale contratado
+              // Usar la misma escala suavizada que cuando sale contratado
               var margenEspecial = demandaEventuales - distanciaDirectaDetras;
-              if (margenEspecial >= 70) {
-                probBaseSalir = 0.95;
-              } else if (margenEspecial >= 50) {
-                probBaseSalir = 0.90 + (margenEspecial - 50) * 0.0025;
-              } else if (margenEspecial >= 30) {
-                probBaseSalir = 0.82 + (margenEspecial - 30) * 0.004;
-              } else if (margenEspecial >= 15) {
-                probBaseSalir = 0.70 + (margenEspecial - 15) * 0.008;
-              } else if (margenEspecial >= 5) {
-                probBaseSalir = 0.58 + (margenEspecial - 5) * 0.012;
+              if (margenEspecial >= 100) {
+                probBaseSalir = 0.88;
+              } else if (margenEspecial >= 80) {
+                probBaseSalir = 0.82 + (margenEspecial - 80) * 0.003;
+              } else if (margenEspecial >= 60) {
+                probBaseSalir = 0.75 + (margenEspecial - 60) * 0.0035;
+              } else if (margenEspecial >= 40) {
+                probBaseSalir = 0.65 + (margenEspecial - 40) * 0.005;
+              } else if (margenEspecial >= 20) {
+                probBaseSalir = 0.55 + (margenEspecial - 20) * 0.005;
+              } else if (margenEspecial >= 10) {
+                probBaseSalir = 0.48 + (margenEspecial - 10) * 0.007;
               } else if (margenEspecial >= 0) {
-                probBaseSalir = 0.52 + margenEspecial * 0.012;
+                probBaseSalir = 0.42 + margenEspecial * 0.006;
               } else {
-                probBaseSalir = 0.45;
+                probBaseSalir = 0.35;
               }
             } else {
               // Caso normal: no sale y no esta justo detras
               var cobertura = demandaEventuales / Math.max(1, distanciaNecesaria);
 
               if (cobertura >= 0.95) {
-                probBaseSalir = 0.40 + (cobertura - 0.95) * 2; // 40-50%
+                probBaseSalir = 0.35 + (cobertura - 0.95) * 1.5; // 35-42%
               } else if (cobertura >= 0.8) {
-                probBaseSalir = 0.25 + (cobertura - 0.8) * 1; // 25-40%
+                probBaseSalir = 0.22 + (cobertura - 0.8) * 0.87; // 22-35%
               } else if (cobertura >= 0.5) {
-                probBaseSalir = 0.10 + (cobertura - 0.5) * 0.5; // 10-25%
+                probBaseSalir = 0.10 + (cobertura - 0.5) * 0.4; // 10-22%
               } else if (cobertura >= 0.2) {
                 probBaseSalir = 0.03 + (cobertura - 0.2) * 0.23; // 3-10%
               } else {
@@ -6199,6 +6204,9 @@ async function loadCalculadora() {
           if (esSegundaVueltaCenso) {
             probBaseSalir = probBaseSalir * 0.4;
           }
+
+          // IMPORTANTE: Asegurar que probBaseSalir este siempre en rango valido [0, 0.99]
+          probBaseSalir = Math.max(0, Math.min(0.99, probBaseSalir));
 
           // Guardar datos de esta jornada
           puntuacionesJornadas.push({
@@ -6238,15 +6246,19 @@ async function loadCalculadora() {
             continue;
           }
 
-          // AJUSTE: Si la jornada anterior tenia alta probabilidad (>=70%),
-          // y no saliste en ella, es MUY probable que salgas en esta (la siguiente).
+          // AJUSTE: Si la jornada anterior tenia alta probabilidad (>=65%),
+          // y no saliste en ella, es mas probable que salgas en esta (la siguiente).
           // La probabilidad residual debe ir principalmente a la jornada inmediata.
           var probBaseSalirAjustada = datos.probBaseSalir;
           if (jornadaAnteriorTeniaAltaProb) {
-            // Si no saliste en una jornada con alta prob, casi seguro sales en la siguiente
-            // Aumentar la probBase de esta jornada para capturar el residuo
-            probBaseSalirAjustada = Math.max(datos.probBaseSalir, 0.85);
+            // Si no saliste en una jornada con alta prob, aumentar ligeramente esta
+            // pero no tanto como para distorsionar los resultados
+            probBaseSalirAjustada = Math.max(datos.probBaseSalir, 0.60);
           }
+
+          // IMPORTANTE: Asegurar que probBaseSalirAjustada este en rango valido [0, 0.99]
+          // para evitar valores negativos en probAcumuladaNoSalir
+          probBaseSalirAjustada = Math.max(0, Math.min(0.99, probBaseSalirAjustada));
 
           // Probabilidad de salir en esta jornada =
           // P(no salir antes) * P(salir en esta jornada)
@@ -6255,8 +6267,11 @@ async function loadCalculadora() {
           // Actualizar probabilidad acumulada de no salir
           probAcumuladaNoSalir = probAcumuladaNoSalir * (1 - probBaseSalirAjustada);
 
+          // Asegurar que nunca sea negativo (por errores de precision)
+          probAcumuladaNoSalir = Math.max(0, probAcumuladaNoSalir);
+
           // Marcar si esta jornada tiene alta probabilidad para la siguiente iteracion
-          jornadaAnteriorTeniaAltaProb = (datos.probBaseSalir >= 0.70);
+          jornadaAnteriorTeniaAltaProb = (datos.probBaseSalir >= 0.65);
 
           probabilidadesFinales.push({
             datos: datos,
@@ -6268,12 +6283,25 @@ async function loadCalculadora() {
         // La probabilidad de no trabajar es la probabilidad de no salir en ninguna
         var probNoTrabajar = probAcumuladaNoSalir;
 
-        // Normalizar para que sumen 100% (por redondeos)
+        // NO normalizar agresivamente - usar las probabilidades reales
+        // Solo normalizar si la suma es muy diferente de 1 (por errores)
         var sumaProbs = probNoTrabajar;
         for (var j = 0; j < probabilidadesFinales.length; j++) {
           if (!probabilidadesFinales[j].sinDatos) {
             sumaProbs += probabilidadesFinales[j].probabilidad;
           }
+        }
+
+        // Solo normalizar si hay una desviacion significativa (>5%) de 1.0
+        // Esto evita que la normalizacion infle artificialmente las probabilidades
+        var debeNormalizar = (sumaProbs < 0.95 || sumaProbs > 1.05);
+        if (!debeNormalizar) {
+          sumaProbs = 1; // Usar valores sin normalizar
+        }
+
+        // Proteger contra sumaProbs muy pequena o invalida
+        if (sumaProbs < 0.001 || isNaN(sumaProbs)) {
+          sumaProbs = 1;
         }
 
         // Convertir a porcentajes
@@ -6291,6 +6319,9 @@ async function loadCalculadora() {
 
           // Calcular probabilidad normalizada como porcentaje
           var probabilidad = Math.round((item.probabilidad / sumaProbs) * 100);
+
+          // Asegurar que el porcentaje este en rango valido [0, 100]
+          probabilidad = Math.max(0, Math.min(100, probabilidad));
 
           // Determinar clase y mensaje segun rangos:
           // 80-100: Calienta que sales (verde claro)
@@ -6333,6 +6364,9 @@ async function loadCalculadora() {
 
         // Calcular probabilidad de no trabajar (ya calculada arriba, convertir a porcentaje)
         var probNoTrabajarPct = Math.round((probNoTrabajar / sumaProbs) * 100);
+
+        // Asegurar que el porcentaje de no trabajar este en rango valido [0, 100]
+        probNoTrabajarPct = Math.max(0, Math.min(100, probNoTrabajarPct));
 
         // Resumen del dia
         var resumenMensaje = '';
