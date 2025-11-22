@@ -5941,6 +5941,7 @@ async function loadCalculadora() {
         }
 
         // Funcion para calcular distancia efectiva hasta usuario (solo disponibles)
+        // Retorna tambien si el usuario esta "justo detras" de la puerta (la puerta lo acaba de pasar)
         function calcularDistanciaEfectiva(puerta, usuario) {
           if (usuario > puerta) {
             // Usuario esta delante
@@ -5952,6 +5953,23 @@ async function loadCalculadora() {
             // Misma posicion
             return 0;
           }
+        }
+
+        // Funcion para detectar si el usuario esta "justo detras" de la puerta
+        // Es decir, la puerta acaba de pasar al usuario (diferencia pequena en sentido circular)
+        function usuarioJustoDetras(puerta, usuario, umbral) {
+          umbral = umbral || 10; // Por defecto, considerar "justo detras" si esta a menos de 10 posiciones
+          if (usuario < puerta) {
+            // Usuario detras de la puerta en el mismo ciclo
+            var distanciaDirecta = puerta - usuario;
+            return distanciaDirecta <= umbral;
+          } else if (usuario > puerta) {
+            // Usuario delante, verificar si la puerta acaba de dar la vuelta
+            // ej: puerta en 5, usuario en 440, la puerta paso de 443 a 1
+            var distanciaVuelta = (limiteFin - usuario) + (puerta - limiteInicio) + 1;
+            return distanciaVuelta <= umbral;
+          }
+          return true; // Misma posicion
         }
 
         // Funcion para verificar si el usuario sale contratado
@@ -6088,46 +6106,104 @@ async function loadCalculadora() {
             margen = demandaEventuales - distanciaNecesaria;
           }
 
-          // Calcular puntuacion (no probabilidad aun) basada en el margen
-          // Usamos una funcion suave que considera:
-          // - Si sale: puntuacion alta
-          // - Si no sale: puntuacion basada en que tan cerca queda
-          var puntuacion;
+          // Calcular probabilidad BASE de salir en esta jornada (0 a 1)
+          // Usamos una funcion suave basada en el margen
+          var probBaseSalir;
+
+          // Detectar si es DOBLE TURNO REAL (segunda vuelta del censo en el dia)
+          // Esto ocurre cuando la puerta ya ha recorrido todo el censo una vez
+          // y vuelve a pasar por las mismas posiciones
+          var esSegundaVueltaCenso = vuelta >= 3;
+
+          // CASO ESPECIAL: Si el usuario esta "justo detras" de la puerta al inicio de esta jornada,
+          // significa que en jornadas anteriores la puerta paso justo por delante del usuario.
+          // En este caso, la demanda de esta jornada lo alcanzara casi seguro.
+          var estaJustoDetras = usuarioJustoDetras(puertaAntes, posUsuarioCalc, 15);
+          var distanciaDirectaDetras = 0;
+          if (posUsuarioCalc < puertaAntes) {
+            distanciaDirectaDetras = puertaAntes - posUsuarioCalc;
+          }
+
           if (saleContratado) {
-            // AJUSTE PARA OC: Ser más estricto cuando el margen es pequeño
-            if (esUsuarioOC && margen <= 3) {
-              // Si el margen es muy pequeño (≤3), reducir puntuación base
-              puntuacion = 28 + Math.min(20, margen * 3);
+            // Sale contratado: probabilidad modulada por el margen
+            // Ajustado para ser menos categorico con margenes grandes
+            // y mas cercano a 50/50 con margenes pequeños
+            if (margen >= 70) {
+              probBaseSalir = 0.95; // Margen muy amplio pero no 98%
+            } else if (margen >= 50) {
+              probBaseSalir = 0.90 + (margen - 50) * 0.0025; // 90-95%
+            } else if (margen >= 30) {
+              probBaseSalir = 0.82 + (margen - 30) * 0.004; // 82-90%
+            } else if (margen >= 15) {
+              probBaseSalir = 0.70 + (margen - 15) * 0.008; // 70-82%
+            } else if (margen >= 5) {
+              probBaseSalir = 0.58 + (margen - 5) * 0.012; // 58-70%
+            } else if (margen >= 0) {
+              probBaseSalir = 0.52 + margen * 0.012; // 52-58%
             } else {
-              // Base alta + bonus por margen (maximo ~70 puntos)
-              puntuacion = 35 + Math.min(35, margen * 1.2);
+              probBaseSalir = 0.50; // Justo en el limite
+            }
+            // Ajuste para OC con margen pequeño
+            if (esUsuarioOC && margen <= 3) {
+              probBaseSalir = Math.min(probBaseSalir, 0.55 + margen * 0.03);
             }
           } else {
-            // Puntuacion basada en proporcion de cobertura
-            // Si demanda cubre 90% de la distancia = puntuacion alta
-            // Si demanda cubre 10% = puntuacion baja
-            var faltante = Math.abs(margen);
-            var cobertura = demandaEventuales / Math.max(1, distanciaNecesaria);
+            // No sale contratado segun la simulacion directa
 
-            if (cobertura >= 0.8) {
-              // Muy cerca, alta probabilidad de variacion
-              puntuacion = 25 + (cobertura - 0.8) * 50;
-            } else if (cobertura >= 0.5) {
-              // Cerca, probabilidad media
-              puntuacion = 15 + (cobertura - 0.5) * 33;
-            } else if (cobertura >= 0.2) {
-              // Lejos pero posible
-              puntuacion = 8 + (cobertura - 0.2) * 23;
+            // CASO ESPECIAL: Si el usuario esta justo detras de la puerta,
+            // la demanda de esta jornada lo alcanzara muy probablemente
+            if (estaJustoDetras && distanciaDirectaDetras > 0 && distanciaDirectaDetras <= demandaEventuales) {
+              // El usuario esta a pocas posiciones detras y la demanda es suficiente
+              // Usar la misma escala que cuando sale contratado
+              var margenEspecial = demandaEventuales - distanciaDirectaDetras;
+              if (margenEspecial >= 70) {
+                probBaseSalir = 0.95;
+              } else if (margenEspecial >= 50) {
+                probBaseSalir = 0.90 + (margenEspecial - 50) * 0.0025;
+              } else if (margenEspecial >= 30) {
+                probBaseSalir = 0.82 + (margenEspecial - 30) * 0.004;
+              } else if (margenEspecial >= 15) {
+                probBaseSalir = 0.70 + (margenEspecial - 15) * 0.008;
+              } else if (margenEspecial >= 5) {
+                probBaseSalir = 0.58 + (margenEspecial - 5) * 0.012;
+              } else if (margenEspecial >= 0) {
+                probBaseSalir = 0.52 + margenEspecial * 0.012;
+              } else {
+                probBaseSalir = 0.45;
+              }
             } else {
-              // Muy lejos
-              puntuacion = Math.max(2, cobertura * 40);
+              // Caso normal: no sale y no esta justo detras
+              var cobertura = demandaEventuales / Math.max(1, distanciaNecesaria);
+
+              if (cobertura >= 0.95) {
+                probBaseSalir = 0.40 + (cobertura - 0.95) * 2; // 40-50%
+              } else if (cobertura >= 0.8) {
+                probBaseSalir = 0.25 + (cobertura - 0.8) * 1; // 25-40%
+              } else if (cobertura >= 0.5) {
+                probBaseSalir = 0.10 + (cobertura - 0.5) * 0.5; // 10-25%
+              } else if (cobertura >= 0.2) {
+                probBaseSalir = 0.03 + (cobertura - 0.2) * 0.23; // 3-10%
+              } else {
+                probBaseSalir = Math.max(0.01, cobertura * 0.15); // 0-3%
+              }
             }
+          }
+
+          // IMPORTANTE: Dar prioridad a la jornada inmediatamente siguiente
+          // Si esta NO es la primera jornada y hay probabilidad residual de jornadas anteriores,
+          // esta jornada (la siguiente) deberia capturar la mayor parte de esa probabilidad.
+          // Guardamos el indice para aplicar este ajuste despues del bucle
+
+          // Penalizar si es segunda vuelta del censo (doble turno opcional)
+          // En segunda vuelta, aproximadamente 50% de la gente esta disponible
+          if (esSegundaVueltaCenso) {
+            probBaseSalir = probBaseSalir * 0.4;
           }
 
           // Guardar datos de esta jornada
           puntuacionesJornadas.push({
             jornada: jornada,
-            puntuacion: puntuacion,
+            probBaseSalir: probBaseSalir,
             sinDatos: false,
             puertaAntes: puertaAntes,
             puertaDespues: puertaPrevista,
@@ -6139,82 +6215,82 @@ async function loadCalculadora() {
           });
         }
 
-        // Calcular puntuacion de "no trabajar" basada en si la puerta rebasa al usuario
-        var puntuacionNoTrabajar = 2; // Base minima
-        if (puntuacionesJornadas.length > 0) {
-          // Verificar si el usuario sale contratado en alguna jornada
-          var saleEnAlguna = false;
-          var ultimaJornadaValida = null;
+        // NUEVO SISTEMA: Probabilidades condicionales
+        // La probabilidad de cada jornada depende de NO haber salido en las anteriores
+        // P(J1) = probBase_J1
+        // P(J2) = (1 - P(J1)) * probBase_J2_ajustada
+        // P(J3) = (1 - P(J1)) * (1 - P(J2|no J1)) * probBase_J3_ajustada
+        // P(NoTrabajar) = producto de (1 - P(Ji)) para todas las jornadas
 
-          for (var k = 0; k < puntuacionesJornadas.length; k++) {
-            if (!puntuacionesJornadas[k].sinDatos) {
-              ultimaJornadaValida = puntuacionesJornadas[k];
-              if (puntuacionesJornadas[k].saleContratado) {
-                saleEnAlguna = true;
-              }
-            }
-          }
-
-          if (saleEnAlguna) {
-            // Si sale en alguna jornada, probabilidad de no trabajar muy baja
-            puntuacionNoTrabajar = 2;
-          } else if (ultimaJornadaValida) {
-            // Si no sale en ninguna, ver que tan lejos queda
-            var faltanteTotal = Math.abs(ultimaJornadaValida.margen);
-            var coberturaTotal = ultimaJornadaValida.demandaEventuales / Math.max(1, ultimaJornadaValida.distanciaNecesaria);
-
-            // Calcular cobertura acumulada de todas las jornadas
-            var demandaAcumuladaTotal = 0;
-            var distanciaInicial = 0;
-            if (puntuacionesJornadas.length > 0 && !puntuacionesJornadas[0].sinDatos) {
-              distanciaInicial = calcularDistanciaEfectiva(puertaActual, posUsuarioCalc);
-            }
-            for (var k = 0; k < puntuacionesJornadas.length; k++) {
-              if (!puntuacionesJornadas[k].sinDatos) {
-                demandaAcumuladaTotal += puntuacionesJornadas[k].demandaEventuales;
-              }
-            }
-
-            var coberturaAcumulada = demandaAcumuladaTotal / Math.max(1, distanciaInicial);
-
-            if (coberturaAcumulada >= 1) {
-              // La demanda total cubre la distancia, muy probable que trabaje
-              puntuacionNoTrabajar = Math.max(2, 8 - (coberturaAcumulada - 1) * 5);
-            } else if (coberturaAcumulada >= 0.8) {
-              // Casi cubre, baja probabilidad de no trabajar
-              puntuacionNoTrabajar = 10;
-            } else if (coberturaAcumulada >= 0.5) {
-              // Cubre la mitad
-              puntuacionNoTrabajar = 20;
-            } else {
-              // Cubre poco
-              puntuacionNoTrabajar = Math.min(40, 30 + (1 - coberturaAcumulada) * 20);
-            }
-          }
-        }
-
-        // Calcular suma total de puntuaciones
-        var sumaPuntuaciones = puntuacionNoTrabajar;
-        for (var j = 0; j < puntuacionesJornadas.length; j++) {
-          if (!puntuacionesJornadas[j].sinDatos) {
-            sumaPuntuaciones += puntuacionesJornadas[j].puntuacion;
-          }
-        }
-
-        // Normalizar a 100%
-        var mejorJornada = null;
-        var mejorProbabilidad = 0;
+        var probabilidadesFinales = [];
+        var probAcumuladaNoSalir = 1.0; // Probabilidad de no haber salido aun
+        var jornadaAnteriorTeniaAltaProb = false; // Para dar prioridad a la siguiente
 
         for (var j = 0; j < puntuacionesJornadas.length; j++) {
           var datos = puntuacionesJornadas[j];
 
           if (datos.sinDatos) {
+            probabilidadesFinales.push({
+              datos: datos,
+              probabilidad: 0,
+              sinDatos: true
+            });
+            continue;
+          }
+
+          // AJUSTE: Si la jornada anterior tenia alta probabilidad (>=70%),
+          // y no saliste en ella, es MUY probable que salgas en esta (la siguiente).
+          // La probabilidad residual debe ir principalmente a la jornada inmediata.
+          var probBaseSalirAjustada = datos.probBaseSalir;
+          if (jornadaAnteriorTeniaAltaProb) {
+            // Si no saliste en una jornada con alta prob, casi seguro sales en la siguiente
+            // Aumentar la probBase de esta jornada para capturar el residuo
+            probBaseSalirAjustada = Math.max(datos.probBaseSalir, 0.85);
+          }
+
+          // Probabilidad de salir en esta jornada =
+          // P(no salir antes) * P(salir en esta jornada)
+          var probEstaJornada = probAcumuladaNoSalir * probBaseSalirAjustada;
+
+          // Actualizar probabilidad acumulada de no salir
+          probAcumuladaNoSalir = probAcumuladaNoSalir * (1 - probBaseSalirAjustada);
+
+          // Marcar si esta jornada tiene alta probabilidad para la siguiente iteracion
+          jornadaAnteriorTeniaAltaProb = (datos.probBaseSalir >= 0.70);
+
+          probabilidadesFinales.push({
+            datos: datos,
+            probabilidad: probEstaJornada,
+            sinDatos: false
+          });
+        }
+
+        // La probabilidad de no trabajar es la probabilidad de no salir en ninguna
+        var probNoTrabajar = probAcumuladaNoSalir;
+
+        // Normalizar para que sumen 100% (por redondeos)
+        var sumaProbs = probNoTrabajar;
+        for (var j = 0; j < probabilidadesFinales.length; j++) {
+          if (!probabilidadesFinales[j].sinDatos) {
+            sumaProbs += probabilidadesFinales[j].probabilidad;
+          }
+        }
+
+        // Convertir a porcentajes
+        var mejorJornada = null;
+        var mejorProbabilidad = 0;
+
+        for (var j = 0; j < probabilidadesFinales.length; j++) {
+          var item = probabilidadesFinales[j];
+          var datos = item.datos;
+
+          if (item.sinDatos) {
             resultadosHTML += '<div class="calc-resultado-item probability-none"><div class="resultado-header"><span class="resultado-jornada">' + datos.jornada.nombre + '</span></div><div class="resultado-mensaje">Sin datos</div><div class="resultado-detalle">Introduce la demanda</div></div>';
             continue;
           }
 
-          // Calcular probabilidad normalizada
-          var probabilidad = Math.round((datos.puntuacion / sumaPuntuaciones) * 100);
+          // Calcular probabilidad normalizada como porcentaje
+          var probabilidad = Math.round((item.probabilidad / sumaProbs) * 100);
 
           // Determinar clase y mensaje segun rangos:
           // 80-100: Calienta que sales (verde claro)
@@ -6255,8 +6331,8 @@ async function loadCalculadora() {
           resultadosHTML += '<div class="calc-resultado-item ' + clase + '"><div class="resultado-header"><span class="resultado-jornada">' + datos.jornada.nombre + '</span><span class="resultado-prob">' + probabilidad + '%</span></div><div class="resultado-mensaje">' + mensaje + '</div><div class="resultado-posicion">' + infoPos + ' | Demanda: ' + datos.demandaEventuales + '</div></div>';
         }
 
-        // Calcular probabilidad de no trabajar
-        var probNoTrabajar = Math.round((puntuacionNoTrabajar / sumaPuntuaciones) * 100);
+        // Calcular probabilidad de no trabajar (ya calculada arriba, convertir a porcentaje)
+        var probNoTrabajarPct = Math.round((probNoTrabajar / sumaProbs) * 100);
 
         // Resumen del dia
         var resumenMensaje = '';
@@ -6265,11 +6341,11 @@ async function loadCalculadora() {
         } else if (mejorProbabilidad >= 15) {
           resumenMensaje = 'Posibilidades en: ' + mejorJornada + ' (' + mejorProbabilidad + '%)';
         } else {
-          resumenMensaje = 'Hoy lo tienes dificil (' + probNoTrabajar + '% no trabajar)';
+          resumenMensaje = 'Hoy lo tienes dificil (' + probNoTrabajarPct + '% no trabajar)';
         }
 
         // Mostrar posicion REAL del usuario (no relativa)
-        var resumenHTML = '<div class="calc-resumen-dia"><div class="resumen-titulo">Resumen del dia</div><div class="resumen-mensaje">' + resumenMensaje + '</div><div class="resumen-posicion">Tu posicion: ' + posicionUsuario + ' | Puerta actual: ' + puertaActual + ' | No trabajar: ' + probNoTrabajar + '%</div></div>';
+        var resumenHTML = '<div class="calc-resumen-dia"><div class="resumen-titulo">Resumen del dia</div><div class="resumen-mensaje">' + resumenMensaje + '</div><div class="resumen-posicion">Tu posicion: ' + posicionUsuario + ' | Puerta actual: ' + puertaActual + ' | No trabajar: ' + probNoTrabajarPct + '%</div></div>';
 
         resultadoDiv.innerHTML = resumenHTML + resultadosHTML;
         resultadoDiv.classList.remove('hidden');
