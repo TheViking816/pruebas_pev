@@ -663,13 +663,15 @@
   </div>
 
   <!-- Modal para configuración de usuario (Nombre y Contraseña) -->
-  <div id="change-password-modal" class="modal-overlay" style="display: none;" role="dialog" aria-modal="true" aria-labelledby="change-password-title">
-    <div class="modal-content">
+  <div id="change-password-modal" class="modal-overlay" style="display: none;" role="dialog" aria-modal="true" aria-labelledby="config-modal-title">
+    <div class="modal-content" style="max-height: 90vh; overflow-y: auto;">
+      <!-- Botón de cerrar único para todo el modal -->
+      <button id="close-config-modal" class="modal-close" type="button" aria-label="Cerrar" style="position: absolute; top: 1rem; right: 1rem; z-index: 10;">&times;</button>
+
       <!-- Sección para actualizar nombre -->
       <div id="update-name-section" style="border-bottom: 2px solid #e5e7eb; padding-bottom: 1.5rem; margin-bottom: 1.5rem;">
-        <div class="modal-header">
-          <h3>Actualizar mi nombre</h3>
-          <button id="close-name-modal" class="modal-close" type="button" aria-label="Cerrar">&times;</button>
+        <div class="modal-header" style="border-bottom: none; padding-bottom: 0;">
+          <h3 id="config-modal-title">Actualizar mi nombre</h3>
         </div>
         <div class="modal-body">
           <div class="form-group">
@@ -688,9 +690,8 @@
 
       <!-- Sección para cambiar contraseña -->
       <form id="change-password-form" onsubmit="return false;">
-        <div class="modal-header">
+        <div class="modal-header" style="border-bottom: none; padding-bottom: 0;">
           <h3 id="change-password-title">Cambiar Contraseña</h3>
-          <button id="close-password-modal" class="modal-close" type="button" aria-label="Cerrar">&times;</button>
         </div>
         <div class="modal-body">
           <!-- Campo de username oculto para gestores de contraseñas -->

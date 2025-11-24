@@ -397,12 +397,13 @@ function setupEventListeners() {
     changePasswordBtn.addEventListener('click', openChangePasswordModal);
   }
 
-  // Modal de cambiar nombre
-  const closeNameModal = document.getElementById('close-name-modal');
-  if (closeNameModal) {
-    closeNameModal.addEventListener('click', closeChangePasswordModal);
+  // Modal de configuración (nombre y contraseña)
+  const closeConfigModal = document.getElementById('close-config-modal');
+  if (closeConfigModal) {
+    closeConfigModal.addEventListener('click', closeChangePasswordModal);
   }
 
+  // Sección de cambiar nombre
   const cancelNameChange = document.getElementById('cancel-name-change');
   if (cancelNameChange) {
     cancelNameChange.addEventListener('click', closeChangePasswordModal);
@@ -413,12 +414,7 @@ function setupEventListeners() {
     saveUserNameBtn.addEventListener('click', handleSaveUserName);
   }
 
-  // Modal de cambiar contraseña
-  const closePasswordModal = document.getElementById('close-password-modal');
-  if (closePasswordModal) {
-    closePasswordModal.addEventListener('click', closeChangePasswordModal);
-  }
-
+  // Sección de cambiar contraseña
   const cancelPasswordChange = document.getElementById('cancel-password-change');
   if (cancelPasswordChange) {
     cancelPasswordChange.addEventListener('click', closeChangePasswordModal);
