@@ -12,7 +12,8 @@
       "Bash(xxd:*)",
       "WebFetch(domain:script.google.com)",
       "WebFetch(domain:script.googleusercontent.com)",
-      "Bash(curl:*)"
+      "Bash(curl:*)",
+      "Bash(git add:*)"
     ],
     "deny": [],
     "ask": []
