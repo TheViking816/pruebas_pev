@@ -666,11 +666,12 @@
   <div id="change-password-modal" class="modal-overlay" style="display: none;" role="dialog" aria-modal="true" aria-labelledby="change-password-title">
     <div class="modal-content">
       <!-- Sección para actualizar nombre -->
-      <div id="update-name-section" style="border-bottom: 1px solid #e5e7eb; padding-bottom: 1rem; margin-bottom: 1rem;">
-        <div class="modal-header" style="padding-bottom: 0.5rem;">
-          <h3 style="font-size: 1.1rem; color: #1f2937;">Actualizar mi nombre</h3>
+      <div id="update-name-section" style="border-bottom: 2px solid #e5e7eb; padding-bottom: 1.5rem; margin-bottom: 1.5rem;">
+        <div class="modal-header">
+          <h3>Actualizar mi nombre</h3>
+          <button id="close-name-modal" class="modal-close" type="button" aria-label="Cerrar">&times;</button>
         </div>
-        <div class="modal-body" style="padding: 0.5rem 0;">
+        <div class="modal-body">
           <div class="form-group">
             <label for="user-name-input">Nombre para mostrar</label>
             <input type="text" id="user-name-input" placeholder="Ej: Juan García" maxlength="50">
@@ -678,7 +679,10 @@
           </div>
           <p id="name-change-error" class="error-message" role="alert" aria-live="polite"></p>
           <p id="name-change-success" class="success-message" role="status" aria-live="polite"></p>
-          <button id="save-user-name" class="btn-primary" type="button" style="width: 100%; margin-top: 0.5rem;">Guardar Nombre</button>
+        </div>
+        <div class="modal-footer">
+          <button id="cancel-name-change" class="btn-secondary" type="button">Cancelar</button>
+          <button id="save-user-name" class="btn-primary" type="button">Guardar Nombre</button>
         </div>
       </div>
 

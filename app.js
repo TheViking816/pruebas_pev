@@ -397,6 +397,22 @@ function setupEventListeners() {
     changePasswordBtn.addEventListener('click', openChangePasswordModal);
   }
 
+  // Modal de cambiar nombre
+  const closeNameModal = document.getElementById('close-name-modal');
+  if (closeNameModal) {
+    closeNameModal.addEventListener('click', closeChangePasswordModal);
+  }
+
+  const cancelNameChange = document.getElementById('cancel-name-change');
+  if (cancelNameChange) {
+    cancelNameChange.addEventListener('click', closeChangePasswordModal);
+  }
+
+  const saveUserNameBtn = document.getElementById('save-user-name');
+  if (saveUserNameBtn) {
+    saveUserNameBtn.addEventListener('click', handleSaveUserName);
+  }
+
   // Modal de cambiar contraseña
   const closePasswordModal = document.getElementById('close-password-modal');
   if (closePasswordModal) {
@@ -411,12 +427,6 @@ function setupEventListeners() {
   const confirmPasswordChange = document.getElementById('confirm-password-change');
   if (confirmPasswordChange) {
     confirmPasswordChange.addEventListener('click', handlePasswordChange);
-  }
-
-  // Botón guardar nombre de usuario
-  const saveUserNameBtn = document.getElementById('save-user-name');
-  if (saveUserNameBtn) {
-    saveUserNameBtn.addEventListener('click', handleSaveUserName);
   }
 
   // Navegación del sidebar
