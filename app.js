@@ -826,6 +826,14 @@ function openChangePasswordModal() {
   if (modal) {
     modal.style.display = 'flex';
 
+    // Asegurar que el botón de cerrar sea visible
+    const closeBtn = document.getElementById('close-config-modal');
+    if (closeBtn) {
+      closeBtn.style.display = 'block';
+      closeBtn.style.visibility = 'visible';
+      closeBtn.style.opacity = '1';
+    }
+
     // Rellenar campo de username oculto para gestores de contraseñas
     const usernameField = document.getElementById('change-password-username');
     if (usernameField && AppState.currentUser) {

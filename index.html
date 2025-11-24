@@ -664,14 +664,14 @@
 
   <!-- Modal para configuración de usuario (Nombre y Contraseña) -->
   <div id="change-password-modal" class="modal-overlay" style="display: none;" role="dialog" aria-modal="true" aria-labelledby="config-modal-title">
-    <div class="modal-content" style="max-height: 90vh; overflow-y: auto;">
+    <div class="modal-content" style="max-height: 90vh; overflow-y: auto; position: relative;">
       <!-- Botón de cerrar único para todo el modal -->
-      <button id="close-config-modal" class="modal-close" type="button" aria-label="Cerrar" style="position: absolute; top: 1rem; right: 1rem; z-index: 10;">&times;</button>
+      <button id="close-config-modal" class="modal-close" type="button" aria-label="Cerrar" style="position: absolute !important; top: 1rem !important; right: 1rem !important; z-index: 1000 !important; display: block !important;">&times;</button>
 
       <!-- Sección para actualizar nombre -->
-      <div id="update-name-section" style="border-bottom: 2px solid #e5e7eb; padding-bottom: 1.5rem; margin-bottom: 1.5rem;">
-        <div class="modal-header" style="border-bottom: none; padding-bottom: 0;">
-          <h3 id="config-modal-title">Actualizar mi nombre</h3>
+      <div id="update-name-section" style="border-bottom: 2px solid #e5e7eb; padding-bottom: 1.5rem; margin-bottom: 1.5rem; padding-top: 1rem;">
+        <div class="modal-header" style="border-bottom: none; padding-bottom: 0; padding-top: 0;">
+          <h3 id="config-modal-title" style="padding-right: 3rem;">Actualizar mi nombre</h3>
         </div>
         <div class="modal-body">
           <div class="form-group">
