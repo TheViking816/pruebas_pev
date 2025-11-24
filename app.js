@@ -5588,6 +5588,190 @@ window.updateStepper = function(inputId, change) {
   }
 };
 
+// Funcion para parsear HTML de prevision de demanda de Noray
+function parsePrevisionDemandaHTML(html) {
+  var demandas = {
+    '08-14': { gruas: 0, coches: 0 },
+    '14-20': { gruas: 0, coches: 0 },
+    '20-02': { gruas: 0, coches: 0 }
+  };
+
+  // Normalizar el HTML para facilitar el parsing
+  var htmlNorm = html.replace(/&nbsp;?/gi, ' ').replace(/\s+/g, ' ');
+
+  // Buscar las secciones de cada jornada usando los marcadores de jornada
+  // Formato: TDazul>08/14 H o similar
+  var jornada0814Match = htmlNorm.match(/TDazul[^>]*>\s*0?8[\/-]14[^]*?(?:TDverde|class\s*=\s*['"]?TDverde)/i);
+  var jornada1420Match = htmlNorm.match(/TDverde[^>]*>\s*14[\/-]20[^]*?(?:TDrojo|class\s*=\s*['"]?TDrojo)/i);
+  var jornada2002Match = htmlNorm.match(/TDrojo[^>]*>\s*20[\/-]0?2[^]*?(?:<\/TABLE>|Equipos\s+Previstos|$)/i);
+
+  // Funcion auxiliar para extraer gruas de una seccion
+  function extractGruas(seccion) {
+    if (!seccion) return 0;
+
+    // Patron 1: GRUAS seguido de celdas TD y un TH con el valor de ASIGNADOS
+    // El valor de ASIGNADOS esta en <Th> despues de varias <TD>
+    var gruasMatch = seccion.match(/GRUAS[^T]*(?:<TD[^>]*>[^<]*)+<Th[^>]*>(\d+)/i);
+    if (gruasMatch) {
+      return parseInt(gruasMatch[1]) || 0;
+    }
+
+    // Patron 2: buscar GRUAS y luego el TH mas cercano con un numero
+    var altMatch = seccion.match(/GRUAS[^]*?<Th[^>]*>(\d+)/i);
+    if (altMatch) {
+      return parseInt(altMatch[1]) || 0;
+    }
+
+    // Patron 3: buscar la fila completa de GRUAS (formato de la tabla real)
+    // TR con GRUAS, luego columnas de numeros, y el valor en negrita/Th
+    var rowMatch = seccion.match(/GRUAS<TD[^>]*>(\d*)<TD[^>]*>(\d*)<TD[^>]*>(\d*)<TD[^>]*>(\d*)<TD[^>]*>(\d*)<Th[^>]*>(\d+)/i);
+    if (rowMatch) {
+      return parseInt(rowMatch[6]) || 0;
+    }
+
+    return 0;
+  }
+
+  // Funcion auxiliar para extraer coches (GRUPO III con ROLON) de una seccion
+  function extractCoches(seccion) {
+    if (!seccion) return 0;
+
+    // Buscar fila de GRUPO III - el ROLON es la 4ta columna de numeros despues del nombre
+    // GRUPO III <TD>CONT <TD>LO-LO <TD>GRANEL <TD>ROLON <TD>R/E <Th>ASIGNADOS
+    var grupo3Match = seccion.match(/GRUPO\s*III<TD[^>]*>(\d*)<TD[^>]*>(\d*)<TD[^>]*>(\d*)<TD[^>]*>(\d*)/i);
+    if (grupo3Match) {
+      // grupo3Match[4] es ROLON
+      return parseInt(grupo3Match[4]) || 0;
+    }
+
+    // Alternativa: buscar cualquier numero en columna ROLON despues de GRUPO III
+    var altMatch = seccion.match(/GRUPO\s*III[^G]*?GRANEL[^<]*<TD[^>]*>(\d*)/i);
+    if (altMatch) {
+      return parseInt(altMatch[1]) || 0;
+    }
+
+    return 0;
+  }
+
+  demandas['08-14'].gruas = extractGruas(jornada0814Match ? jornada0814Match[0] : '');
+  demandas['08-14'].coches = extractCoches(jornada0814Match ? jornada0814Match[0] : '');
+
+  demandas['14-20'].gruas = extractGruas(jornada1420Match ? jornada1420Match[0] : '');
+  demandas['14-20'].coches = extractCoches(jornada1420Match ? jornada1420Match[0] : '');
+
+  demandas['20-02'].gruas = extractGruas(jornada2002Match ? jornada2002Match[0] : '');
+  demandas['20-02'].coches = extractCoches(jornada2002Match ? jornada2002Match[0] : '');
+
+  console.log('Demandas parseadas localmente:', demandas);
+  return demandas;
+}
+
+// Funcion para parsear HTML del chapero (fijos no contratados)
+function parseChaperoHTML(html) {
+  // Buscar "No contratado (XXX)" en el HTML
+  var noContratadoMatch = html.match(/No\s*contratado\s*\((\d+)\)/i);
+  if (noContratadoMatch) {
+    return parseInt(noContratadoMatch[1]) || 0;
+  }
+
+  // Alternativa: contar elementos con clase 'nocontratado' y fondo chapab.jpg
+  var countMatch = html.match(/background='imagenes\/chapab\.jpg'/gi);
+  if (countMatch) {
+    return countMatch.length;
+  }
+
+  return 0;
+}
+
+// Funcion para mostrar el modal de carga manual de datos Noray
+function mostrarModalCargarNoray() {
+  var modal = document.getElementById('modal-noray');
+  if (!modal) {
+    modal = document.createElement('div');
+    modal.id = 'modal-noray';
+    modal.className = 'modal-overlay';
+    modal.innerHTML = '<div class="modal-content" style="max-width: 500px;">' +
+      '<div class="modal-header"><h3>Cargar datos de Noray</h3>' +
+      '<button class="modal-close" onclick="cerrarModalNoray()">&times;</button></div>' +
+      '<div class="modal-body" style="padding: 1rem;">' +
+      '<p style="margin-bottom: 1rem; font-size: 0.9rem; color: #666;">' +
+      'Noray tiene proteccion Cloudflare. Abre los enlaces y copia los datos:</p>' +
+      '<div style="margin-bottom: 1rem;">' +
+      '<label style="font-weight: 600; display: block; margin-bottom: 0.5rem;">' +
+      '<a href="https://noray.cpevalencia.com/Chapero.asp" target="_blank" style="color: #3b82f6;">1. Abrir Chapero ↗</a></label>' +
+      '<p style="font-size: 0.8rem; color: #888; margin-bottom: 0.5rem;">Busca "No contratado (X)" al final de la pagina</p>' +
+      '<input type="number" id="noray-fijos-manual" placeholder="Ej: 151" style="width: 100%; padding: 0.5rem; border: 1px solid #ccc; border-radius: 4px;"></div>' +
+      '<div style="margin-bottom: 1rem;">' +
+      '<label style="font-weight: 600; display: block; margin-bottom: 0.5rem;">' +
+      '<a href="https://noray.cpevalencia.com/PrevisionDemanda.asp" target="_blank" style="color: #3b82f6;">2. Abrir Prevision ↗</a></label>' +
+      '<p style="font-size: 0.8rem; color: #888; margin-bottom: 0.5rem;">Copia GRUAS (columna ASIGNADOS) y COCHES (columna ROLON de GRUPO III)</p>' +
+      '<div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 0.5rem; margin-top: 0.5rem;">' +
+      '<div style="text-align: center; font-size: 0.8rem; font-weight: 600;">08-14</div>' +
+      '<div style="text-align: center; font-size: 0.8rem; font-weight: 600;">14-20</div>' +
+      '<div style="text-align: center; font-size: 0.8rem; font-weight: 600;">20-02</div>' +
+      '<input type="number" id="noray-gruas-0814" placeholder="Gruas" style="padding: 0.4rem; border: 1px solid #ccc; border-radius: 4px; font-size: 0.9rem;">' +
+      '<input type="number" id="noray-gruas-1420" placeholder="Gruas" style="padding: 0.4rem; border: 1px solid #ccc; border-radius: 4px; font-size: 0.9rem;">' +
+      '<input type="number" id="noray-gruas-2002" placeholder="Gruas" style="padding: 0.4rem; border: 1px solid #ccc; border-radius: 4px; font-size: 0.9rem;">' +
+      '<input type="number" id="noray-coches-0814" placeholder="Coches" style="padding: 0.4rem; border: 1px solid #ccc; border-radius: 4px; font-size: 0.9rem;">' +
+      '<input type="number" id="noray-coches-1420" placeholder="Coches" style="padding: 0.4rem; border: 1px solid #ccc; border-radius: 4px; font-size: 0.9rem;">' +
+      '<input type="number" id="noray-coches-2002" placeholder="Coches" style="padding: 0.4rem; border: 1px solid #ccc; border-radius: 4px; font-size: 0.9rem;">' +
+      '</div></div>' +
+      '<button onclick="aplicarDatosNorayManual()" style="width: 100%; padding: 0.75rem; background: #10b981; color: white; border: none; border-radius: 4px; font-weight: 600; cursor: pointer;">Aplicar datos</button>' +
+      '</div></div>';
+    document.body.appendChild(modal);
+  }
+  modal.style.display = 'flex';
+}
+
+window.cerrarModalNoray = function() {
+  var modal = document.getElementById('modal-noray');
+  if (modal) modal.style.display = 'none';
+};
+
+window.aplicarDatosNorayManual = function() {
+  var fijos = parseInt(document.getElementById('noray-fijos-manual').value) || 0;
+  var gruas0814 = parseInt(document.getElementById('noray-gruas-0814').value) || 0;
+  var gruas1420 = parseInt(document.getElementById('noray-gruas-1420').value) || 0;
+  var gruas2002 = parseInt(document.getElementById('noray-gruas-2002').value) || 0;
+  var coches0814 = parseInt(document.getElementById('noray-coches-0814').value) || 0;
+  var coches1420 = parseInt(document.getElementById('noray-coches-1420').value) || 0;
+  var coches2002 = parseInt(document.getElementById('noray-coches-2002').value) || 0;
+
+  var fijosInput = document.getElementById('calc-fijos');
+  if (fijosInput) fijosInput.value = fijos;
+
+  var gruas1 = document.getElementById('calc-gruas-1');
+  var coches1 = document.getElementById('calc-coches-1');
+  if (gruas1) gruas1.value = gruas0814;
+  if (coches1) coches1.value = coches0814;
+
+  var gruas2 = document.getElementById('calc-gruas-2');
+  var coches2 = document.getElementById('calc-coches-2');
+  if (gruas2) gruas2.value = gruas1420;
+  if (coches2) coches2.value = coches1420;
+
+  var gruas3 = document.getElementById('calc-gruas-3');
+  var coches3 = document.getElementById('calc-coches-3');
+  if (gruas3) gruas3.value = gruas2002;
+  if (coches3) coches3.value = coches2002;
+
+  var statusDiv = document.getElementById('noray-status');
+  if (statusDiv) {
+    var horaStr = new Date().toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' });
+    statusDiv.innerHTML = '<span style="color: #10b981;">Datos cargados ' + horaStr + '</span>';
+    statusDiv.style.display = 'block';
+  }
+
+  localStorage.setItem('noray_datos_manual', JSON.stringify({
+    fijos: fijos, gruas0814: gruas0814, gruas1420: gruas1420, gruas2002: gruas2002,
+    coches0814: coches0814, coches1420: coches1420, coches2002: coches2002,
+    timestamp: Date.now()
+  }));
+
+  cerrarModalNoray();
+  console.log('Datos Noray aplicados manualmente:', { fijos: fijos, gruas0814: gruas0814, gruas1420: gruas1420, gruas2002: gruas2002 });
+};
+
 // Funcion para cargar datos automaticamente desde Noray
 window.cargarDatosNoray = async function() {
   var btnCargar = document.getElementById('btn-cargar-noray');
@@ -5599,12 +5783,97 @@ window.cargarDatosNoray = async function() {
   }
 
   try {
+    // Intentar cargar desde Google Apps Script primero
     var url = 'https://script.google.com/macros/s/AKfycbyv6swXpt80WOfTyRhm0n4IBGqcxqeBZCxR1x8bwrhGBRz34I7zZjBzlaJ8lXgHcbDS/exec?action=all';
 
     var response = await fetch(url);
     var data = await response.json();
 
+    console.log('Respuesta raw del Apps Script:', data);
+
     if (data.success) {
+      // Verificar si los datos son validos (no todos en 0)
+      var datosValidos = false;
+
+      // Verificar fijos
+      if (data.fijos !== undefined && data.fijos > 0) {
+        datosValidos = true;
+        console.log('Fijos validos desde Apps Script:', data.fijos);
+      }
+
+      // Verificar demandas
+      if (data.demandas) {
+        for (var jornada in data.demandas) {
+          if (data.demandas[jornada].gruas > 0 || data.demandas[jornada].coches > 0) {
+            datosValidos = true;
+            console.log('Demandas validas desde Apps Script para jornada', jornada, ':', data.demandas[jornada]);
+            break;
+          }
+        }
+      }
+
+      // Si los datos del Apps Script estan vacios, verificar si es por Cloudflare
+      if (!datosValidos) {
+        console.log('Datos del Apps Script vacios o no validos');
+
+        // Verificar si el HTML contiene "Just a moment" (Cloudflare challenge)
+        var esCloudflare = (data.htmlPrevision && data.htmlPrevision.indexOf('Just a moment') !== -1) ||
+                          (data.htmlChapero && data.htmlChapero.indexOf('Just a moment') !== -1);
+
+        if (esCloudflare) {
+          console.warn('Noray esta protegido por Cloudflare. Intentando cargar datos guardados o mostrando modal.');
+
+          // Intentar cargar datos guardados localmente
+          var datosGuardados = localStorage.getItem('noray_datos_manual');
+          if (datosGuardados) {
+            var saved = JSON.parse(datosGuardados);
+            // Si los datos tienen menos de 6 horas, usarlos
+            if (Date.now() - saved.timestamp < 6 * 60 * 60 * 1000) {
+              console.log('Usando datos guardados localmente');
+              data.fijos = saved.fijos;
+              data.demandas = {
+                '08-14': { gruas: saved.gruas0814, coches: saved.coches0814 },
+                '14-20': { gruas: saved.gruas1420, coches: saved.coches1420 },
+                '20-02': { gruas: saved.gruas2002, coches: saved.coches2002 }
+              };
+              datosValidos = true;
+            }
+          }
+
+          // Si no hay datos guardados validos, mostrar modal
+          if (!datosValidos) {
+            mostrarModalCargarNoray();
+            if (statusDiv) {
+              statusDiv.innerHTML = '<span style="color: #f59e0b;">Introduce los datos manualmente</span>';
+              statusDiv.style.display = 'block';
+            }
+            if (btnCargar) {
+              btnCargar.disabled = false;
+              btnCargar.innerHTML = 'Cargar datos Noray';
+            }
+            return;
+          }
+        } else if (data.htmlPrevision && data.htmlChapero) {
+          console.log('Parseando HTML crudo proporcionado por el Apps Script...');
+          var demandasParseadas = parsePrevisionDemandaHTML(data.htmlPrevision);
+          data.demandas = demandasParseadas;
+          data.fijos = parseChaperoHTML(data.htmlChapero);
+          console.log('Datos parseados localmente:', { fijos: data.fijos, demandas: data.demandas });
+        } else {
+          console.warn('No hay HTML crudo disponible. Mostrando modal de carga manual.');
+          mostrarModalCargarNoray();
+          if (statusDiv) {
+            statusDiv.innerHTML = '<span style="color: #f59e0b;">Introduce los datos manualmente</span>';
+            statusDiv.style.display = 'block';
+          }
+          if (btnCargar) {
+            btnCargar.disabled = false;
+            btnCargar.innerHTML = 'Cargar datos Noray';
+          }
+          return;
+        }
+      }
+
       // Rellenar fijos
       if (data.fijos !== undefined) {
         var fijosInput = document.getElementById('calc-fijos');
@@ -5648,7 +5917,7 @@ window.cargarDatosNoray = async function() {
 
       // Mostrar estado
       if (statusDiv) {
-        var fecha = new Date(data.timestamp);
+        var fecha = new Date(data.timestamp || Date.now());
         var horaStr = fecha.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' });
         statusDiv.innerHTML = '<span style="color: #10b981;">Datos cargados ' + horaStr + '</span>';
         statusDiv.style.display = 'block';
@@ -6052,14 +6321,16 @@ async function loadCalculadora() {
           var demandaTotal;
           if (esUsuarioOC) {
             // Para OC: ajustar demanda segun fijos disponibles
+            // IMPORTANTE: Para el calculo se usa solo la MITAD de los fijos disponibles
             var demandaBase = jornada.demandaOC;
             var ajusteFijos = 0;
+            var fijosParaCalculoOC = Math.floor(fijos / 2); // Usar solo la mitad de fijos para el calculo
 
             // Solo ajustar la primera jornada activa
             if (esPrimeraJornadaActiva) {
-              if (fijos > 100) {
+              if (fijosParaCalculoOC > 50) {
                 ajusteFijos = 10;
-              } else if (fijos > 50) {
+              } else if (fijosParaCalculoOC > 25) {
                 ajusteFijos = 5;
               }
             }
@@ -6088,9 +6359,12 @@ async function loadCalculadora() {
           }
 
           // Calcular demanda para eventuales (restar fijos solo en primera jornada activa, solo SP)
+          // IMPORTANTE: Para el calculo se usa solo la MITAD de los fijos disponibles
+          // porque historicamente solo la mitad de los fijos realmente se presentan
           var demandaEventuales;
           if (!esUsuarioOC && esPrimeraJornadaActiva) {
-            demandaEventuales = Math.max(0, demandaTotal - fijos);
+            var fijosParaCalculo = Math.floor(fijos / 2); // Usar solo la mitad de fijos para el calculo
+            demandaEventuales = Math.max(0, demandaTotal - fijosParaCalculo);
             esPrimeraJornadaActiva = false;
           } else {
             demandaEventuales = demandaTotal;

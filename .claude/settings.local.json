@@ -9,7 +9,10 @@
       "Bash(powershell -ExecutionPolicy Bypass -File fix_oraculo.ps1)",
       "Bash(powershell:*)",
       "Bash(git checkout:*)",
-      "Bash(xxd:*)"
+      "Bash(xxd:*)",
+      "WebFetch(domain:script.google.com)",
+      "WebFetch(domain:script.googleusercontent.com)",
+      "Bash(curl:*)"
     ],
     "deny": [],
     "ask": []
