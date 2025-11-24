@@ -413,6 +413,12 @@ function setupEventListeners() {
     confirmPasswordChange.addEventListener('click', handlePasswordChange);
   }
 
+  // Botón guardar nombre de usuario
+  const saveUserNameBtn = document.getElementById('save-user-name');
+  if (saveUserNameBtn) {
+    saveUserNameBtn.addEventListener('click', handleSaveUserName);
+  }
+
   // Navegación del sidebar
   const navLinks = document.querySelectorAll('.nav-link');
   navLinks.forEach(link => {
@@ -820,7 +826,31 @@ function openChangePasswordModal() {
       usernameField.value = AppState.currentUser.chapa;
     }
 
-    // Limpiar campos y mensajes
+    // Cargar nombre actual en el campo de nombre
+    const userNameInput = document.getElementById('user-name-input');
+    if (userNameInput) {
+      // Si el nombre actual es "Chapa XXX", mostrar vacío para que el usuario pueda poner su nombre
+      const currentName = AppState.currentUserName || '';
+      if (currentName.startsWith('Chapa ')) {
+        userNameInput.value = '';
+      } else {
+        userNameInput.value = currentName;
+      }
+    }
+
+    // Limpiar mensajes de nombre
+    const nameErrorMsg = document.getElementById('name-change-error');
+    const nameSuccessMsg = document.getElementById('name-change-success');
+    if (nameErrorMsg) {
+      nameErrorMsg.textContent = '';
+      nameErrorMsg.classList.remove('active');
+    }
+    if (nameSuccessMsg) {
+      nameSuccessMsg.textContent = '';
+      nameSuccessMsg.classList.remove('active');
+    }
+
+    // Limpiar campos y mensajes de contraseña
     document.getElementById('current-password').value = '';
     document.getElementById('new-password').value = '';
     document.getElementById('confirm-password').value = '';
@@ -845,6 +875,91 @@ function closeChangePasswordModal() {
   const modal = document.getElementById('change-password-modal');
   if (modal) {
     modal.style.display = 'none';
+  }
+}
+
+/**
+ * Maneja el guardado del nombre de usuario
+ */
+async function handleSaveUserName() {
+  const nameInput = document.getElementById('user-name-input');
+  const errorMsg = document.getElementById('name-change-error');
+  const successMsg = document.getElementById('name-change-success');
+  const saveBtn = document.getElementById('save-user-name');
+
+  const nuevoNombre = nameInput.value.trim();
+
+  // Limpiar mensajes previos
+  errorMsg.textContent = '';
+  errorMsg.classList.remove('active');
+  successMsg.textContent = '';
+  successMsg.classList.remove('active');
+
+  // Validar que hay un nombre
+  if (!nuevoNombre) {
+    errorMsg.textContent = 'Por favor, introduce un nombre';
+    errorMsg.classList.add('active');
+    return;
+  }
+
+  // Validar longitud mínima
+  if (nuevoNombre.length < 2) {
+    errorMsg.textContent = 'El nombre debe tener al menos 2 caracteres';
+    errorMsg.classList.add('active');
+    return;
+  }
+
+  // Deshabilitar botón mientras se procesa
+  saveBtn.disabled = true;
+  saveBtn.textContent = 'Guardando...';
+
+  try {
+    // Llamar a la función de Supabase para actualizar el nombre
+    const result = await SheetsAPI.actualizarNombreUsuario(AppState.currentUser, nuevoNombre);
+
+    if (result.success) {
+      console.log('✅ Nombre actualizado exitosamente');
+
+      // Actualizar AppState y localStorage
+      AppState.currentUserName = nuevoNombre;
+      localStorage.setItem('currentUserName', nuevoNombre);
+
+      // Actualizar la UI inmediatamente
+      const userChapa = document.getElementById('user-chapa');
+      if (userChapa) {
+        userChapa.textContent = nuevoNombre;
+      }
+
+      // Actualizar mensaje de bienvenida si está visible
+      const welcomeMsg = document.getElementById('welcome-message');
+      if (welcomeMsg) {
+        // Solo actualizar el texto principal, no tocar los spans de posiciones
+        const spans = welcomeMsg.querySelectorAll('span');
+        welcomeMsg.childNodes[0].textContent = `Bienvenido/a, ${nuevoNombre}`;
+      }
+
+      // Actualizar cache de usuarios
+      const usuariosCache = JSON.parse(localStorage.getItem('usuarios_cache') || '{}');
+      usuariosCache[AppState.currentUser] = nuevoNombre;
+      localStorage.setItem('usuarios_cache', JSON.stringify(usuariosCache));
+
+      // Mostrar mensaje de éxito
+      successMsg.textContent = '¡Nombre actualizado correctamente!';
+      successMsg.classList.add('active');
+
+    } else {
+      errorMsg.textContent = result.message || 'Error al actualizar el nombre';
+      errorMsg.classList.add('active');
+    }
+
+  } catch (error) {
+    console.error('❌ Error al guardar nombre:', error);
+    errorMsg.textContent = 'Error al guardar el nombre. Inténtalo de nuevo.';
+    errorMsg.classList.add('active');
+  } finally {
+    // Rehabilitar botón
+    saveBtn.disabled = false;
+    saveBtn.textContent = 'Guardar Nombre';
   }
 }
 

@@ -1778,6 +1778,50 @@ async function guardarJornalManual(jornal) {
 }
 
 /**
+ * Actualiza el nombre de un usuario en Supabase
+ * @param {string} chapa - Chapa del usuario
+ * @param {string} nombre - Nuevo nombre a guardar
+ * @returns {Promise<{success: boolean, message: string}>}
+ */
+async function actualizarNombreUsuario(chapa, nombre) {
+  try {
+    console.log(`📝 Actualizando nombre para chapa ${chapa}: ${nombre}`);
+
+    const { data, error } = await supabase
+      .from('usuarios')
+      .update({
+        nombre: nombre.trim(),
+        updated_at: new Date().toISOString()
+      })
+      .eq('chapa', chapa)
+      .select();
+
+    if (error) {
+      console.error('❌ Error al actualizar nombre en Supabase:', error);
+      return { success: false, message: error.message };
+    }
+
+    console.log('✅ Nombre actualizado correctamente:', data);
+
+    // Limpiar cache de usuarios
+    clearCacheByPrefix('supabase_usuarios');
+
+    return {
+      success: true,
+      message: 'Nombre actualizado correctamente',
+      data: data
+    };
+
+  } catch (error) {
+    console.error('❌ Error al actualizar nombre:', error);
+    return {
+      success: false,
+      message: 'Error al actualizar el nombre: ' + error.message
+    };
+  }
+}
+
+/**
  * Cambia la contraseña de un usuario
  * TEMPORAL: En producción se usará Supabase Auth
  */
@@ -1861,6 +1905,7 @@ const SheetsAPI = {
   cambiarContrasenaAppsScript: cambiarPassword, // Legacy - para compatibilidad
   cambiarContrasena: cambiarContrasena, // Nueva función segura con hashing
   verificarLogin: verificarLogin, // Función de login
+  actualizarNombreUsuario: actualizarNombreUsuario, // Actualizar nombre del usuario
   hashPassword: hashPassword, // Exponer para uso en consola si es necesario
   generateAdminPassword: generateAdminPassword, // Para generar hash de admin
 
