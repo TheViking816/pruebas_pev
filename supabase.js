@@ -2068,6 +2068,7 @@ const SheetsAPI = {
       }
 
       // 7. CÁLCULO PARA PUERTAS FESTIVAS
+      // IMPORTANTE: Para festivas NO se aplican pesos, se cuentan todas las posiciones
       const puertasFestivas = puertas.filter(p => p.jornada === 'Festivo');
       let posicionesFestiva = null;
 
@@ -2078,28 +2079,23 @@ const SheetsAPI = {
 
         if (puertasFest.length > 0) {
           const ultimaPuertaFest = Math.max(...puertasFest);
-          let noDisponiblesFestiva = 0;
 
           if (esUsuarioSP) {
             if (posicionUsuario > ultimaPuertaFest) {
               posicionesFestiva = posicionUsuario - ultimaPuertaFest;
-              noDisponiblesFestiva = contarNoDisponiblesEntre(ultimaPuertaFest, posicionUsuario, false);
             } else {
               posicionesFestiva = (LIMITE_SP - ultimaPuertaFest) + posicionUsuario;
-              noDisponiblesFestiva = contarNoDisponiblesEntre(ultimaPuertaFest, posicionUsuario, true, LIMITE_SP);
             }
           } else {
             if (posicionUsuario > ultimaPuertaFest) {
               posicionesFestiva = posicionUsuario - ultimaPuertaFest;
-              noDisponiblesFestiva = contarNoDisponiblesEntre(ultimaPuertaFest, posicionUsuario, false);
             } else {
               posicionesFestiva = (FIN_OC - ultimaPuertaFest) + (posicionUsuario - INICIO_OC + 1);
-              noDisponiblesFestiva = contarNoDisponiblesEntre(ultimaPuertaFest, posicionUsuario, true, FIN_OC);
             }
           }
 
-          // Restar trabajadores no disponibles del cálculo (usando pesos)
-          posicionesFestiva = Math.max(0, posicionesFestiva - noDisponiblesFestiva);
+          // Para festivas NO restamos nada, se cuentan todas las posiciones
+          posicionesFestiva = Math.max(0, posicionesFestiva);
         }
       }
 
