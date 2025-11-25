@@ -56,13 +56,8 @@ const NOTICIAS_DATA = [
     fecha: '25/11/2025',
     contenido: `El Oráculo y el cálculo de posiciones hasta la puerta ahora son más precisos:
     <ul style="list-style-type: disc; margin-left: 20px; margin-top: 10px;">
-      <li style="margin-bottom: 5px;"><strong>Mayor precisión:</strong> El sistema ahora considera la disponibilidad parcial de los trabajadores según su color.</li>
-      <li style="margin-bottom: 5px;"><strong>Trabajadores en naranja</strong> (1 jornada disponible) cuentan como ¼ de persona.</li>
-      <li style="margin-bottom: 5px;"><strong>Trabajadores en amarillo</strong> (2 jornadas disponibles) cuentan como ½ persona.</li>
-      <li style="margin-bottom: 5px;"><strong>Trabajadores en azul</strong> (3 jornadas disponibles) cuentan como ¾ de persona.</li>
-      <li><strong>Trabajadores en verde</strong> (todas las jornadas) cuentan como 1 persona completa.</li>
-    </ul>
-    <p style="margin-top: 10px; font-style: italic; color: #64748b;">Esto hace que tanto el Oráculo como el indicador de posiciones en el Dashboard sean más realistas y reflejen mejor las probabilidades reales de trabajar.</p>`
+      <li style="margin-bottom: 5px;"><strong>Mayor precisión:</strong> El sistema ahora considera la disponibilidad parcial según su color.</li>
+          <p style="margin-top: 10px; font-style: italic; color: #64748b;">Esto hace que tanto el Oráculo como el indicador de posiciones en el Dashboard sean más realistas y reflejen mejor las probabilidades reales de trabajar.</p>`
   },
   {
     titulo: '🔧 Corrección: Cálculo de Posiciones OC',
@@ -5962,8 +5957,23 @@ window.cargarDatosNoray = async function() {
         var esCloudflare = (data.htmlPrevision && data.htmlPrevision.indexOf('Just a moment') !== -1) ||
                           (data.htmlChapero && data.htmlChapero.indexOf('Just a moment') !== -1);
 
-        if (esCloudflare) {
-          console.warn('Noray esta protegido por Cloudflare. Intentando cargar datos guardados o mostrando modal.');
+        // Intentar parsear HTML si está disponible (aunque no pase validación inicial)
+        if (data.htmlPrevision && data.htmlChapero && !esCloudflare) {
+          console.log('Parseando HTML crudo proporcionado por el Apps Script...');
+          var demandasParseadas = parsePrevisionDemandaHTML(data.htmlPrevision);
+          data.demandas = demandasParseadas;
+          data.fijos = parseChaperoHTML(data.htmlChapero);
+          console.log('Datos parseados localmente:', { fijos: data.fijos, demandas: data.demandas });
+
+          // Verificar si el parseo fue exitoso
+          if (data.fijos > 0 || (data.demandas['08-14'].gruas > 0 || data.demandas['14-20'].gruas > 0 || data.demandas['20-02'].gruas > 0)) {
+            datosValidos = true;
+          }
+        }
+
+        // Si sigue sin ser válido, intentar cargar datos guardados o mostrar modal
+        if (!datosValidos) {
+          console.warn('No se pudieron obtener datos válidos. Intentando cargar datos guardados o mostrando modal.');
 
           // Intentar cargar datos guardados localmente
           var datosGuardados = localStorage.getItem('noray_datos_manual');
@@ -5984,6 +5994,7 @@ window.cargarDatosNoray = async function() {
 
           // Si no hay datos guardados validos, mostrar modal
           if (!datosValidos) {
+            console.log('Mostrando modal para introducir datos manualmente');
             mostrarModalCargarNoray();
             if (statusDiv) {
               statusDiv.innerHTML = '<span style="color: #f59e0b;">Introduce los datos manualmente</span>';
@@ -5995,24 +6006,6 @@ window.cargarDatosNoray = async function() {
             }
             return;
           }
-        } else if (data.htmlPrevision && data.htmlChapero) {
-          console.log('Parseando HTML crudo proporcionado por el Apps Script...');
-          var demandasParseadas = parsePrevisionDemandaHTML(data.htmlPrevision);
-          data.demandas = demandasParseadas;
-          data.fijos = parseChaperoHTML(data.htmlChapero);
-          console.log('Datos parseados localmente:', { fijos: data.fijos, demandas: data.demandas });
-        } else {
-          console.warn('No hay HTML crudo disponible. Mostrando modal de carga manual.');
-          mostrarModalCargarNoray();
-          if (statusDiv) {
-            statusDiv.innerHTML = '<span style="color: #f59e0b;">Introduce los datos manualmente</span>';
-            statusDiv.style.display = 'block';
-          }
-          if (btnCargar) {
-            btnCargar.disabled = false;
-            btnCargar.innerHTML = 'Cargar datos Noray';
-          }
-          return;
         }
       }
 
