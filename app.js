@@ -52,6 +52,19 @@ const ENLACES_DATA = [
 // Noticias y avisos - Añadir contenido real aquí
 const NOTICIAS_DATA = [
   {
+    titulo: '🎯 Mejora: Cálculo más Preciso del Oráculo',
+    fecha: '25/11/2025',
+    contenido: `El Oráculo y el cálculo de posiciones hasta la puerta ahora son más precisos:
+    <ul style="list-style-type: disc; margin-left: 20px; margin-top: 10px;">
+      <li style="margin-bottom: 5px;"><strong>Mayor precisión:</strong> El sistema ahora considera la disponibilidad parcial de los trabajadores según su color.</li>
+      <li style="margin-bottom: 5px;"><strong>Trabajadores en naranja</strong> (1 jornada disponible) cuentan como ¼ de persona.</li>
+      <li style="margin-bottom: 5px;"><strong>Trabajadores en amarillo</strong> (2 jornadas disponibles) cuentan como ½ persona.</li>
+      <li style="margin-bottom: 5px;"><strong>Trabajadores en azul</strong> (3 jornadas disponibles) cuentan como ¾ de persona.</li>
+      <li><strong>Trabajadores en verde</strong> (todas las jornadas) cuentan como 1 persona completa.</li>
+    </ul>
+    <p style="margin-top: 10px; font-style: italic; color: #64748b;">Esto hace que tanto el Oráculo como el indicador de posiciones en el Dashboard sean más realistas y reflejen mejor las probabilidades reales de trabajar.</p>`
+  },
+  {
     titulo: '🔧 Corrección: Cálculo de Posiciones OC',
     fecha: '05/11/2025',
     contenido: `Se ha corregido un error en el cálculo de posiciones para el personal de <strong>OC (Operaciones Complementarias)</strong>:
