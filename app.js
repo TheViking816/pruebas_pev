@@ -6306,41 +6306,56 @@ async function loadCalculadora() {
           return item && item.color !== 'red';
         }
 
+        // Funcion para obtener el peso de disponibilidad segun el color
+        function getPesoDisponibilidad(posicion) {
+          var item = censoActual.find(function(c) { return c.posicion === posicion; });
+          if (!item) return 0;
+
+          // Pesos segun disponibilidad:
+          // red (0 jornadas): 0
+          // orange (1 jornada): 1/4 = 0.25
+          // yellow (2 jornadas): 2/4 = 0.50
+          // blue (3 jornadas): 3/4 = 0.75
+          // green (todas las jornadas): 1.00
+          switch(item.color) {
+            case 'red': return 0;
+            case 'orange': return 0.25;
+            case 'yellow': return 0.50;
+            case 'blue': return 0.75;
+            case 'green': return 1.00;
+            default: return 0;
+          }
+        }
+
         // Contar total de rojos en el censo
         var totalRojos = censoActual.filter(function(item) { return item.color === 'red'; }).length;
         var totalDisponibles = tamanoCenso - totalRojos;
 
         // Funcion para contar disponibles entre dos posiciones (en posiciones absolutas)
+        // Ahora tiene en cuenta fracciones segun el color de disponibilidad
         function contarDisponiblesEntre(desde, hasta) {
           var disponibles = 0;
 
           if (desde <= hasta) {
             // Rango directo
             for (var pos = desde + 1; pos <= hasta; pos++) {
-              if (estaDisponible(pos)) {
-                disponibles++;
-              }
+              disponibles += getPesoDisponibilidad(pos);
             }
           } else {
             // Rango con vuelta: desde -> fin + inicio -> hasta
             for (var pos = desde + 1; pos <= limiteFin; pos++) {
-              if (estaDisponible(pos)) {
-                disponibles++;
-              }
+              disponibles += getPesoDisponibilidad(pos);
             }
             for (var pos = limiteInicio; pos <= hasta; pos++) {
-              if (estaDisponible(pos)) {
-                disponibles++;
-              }
+              disponibles += getPesoDisponibilidad(pos);
             }
           }
 
           return disponibles;
         }
 
-        // Funcion para calcular distancia efectiva hasta usuario (solo disponibles)
-        // IMPORTANTE: Si el usuario esta en rojo, sumamos 1 para que la distancia
-        // refleje que la puerta tiene que llegar hasta su posicion igualmente
+        // Funcion para calcular distancia efectiva hasta usuario (considerando pesos de disponibilidad)
+        // IMPORTANTE: Ahora sumamos el peso de disponibilidad del usuario segun su color
         function calcularDistanciaEfectiva(puerta, usuario) {
           var distancia;
           if (usuario > puerta) {
@@ -6354,11 +6369,10 @@ async function loadCalculadora() {
             return 0;
           }
 
-          // Si el usuario NO esta disponible (rojo), la distancia calculada no lo incluye
-          // pero la puerta igualmente tiene que llegar hasta el, asi que sumamos 1
-          if (!estaDisponible(usuario)) {
-            distancia += 1;
-          }
+          // Sumar el peso de disponibilidad del propio usuario
+          // Esto incluye al usuario en el conteo con su peso correspondiente
+          var pesoUsuario = getPesoDisponibilidad(usuario);
+          distancia += pesoUsuario;
 
           return distancia;
         }
@@ -6777,7 +6791,8 @@ async function loadCalculadora() {
           if (datos.vuelta > 1) {
             infoPos += ' (v' + datos.vuelta + ')';
           }
-          infoPos += ' | Faltan: ' + datos.distanciaNecesaria;
+          // Redondear distanciaNecesaria para mostrar numero entero de personas
+          infoPos += ' | Faltan: ' + Math.round(datos.distanciaNecesaria);
 
           resultadosHTML += '<div class="calc-resultado-item ' + clase + '"><div class="resultado-header"><span class="resultado-jornada">' + datos.jornada.nombre + '</span><span class="resultado-prob">' + probabilidad + '%</span></div><div class="resultado-mensaje">' + mensaje + '</div><div class="resultado-posicion">' + infoPos + ' | Demanda: ' + datos.demandaEventuales + '</div></div>';
         }
@@ -6809,7 +6824,7 @@ async function loadCalculadora() {
         console.error('Error:', error);
         alert('Error al calcular: ' + error.message);
       } finally {
-        newBtn.innerHTML = 'Calcular el Dia Completo';
+        newBtn.innerHTML = '¿Cuando voy a trabajar?';
         newBtn.disabled = false;
       }
     });
