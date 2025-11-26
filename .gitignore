@@ -1,0 +1,24 @@
+# Variables de entorno con credenciales
+.env
+.env.local
+.env.*
+
+# Node modules
+node_modules/
+
+# Logs
+*.log
+
+# Sistema operativo
+.DS_Store
+Thumbs.db
+
+# IDEs
+.vscode/
+.idea/
+
+# Archivos temporales
+tmp/
+temp/
+*.tmp
+*.backup
