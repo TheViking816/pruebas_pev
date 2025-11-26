@@ -136,21 +136,32 @@ function extraerGruas(seccion) {
 
   try {
     // Buscar la fila de GRUAS y extraer el valor de ASIGNADOS
-    // Formato: GRUAS<TD...>X<TD...>X<TD...>X<TD...>X<TD...>X<Th...>NUMERO
+    // Formato: <TD align=left nowrap>&nbspGRUAS<TD...>...<Th align=center nowrap>NUMERO
     var idxGruas = seccion.indexOf('GRUAS');
     if (idxGruas === -1) return 0;
 
     var despuesGruas = seccion.substring(idxGruas);
 
     // Buscar el <Th que contiene el número de ASIGNADOS
+    // El <Th aparece después de varias celdas <TD
     var idxTh = despuesGruas.indexOf('<Th');
+    if (idxTh === -1) {
+      // Intentar con minúsculas
+      idxTh = despuesGruas.indexOf('<TH');
+    }
     if (idxTh === -1) return 0;
 
     var despuesTh = despuesGruas.substring(idxTh);
 
-    // Extraer el número dentro del <Th>
-    var match = despuesTh.match(/<Th[^>]*>(\d+)/i);
+    // Extraer el número dentro del <Th>NUMERO
+    // Buscar el cierre del tag y luego el número
+    var idxCierreTag = despuesTh.indexOf('>');
+    if (idxCierreTag === -1) return 0;
+
+    var contenido = despuesTh.substring(idxCierreTag + 1, idxCierreTag + 10); // Tomar 10 caracteres después
+    var match = contenido.match(/(\d+)/);
     if (match) {
+      Logger.log('Grúas encontradas: ' + match[1]);
       return parseInt(match[1]) || 0;
     }
   } catch (error) {
@@ -170,18 +181,20 @@ function extraerCoches(seccion) {
 
     var despuesGrupo3 = seccion.substring(idxGrupo3);
 
-    // La estructura es: GRUPO III<TD>num1<TD>num2<TD>num3<TD>num4(ROLON)
-    // Buscamos los <TD con nowrap y extraemos el 4to número
-    var tdPattern = /<TD[^>]*nowrap>(\d*)/gi;
+    // La estructura es: GRUPO III<TD...>num1<TD...>num2<TD...>num3<TD...>num4(ROLON)<Th...>
+    // Buscamos todas las celdas TD con align=center y nowrap
     var numeros = [];
+    var regex = /<TD[^>]*align=center[^>]*nowrap[^>]*>(\d*)/gi;
     var match;
 
-    while ((match = tdPattern.exec(despuesGrupo3)) !== null && numeros.length < 5) {
-      numeros.push(parseInt(match[1]) || 0);
+    while ((match = regex.exec(despuesGrupo3)) !== null && numeros.length < 5) {
+      var num = match[1] ? parseInt(match[1]) : 0;
+      numeros.push(num);
     }
 
     // El ROLON es el 4to número (índice 3)
     if (numeros.length >= 4) {
+      Logger.log('Coches (ROLON) encontrados: ' + numeros[3]);
       return numeros[3];
     }
   } catch (error) {
@@ -206,17 +219,21 @@ function obtenerChapero() {
 
     // Solo parsear si tenemos HTML válido (no Cloudflare)
     if (html.indexOf('Just a moment') === -1) {
-      // Buscar "No contratado (XXX)" en el HTML
-      var match = html.match(/No\s*contratado\s*\((\d+)\)/i);
+      // MÉTODO 1: Buscar "No contratado (XXX)" en el HTML
+      // Este patrón busca el texto exacto con el número entre paréntesis
+      var match = html.match(/No\s+contratado\s+\((\d+)\)/i);
       if (match) {
         fijos = parseInt(match[1]) || 0;
-        Logger.log('Fijos encontrados: ' + fijos);
+        Logger.log('Fijos encontrados (método texto): ' + fijos);
       } else {
-        // Alternativa: contar elementos con fondo chapab.jpg
+        // MÉTODO 2: Contar elementos con background='imagenes/chapab.jpg'
+        // Este método cuenta las apariciones de la imagen de fondo que marca a los no contratados
         var bgMatches = html.match(/background='imagenes\/chapab\.jpg'/gi);
         if (bgMatches) {
           fijos = bgMatches.length;
-          Logger.log('Fijos contados por imagen: ' + fijos);
+          Logger.log('Fijos contados (método imagen): ' + fijos);
+        } else {
+          Logger.log('No se encontraron fijos con ningún método');
         }
       }
     } else {
@@ -230,7 +247,7 @@ function obtenerChapero() {
   return { fijos: fijos, html: html };
 }
 
-// Función de prueba
+// Función de prueba - puedes ejecutarla manualmente desde el editor de Apps Script
 function testParsing() {
   Logger.log('=== PROBANDO PREVISIÓN ===');
   var prevision = obtenerPrevision();

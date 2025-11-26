@@ -6486,8 +6486,15 @@ async function loadCalculadora() {
 
             demandaTotal = Math.max(0, demandaBase - ajusteFijos);
           } else {
-            var gruas = parseInt(document.getElementById('calc-gruas-' + jornada.id).value) || 0;
-            var coches = parseInt(document.getElementById('calc-coches-' + jornada.id).value) || 0;
+            // Mapear codigo de jornada a numero de input fijo
+            var inputMap = {
+              '08-14': '1',
+              '14-20': '2',
+              '20-02': '3'
+            };
+            var inputNum = inputMap[jornada.codigo];
+            var gruas = parseInt(document.getElementById('calc-gruas-' + inputNum).value) || 0;
+            var coches = parseInt(document.getElementById('calc-coches-' + inputNum).value) || 0;
             demandaTotal = (gruas * 7) + coches;
           }
 
