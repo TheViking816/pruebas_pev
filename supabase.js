@@ -1,4 +1,17 @@
 /**
+ * ████████████████████████████████████████████████████████████████████████████
+ * █                                                                          █
+ * █  PORTAL ESTIBA VLC - Módulo de Integración con Supabase                 █
+ * █  Copyright © 2025 TheViking816 (Adrian Marin)                           █
+ * █                                                                          █
+ * █  ⚠️ CÓDIGO PROPIETARIO Y CONFIDENCIAL ⚠️                                 █
+ * █                                                                          █
+ * █  Este software es propiedad exclusiva de TheViking816.                  █
+ * █  PROHIBIDO: Copiar, modificar, distribuir sin autorización              █
+ * █  Licencia: Ver archivo LICENSE                                          █
+ * █                                                                          █
+ * ████████████████████████████████████████████████████████████████████████████
+ *
  * Módulo de integración con Supabase
  * Reemplaza a sheets.js para usar una base de datos PostgreSQL real
  *

@@ -1,6 +1,22 @@
 ﻿/**
- * Portal Estiba VLC - Aplicación Principal
- * Gestiona la navegación, autenticación y lógica de la aplicación
+ * ████████████████████████████████████████████████████████████████████████████
+ * █                                                                          █
+ * █  PORTAL ESTIBA VLC - Aplicación Principal                               █
+ * █  Copyright © 2025 TheViking816 (Adrian Marin)                           █
+ * █                                                                          █
+ * █  ⚠️ CÓDIGO PROPIETARIO Y CONFIDENCIAL ⚠️                                 █
+ * █                                                                          █
+ * █  Este software es propiedad exclusiva de TheViking816.                  █
+ * █  El uso, copia, modificación o distribución no autorizados están        █
+ * █  ESTRICTAMENTE PROHIBIDOS y constituyen delito.                         █
+ * █                                                                          █
+ * █  Licencia: Ver archivo LICENSE                                          █
+ * █  Violaciones serán perseguidas legalmente conforme a la                 █
+ * █  Ley de Propiedad Intelectual (RDL 1/1996) y Código Penal (Art. 270)   █
+ * █                                                                          █
+ * █  Gestiona la navegación, autenticación y lógica de la aplicación        █
+ * █                                                                          █
+ * ████████████████████████████████████████████████████████████████████████████
  */
 
 // Estado global de la aplicación
