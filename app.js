@@ -2750,13 +2750,8 @@ function renderForoMessages(messages) {
   // Usar requestAnimationFrame para asegurar que el DOM esté renderizado
   requestAnimationFrame(() => {
     requestAnimationFrame(() => {
-      // Hacer scroll al último mensaje para asegurar que se vea completamente
-      const lastMessage = container.lastElementChild;
-      if (lastMessage) {
-        lastMessage.scrollIntoView({ behavior: 'auto', block: 'end' });
-      } else {
-        container.scrollTop = container.scrollHeight;
-      }
+      // Hacer scroll al final del contenedor para ver todos los mensajes
+      container.scrollTop = container.scrollHeight;
     });
   });
 }
@@ -2811,12 +2806,7 @@ async function sendForoMessage() {
   // Scroll al final
   const container = document.getElementById('foro-messages');
   if (container) {
-    const lastMessage = container.lastElementChild;
-    if (lastMessage) {
-      lastMessage.scrollIntoView({ behavior: 'auto', block: 'end' });
-    } else {
-      container.scrollTop = container.scrollHeight;
-    }
+    container.scrollTop = container.scrollHeight;
   }
 
   // Enviar a Supabase en segundo plano (asumiendo SheetsAPI.enviarMensajeForo ahora usa Supabase)
@@ -2864,16 +2854,10 @@ async function sendForoMessage() {
 function scrollToBottomForo() {
   const container = document.getElementById('foro-messages');
   if (container) {
-    // Hacer scroll al último mensaje para asegurar que se vea completamente
-    const lastMessage = container.lastElementChild;
-    if (lastMessage) {
-      lastMessage.scrollIntoView({ behavior: 'smooth', block: 'end' });
-    } else {
-      container.scrollTo({
-        top: container.scrollHeight,
-        behavior: 'smooth'
-      });
-    }
+    container.scrollTo({
+      top: container.scrollHeight,
+      behavior: 'smooth'
+    });
   }
 }
 
