@@ -3528,3 +3528,166 @@ body::before {
     font-size: 1rem;
   }
 }
+
+/* ============================================================================
+   FOOTER COPYRIGHT
+   ============================================================================ */
+
+.app-footer {
+  background: linear-gradient(135deg, #0a2e5c 0%, #1a4a7e 100%);
+  color: white;
+  padding: 2rem 1rem;
+  margin-top: 3rem;
+  border-top: 3px solid #ffd700;
+  font-size: 0.9rem;
+}
+
+.footer-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 2rem;
+}
+
+.footer-copyright {
+  text-align: center;
+  padding: 1.5rem;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 10px;
+  border: 1px solid rgba(255, 215, 0, 0.3);
+}
+
+.copyright-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: linear-gradient(135deg, #ffd700 0%, #ffed4e 100%);
+  color: #0a2e5c;
+  padding: 0.5rem 1.5rem;
+  border-radius: 50px;
+  font-weight: bold;
+  font-size: 0.85rem;
+  margin-bottom: 1rem;
+  box-shadow: 0 4px 15px rgba(255, 215, 0, 0.3);
+  letter-spacing: 0.5px;
+}
+
+.copyright-icon {
+  width: 20px;
+  height: 20px;
+}
+
+.copyright-text {
+  margin: 0.75rem 0 0.5rem 0;
+  font-weight: 600;
+  font-size: 1rem;
+  color: #ffd700;
+}
+
+.copyright-warning {
+  margin: 0.5rem 0 0 0;
+  font-size: 0.85rem;
+  color: rgba(255, 255, 255, 0.8);
+  font-style: italic;
+}
+
+.footer-contact {
+  text-align: center;
+  padding: 1rem;
+}
+
+.contact-title {
+  margin: 0 0 1rem 0;
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: #ffd700;
+}
+
+.contact-name {
+  margin: 0 0 1rem 0;
+  font-size: 0.95rem;
+  color: rgba(255, 255, 255, 0.9);
+}
+
+.contact-links {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  align-items: center;
+}
+
+.contact-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: white;
+  text-decoration: none;
+  padding: 0.5rem 1rem;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  transition: all 0.3s ease;
+  font-size: 0.9rem;
+  border: 1px solid rgba(255, 215, 0, 0.2);
+}
+
+.contact-link:hover {
+  background: rgba(255, 215, 0, 0.2);
+  border-color: #ffd700;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(255, 215, 0, 0.2);
+}
+
+.contact-icon {
+  width: 20px;
+  height: 20px;
+  flex-shrink: 0;
+}
+
+/* Responsive */
+@media (min-width: 768px) {
+  .footer-container {
+    grid-template-columns: 2fr 1fr;
+  }
+
+  .footer-copyright {
+    text-align: left;
+  }
+
+  .footer-contact {
+    text-align: left;
+  }
+
+  .contact-links {
+    align-items: flex-start;
+  }
+
+  .copyright-badge {
+    display: inline-flex;
+  }
+}
+
+@media (max-width: 767px) {
+  .app-footer {
+    padding: 1.5rem 1rem;
+    margin-top: 2rem;
+  }
+
+  .copyright-badge {
+    font-size: 0.75rem;
+    padding: 0.4rem 1rem;
+  }
+
+  .copyright-text {
+    font-size: 0.9rem;
+  }
+
+  .copyright-warning {
+    font-size: 0.8rem;
+  }
+
+  .contact-link {
+    font-size: 0.85rem;
+    padding: 0.4rem 0.8rem;
+  }
+}
