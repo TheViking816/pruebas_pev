@@ -17,7 +17,12 @@
       "Bash(git fetch:*)",
       "Bash(git reset:*)",
       "WebFetch(domain:noray-scraper.onrender.com)",
-      "WebFetch(domain:noray.cpevalencia.com)"
+      "WebFetch(domain:noray.cpevalencia.com)",
+      "Bash(git mv:*)",
+      "Bash(git rm:*)",
+      "Bash(git stash:*)",
+      "Bash(git stash pop:*)",
+      "Bash(git merge:*)"
     ],
     "deny": [],
     "ask": []

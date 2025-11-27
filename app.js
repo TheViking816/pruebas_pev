@@ -6161,6 +6161,59 @@ async function loadCalculadora() {
 
   if (resultadoDiv) resultadoDiv.classList.add('hidden');
 
+  // ============================================================================
+  // AUTO-CARGA DE DATOS DE NORAY AL ABRIR EL ORÁCULO
+  // ============================================================================
+  // Intentar cargar automáticamente los datos del scraper de Render
+  // Esto ahorra al usuario tener que hacer clic manual en "Cargar desde Noray"
+  try {
+    console.log('🔄 Auto-cargando datos de Noray desde scraper...');
+    var autoLoadUrl = 'https://noray-scraper.onrender.com/api/all';
+    var autoLoadResponse = await fetch(autoLoadUrl);
+    var autoLoadData = await autoLoadResponse.json();
+
+    if (autoLoadData.success && autoLoadData.demandas) {
+      console.log('✅ Datos de Noray cargados automáticamente:', autoLoadData);
+
+      // Aplicar datos automáticamente a los campos del formulario
+      var demandas = autoLoadData.demandas;
+      var fijos = autoLoadData.fijos || 0;
+
+      // Actualizar campo de fijos
+      var fijosInput = document.getElementById('calc-fijos');
+      if (fijosInput) {
+        fijosInput.value = fijos;
+      }
+
+      // Actualizar demandas de cada jornada (grúas y coches)
+      if (demandas['08-14']) {
+        var gruas1 = document.getElementById('calc-gruas-1');
+        var coches1 = document.getElementById('calc-coches-1');
+        if (gruas1) gruas1.value = demandas['08-14'].gruas || 0;
+        if (coches1) coches1.value = demandas['08-14'].coches || 0;
+      }
+      if (demandas['14-20']) {
+        var gruas2 = document.getElementById('calc-gruas-2');
+        var coches2 = document.getElementById('calc-coches-2');
+        if (gruas2) gruas2.value = demandas['14-20'].gruas || 0;
+        if (coches2) coches2.value = demandas['14-20'].coches || 0;
+      }
+      if (demandas['20-02']) {
+        var gruas3 = document.getElementById('calc-gruas-3');
+        var coches3 = document.getElementById('calc-coches-3');
+        if (gruas3) gruas3.value = demandas['20-02'].gruas || 0;
+        if (coches3) coches3.value = demandas['20-02'].coches || 0;
+      }
+
+      console.log('✅ Datos aplicados automáticamente a los campos del formulario');
+    }
+  } catch (autoLoadError) {
+    console.warn('⚠️ No se pudieron cargar automáticamente los datos de Noray:', autoLoadError.message);
+    // No mostrar error al usuario, solo continuar normalmente
+    // El usuario aún puede usar el botón "Cargar desde Noray" manualmente
+  }
+  // ============================================================================
+
   // Constantes del censo
   var LIMITE_SP = 443;
   var INICIO_OC = 444;
