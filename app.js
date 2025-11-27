@@ -6429,7 +6429,7 @@ async function loadCalculadora() {
         // Funcion para verificar si el usuario sale contratado
         // Avanza posicion por posicion, contando solo disponibles
         // IMPORTANTE: Detecta si la puerta PASA por el usuario, este disponible o no
-        function verificarContratacion(puertaInicio, demanda, usuario) {
+        function verificarContratacion(puertaInicio, demanda, usuario, esSegundaVueltaDia) {
           var posActual = puertaInicio;
           var contratados = 0;
           var vueltas = 0;
@@ -6437,6 +6437,9 @@ async function loadCalculadora() {
           var puertaPasoPorUsuario = false; // Nueva variable: la puerta paso por la posicion del usuario
           var maxIteraciones = tamanoCenso * 3;
           var iteraciones = 0;
+
+          // Factor de disponibilidad para segunda vuelta del dia
+          var factorSegundaVuelta = esSegundaVueltaDia ? 0.5 : 1.0;
 
           while (contratados < demanda && iteraciones < maxIteraciones) {
             posActual++;
@@ -6450,14 +6453,25 @@ async function loadCalculadora() {
               puertaPasoPorUsuario = true;
             }
 
-            // Si esta posicion esta disponible, se contrata
-            if (estaDisponible(posActual)) {
-              contratados++;
-              if (posActual === usuario) {
+            // Obtener peso de disponibilidad (0, 0.25, 0.5, 0.75, 1.0)
+            var pesoDisponibilidad = getPesoDisponibilidad(posActual);
+
+            // Si es segunda vuelta del dia, dividir disponibilidad entre 2
+            // (solo la mitad de la gente puede trabajar un segundo turno)
+            if (esSegundaVueltaDia && pesoDisponibilidad > 0) {
+              pesoDisponibilidad = pesoDisponibilidad * factorSegundaVuelta;
+            }
+
+            // Sumar peso fraccional de disponibilidad
+            if (pesoDisponibilidad > 0) {
+              contratados += pesoDisponibilidad;
+
+              // Si llegamos al usuario y tiene disponibilidad, lo alcanzamos
+              if (posActual === usuario && pesoDisponibilidad > 0) {
                 usuarioAlcanzado = true;
               }
             }
-            // Si esta en rojo, la puerta avanza pero no cuenta como contratado
+            // Si esta en rojo (peso 0), la puerta avanza pero no cuenta como contratado
 
             iteraciones++;
           }
@@ -6474,6 +6488,7 @@ async function loadCalculadora() {
         var resultadosHTML = '';
         var esPrimeraJornadaActiva = true;
         var puertaPrevista = puertaActual;
+        var puertaInicialDia = puertaActual; // Guardar puerta al inicio del dia
 
         // Posicion del usuario para calculos (posicion REAL, no relativa)
         var posUsuarioCalc = posicionUsuario;
@@ -6483,6 +6498,9 @@ async function loadCalculadora() {
 
         // Array para guardar puntuaciones de cada jornada (luego normalizamos a 100%)
         var puntuacionesJornadas = [];
+
+        // Contador de vueltas completas del censo en el mismo dia
+        var vueltasCompletasDia = 0;
 
         for (var i = 0; i < jornadasAMostrar.length; i++) {
           var jornada = jornadasAMostrar[i];
@@ -6558,13 +6576,46 @@ async function loadCalculadora() {
           // Guardar puerta antes del avance
           var puertaAntes = puertaPrevista;
 
+          // Detectar si es segunda vuelta del DIA (no solo del censo)
+          // Esto ocurre cuando en jornadas anteriores del mismo dia, la puerta ya dio una vuelta completa
+          // Ejemplo: si puerta inicial era 203 y ahora estamos en 203 otra vez (o paso por ahi)
+          var esSegundaVueltaDia = false;
+          if (i > 0 && vueltasCompletasDia >= 1) {
+            // Si ya dimos al menos una vuelta completa en el dia, esta es segunda vuelta
+            esSegundaVueltaDia = true;
+          }
+
+          // Limitar a maximo 2 vueltas por dia (maximo 2 turnos)
+          if (vueltasCompletasDia >= 2) {
+            // No procesar mas jornadas, ya se alcanzó el limite de turnos
+            puntuacionesJornadas.push({
+              jornada: jornada,
+              puntuacion: 0,
+              sinDatos: true,
+              puertaAntes: puertaPrevista,
+              puertaDespues: puertaPrevista,
+              distanciaNecesaria: 0,
+              demandaEventuales: 0,
+              vuelta: vueltasCompletasDia + 1,
+              saleContratado: false,
+              margen: 0
+            });
+            continue;
+          }
+
           // Verificar si el usuario sale contratado usando la funcion que recorre el censo
-          var resultadoContratacion = verificarContratacion(puertaAntes, demandaEventuales, posUsuarioCalc);
+          var resultadoContratacion = verificarContratacion(puertaAntes, demandaEventuales, posUsuarioCalc, esSegundaVueltaDia);
 
           puertaPrevista = resultadoContratacion.puertaFinal;
           var vuelta = resultadoContratacion.vueltas + 1;
           var saleContratado = resultadoContratacion.alcanzado;
           var puertaPasoPorUsuario = resultadoContratacion.puertaPasoPorUsuario;
+
+          // Actualizar contador de vueltas completas del dia
+          // Si la puerta dio una vuelta (pasó por el inicio del censo), incrementar
+          if (resultadoContratacion.vueltas > vueltasCompletasDia) {
+            vueltasCompletasDia = resultadoContratacion.vueltas;
+          }
 
           // Calcular cuantas posiciones disponibles faltan para llegar al usuario
           var distanciaNecesaria = calcularDistanciaEfectiva(puertaAntes, posUsuarioCalc);
@@ -6672,7 +6723,8 @@ async function loadCalculadora() {
             demandaEventuales: demandaEventuales,
             vuelta: vuelta,
             saleContratado: saleContratado,
-            margen: margen
+            margen: margen,
+            esSegundaVueltaDia: esSegundaVueltaDia
           });
         }
 
@@ -6827,8 +6879,9 @@ async function loadCalculadora() {
 
           // Mostrar info
           var infoPos = 'Puerta: ' + datos.puertaAntes + ' -> ' + datos.puertaDespues + ' | Tu pos: ' + posUsuarioCalc;
-          if (datos.vuelta > 1) {
-            infoPos += ' (v' + datos.vuelta + ')';
+          // Mostrar (v2) solo si es segunda vuelta del DIA (no solo del censo)
+          if (datos.esSegundaVueltaDia) {
+            infoPos += ' (v2)';
           }
           // Redondear distanciaNecesaria para mostrar numero entero de personas
           infoPos += ' | Faltan: ' + Math.round(datos.distanciaNecesaria);
