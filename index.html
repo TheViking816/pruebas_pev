@@ -3,260 +3,1223 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta http-equiv="refresh" content="3;url=https://portal-estiba-vlc.vercel.app/">
-  <title>Portal Estiba VLC - Redirigiendo...</title>
-  <style>
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-    }
+  <title>Portal Estiba VLC - Puerto de Valencia</title>
 
-    body {
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-      min-height: 100vh;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      padding: 20px;
-    }
+  <!-- PWA Meta Tags -->
+  <meta name="description" content="Portal para trabajadores del Puerto de Valencia - Consulta tus jornales, contrataciones y puertas">
+  <meta name="theme-color" content="#0a2e5c">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Estiba VLC">
 
-    .container {
-      background: white;
-      padding: 50px 40px;
-      border-radius: 20px;
-      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
-      max-width: 600px;
-      width: 100%;
-      text-align: center;
-      animation: slideIn 0.5s ease-out;
-    }
+  <!-- PWA Manifest -->
+  <link rel="manifest" href="./manifest.json">
 
-    @keyframes slideIn {
-      from {
-        opacity: 0;
-        transform: translateY(30px);
-      }
-      to {
-        opacity: 1;
-        transform: translateY(0);
-      }
-    }
+  <!-- Icons -->
+  <link rel="icon" type="image/png" href="https://i.imgur.com/Q91Pi44.png">
+  <link rel="apple-touch-icon" href="https://i.imgur.com/Q91Pi44.png">
 
-    .icon {
-      font-size: 80px;
-      margin-bottom: 20px;
-      animation: bounce 2s infinite;
-    }
-
-    @keyframes bounce {
-      0%, 20%, 50%, 80%, 100% {
-        transform: translateY(0);
-      }
-      40% {
-        transform: translateY(-20px);
-      }
-      60% {
-        transform: translateY(-10px);
-      }
-    }
-
-    h1 {
-      color: #333;
-      margin-bottom: 15px;
-      font-size: 32px;
-      font-weight: 700;
-    }
-
-    .subtitle {
-      color: #666;
-      font-size: 18px;
-      margin-bottom: 30px;
-      line-height: 1.6;
-    }
-
-    .highlight {
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-      color: white;
-      padding: 15px 25px;
-      border-radius: 10px;
-      margin: 20px 0;
-      font-weight: bold;
-      font-size: 20px;
-    }
-
-    .countdown {
-      font-size: 48px;
-      color: #667eea;
-      font-weight: bold;
-      margin: 20px 0;
-      animation: pulse 1s infinite;
-    }
-
-    @keyframes pulse {
-      0%, 100% {
-        transform: scale(1);
-      }
-      50% {
-        transform: scale(1.1);
-      }
-    }
-
-    .button {
-      display: inline-block;
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-      color: white;
-      padding: 15px 40px;
-      text-decoration: none;
-      border-radius: 50px;
-      font-weight: bold;
-      font-size: 18px;
-      margin-top: 20px;
-      transition: all 0.3s ease;
-      box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
-    }
-
-    .button:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 6px 20px rgba(102, 126, 234, 0.6);
-    }
-
-    .info {
-      margin-top: 30px;
-      padding: 20px;
-      background: #f8f9fa;
-      border-radius: 10px;
-      border-left: 4px solid #667eea;
-    }
-
-    .info h3 {
-      color: #333;
-      margin-bottom: 10px;
-      font-size: 18px;
-    }
-
-    .info p {
-      color: #666;
-      line-height: 1.6;
-      font-size: 14px;
-    }
-
-    .footer {
-      margin-top: 30px;
-      color: #999;
-      font-size: 12px;
-    }
-
-    .loading-bar {
-      width: 100%;
-      height: 4px;
-      background: #e0e0e0;
-      border-radius: 2px;
-      overflow: hidden;
-      margin: 20px 0;
-    }
-
-    .loading-progress {
-      height: 100%;
-      background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
-      animation: loading 3s linear;
-    }
-
-    @keyframes loading {
-      from {
-        width: 0%;
-      }
-      to {
-        width: 100%;
-      }
-    }
-
-    @media (max-width: 600px) {
-      .container {
-        padding: 30px 20px;
-      }
-
-      h1 {
-        font-size: 24px;
-      }
-
-      .subtitle {
-        font-size: 16px;
-      }
-
-      .highlight {
-        font-size: 16px;
-        padding: 12px 20px;
-      }
-
-      .icon {
-        font-size: 60px;
-      }
-    }
-  </style>
+  <!-- Stylesheets -->
+  <link rel="stylesheet" href="styles.css">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
 </head>
 <body>
-  <div class="container">
-    <div class="icon">🚀</div>
-    <h1>¡Portal Estiba VLC se ha mudado!</h1>
-    <p class="subtitle">
-      Hemos mejorado nuestros servidores para ofrecerte una mejor experiencia.
-      <br>Te estamos redirigiendo a la nueva ubicación...
-    </p>
+  <!-- Skip link para accesibilidad -->
+  <a href="#main-content" class="skip-link">Saltar al contenido principal</a>
 
-    <div class="highlight">
-      portal-estiba-vlc.vercel.app
+  <!-- Header fijo -->
+  <header id="app-header" class="header-main" role="banner">
+    <div class="header-content">
+      <div class="header-logo">
+        <img src="https://i.imgur.com/7F1BWQ2.jpeg" alt="Puerto Valencia" class="logo-img">
+        <div class="logo-text">
+          <h1 id="header-title">Portal Estiba VLC</h1>
+          <p>Puerto de Valencia</p>
+        </div>
+      </div>
+      <div class="header-actions">
+        <button id="menuBtn" class="menu-btn md:hidden" aria-label="Abrir menú de navegación" aria-expanded="false" aria-controls="sidebar">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
+          </svg>
+        </button>
+        <div id="user-info" class="user-info hidden">
+          <span id="user-chapa" class="user-chapa"></span>
+          <button id="change-password-btn" class="settings-btn" title="Cambiar Contraseña" aria-label="Cambiar Contraseña">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+              <path fill-rule="evenodd" d="M11.49 3.17c-.38-1.56-2.6-1.56-2.98 0a1.532 1.532 0 01-2.286.948c-1.372-.836-2.942.734-2.106 2.106.54.886.061 2.042-.947 2.287-1.561.379-1.561 2.6 0 2.978a1.532 1.532 0 01.947 2.287c-.836 1.372.734 2.942 2.106 2.106a1.532 1.532 0 012.287.947c.379 1.561 2.6 1.561 2.978 0a1.533 1.533 0 012.287-.947c1.372.836 2.942-.734 2.106-2.106a1.533 1.533 0 01.947-2.287c1.561-.379 1.561-2.6 0-2.978a1.532 1.532 0 01-.947-2.287c.836-1.372-.734-2.942-2.106-2.106a1.532 1.532 0 01-2.287-.947zM10 13a3 3 0 100-6 3 3 0 000 6z" clip-rule="evenodd" />
+            </svg>
+          </button>
+          <button id="logoutBtn" class="logout-btn">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+              <path fill-rule="evenodd" d="M3 3a1 1 0 00-1 1v12a1 1 0 001 1h12a1 1 0 001-1V4a1 1 0 00-1-1H3zm11 4.414l-4.293 4.293a1 1 0 01-1.414 0L4 7.414 5.414 6l3.293 3.293L13.586 5 15 6.414z" clip-rule="evenodd" />
+            </svg>
+            Salir
+          </button>
+        </div>
+      </div>
     </div>
+  </header>
 
-    <div class="countdown" id="countdown">3</div>
+  <!-- Sidebar navegación -->
+  <aside id="sidebar" class="sidebar" aria-label="Menú de navegación principal">
+    <nav class="sidebar-nav" role="navigation">
+      <button class="nav-link" data-page="dashboard">
+        <svg xmlns="http://www.w3.org/2000/svg" class="nav-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
+        </svg>
+        Dashboard
+      </button>
+      <button class="nav-link" data-page="contratacion">
+        <svg xmlns="http://www.w3.org/2000/svg" class="nav-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+        </svg>
+        Mi Contratación
+      </button>
+      <button class="nav-link" data-page="jornales">
+        <svg xmlns="http://www.w3.org/2000/svg" class="nav-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+        </svg>
+        Mis Jornales
+      </button>
+      <button class="nav-link" data-page="sueldometro">
+        <svg xmlns="http://www.w3.org/2000/svg" class="nav-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+        </svg>
+        Sueldómetro
+      </button>
+      <button class="nav-link" data-page="calculadora">
+        <svg xmlns="http://www.w3.org/2000/svg" class="nav-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
+        </svg>
+        El Oráculo
+      </button>
+      <button class="nav-link" data-page="puertas">
+        <svg xmlns="http://www.w3.org/2000/svg" class="nav-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+        </svg>
+        Puertas
+      </button>
+      <button class="nav-link" data-page="censo">
+        <svg xmlns="http://www.w3.org/2000/svg" class="nav-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+        </svg>
+        Censo
+      </button>
+      <button class="nav-link" data-page="enlaces">
+        <svg xmlns="http://www.w3.org/2000/svg" class="nav-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" />
+        </svg>
+        Enlaces Útiles
+      </button>
+      <button class="nav-link" data-page="noticias">
+        <svg xmlns="http://www.w3.org/2000/svg" class="nav-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10a2 2 0 012 2v1m2 13a2 2 0 01-2-2V7m2 13a2 2 0 002-2V9a2 2 0 00-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z" />
+        </svg>
+        Noticias
+      </button>
+      <button class="nav-link" data-page="foro">
+        <svg xmlns="http://www.w3.org/2000/svg" class="nav-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8h2a2 2 0 012 2v6a2 2 0 01-2 2h-2v4l-4-4H9a1.994 1.994 0 01-1.414-.586m0 0L11 14h4a2 2 0 002-2V6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2v4l.586-.586z" />
+        </svg>
+        Foro
+      </button>
 
-    <div class="loading-bar">
-      <div class="loading-progress"></div>
+      <!-- INICIO DE LA SECCIÓN AÑADIDA: BOTÓN PARA NOTIFICACIONES PUSH -->
+      <button class="nav-link" data-page="push-notifications">
+        <svg xmlns="http://www.w3.org/2000/svg" class="nav-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
+        </svg>
+        Notificaciones Push
+      </button>
+      <!-- FIN DE LA SECCIÓN AÑADIDA: BOTÓN PARA NOTIFICACIONES PUSH -->
+
+    </nav>
+  </aside>
+
+  <!-- Overlay para cerrar sidebar en móvil -->
+  <div id="sidebar-overlay" class="sidebar-overlay"></div>
+
+  <!-- Contenido principal -->
+  <main id="main-content" class="main-content" role="main">
+
+    <!-- PÁGINA DE LOGIN -->
+    <section id="page-login" class="page active">
+      <div class="login-container">
+        <div class="login-card">
+          <div class="login-hero">
+            <img src="https://i.imgur.com/xcHiyAn.jpeg" alt="Puerto de Valencia">
+            <div class="login-hero-overlay">
+              <h2>Bienvenido</h2>
+              <p>Portal de Estibadores Eventuales</p>
+            </div>
+          </div>
+          <form class="login-form" id="login-form" onsubmit="return false;">
+            <div class="form-group">
+              <label for="chapa-input">Número de Chapa</label>
+              <input type="text" id="chapa-input" inputmode="numeric" pattern="[0-9]*" placeholder="Introduce tu número de chapa" autocomplete="username">
+            </div>
+            <div class="form-group">
+              <label for="password-input">Contraseña</label>
+              <input type="password" id="password-input" placeholder="Introduce tu contraseña" autocomplete="current-password">
+            </div>
+            <p id="login-error" class="error-message" role="alert" aria-live="polite">Por favor, verifica tu chapa y contraseña</p>
+            <button id="login-btn" class="btn-primary btn-large" type="submit">
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                <path fill-rule="evenodd" d="M3 3a1 1 0 011 1v12a1 1 0 11-2 0V4a1 1 0 011-1zm7.707 3.293a1 1 0 010 1.414L9.414 9H17a1 1 0 110 2H9.414l1.293 1.293a1 1 0 01-1.414 1.414l-3-3a1 1 0 010-1.414l3-3a1 1 0 011.414 0z" clip-rule="evenodd" />
+              </svg>
+              Acceder al Portal
+            </button>
+          </form>
+        </div>
+      </div>
+    </section>
+
+    <!-- PÁGINA DASHBOARD -->
+    <section id="page-dashboard" class="page">
+      <div class="page-hero">
+        <img src="https://i.imgur.com/bSOecVC.jpeg" alt="Puerto de Valencia">
+        <div class="page-hero-content">
+          <h2>Portal de Estibadores Eventuales</h2>
+          <p>Puerto de Valencia - Información en tiempo real</p>
+        </div>
+      </div>
+
+      <div class="container">
+        <div class="welcome-card">
+          <h3 id="welcome-message">Bienvenido al Portal</h3>
+          <p>Accede rápidamente a toda tu información laboral</p>
+        </div>
+
+        <div class="dashboard-grid">
+          <div class="dashboard-card" data-navigate="contratacion">
+            <div class="dashboard-card-icon blue">
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+              </svg>
+            </div>
+            <h3>Mi Contratación</h3>
+            <p>Consulta tus asignaciones del día</p>
+            <img src="https://i.imgur.com/guKCoFy.jpeg" alt="Contenedores">
+          </div>
+
+          <div class="dashboard-card" data-navigate="jornales">
+            <div class="dashboard-card-icon green">
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+              </svg>
+            </div>
+            <h3>Mis Jornales</h3>
+            <p>Seguimiento de jornales por quincena</p>
+            <img src="https://i.imgur.com/C3UpaWV.jpeg" alt="Terminal">
+          </div>
+
+          <div class="dashboard-card" data-navigate="puertas">
+            <div class="dashboard-card-icon orange">
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+              </svg>
+            </div>
+            <h3>Puertas</h3>
+            <p>Consulta las puertas del día</p>
+            <img src="https://i.imgur.com/gUw97fH.jpeg" alt="Puertas">
+          </div>
+
+          <div class="dashboard-card" data-navigate="censo">
+            <div class="dashboard-card-icon purple">
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+              </svg>
+            </div>
+            <h3>Censo</h3>
+            <p>Consulta el censo de disponibilidad</p>
+            <img src="https://i.imgur.com/iHJOi0K.jpeg" alt="Operativa">
+          </div>
+
+          <div class="dashboard-card" data-navigate="noticias">
+            <div class="dashboard-card-icon red">
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10a2 2 0 012 2v1m2 13a2 2 0 01-2-2V7m2 13a2 2 0 002-2V9a2 2 0 00-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z" />
+              </svg>
+            </div>
+            <h3>Noticias</h3>
+            <p>Últimas comunicaciones importantes</p>
+            <img src="https://i.imgur.com/7F1BWQ2.jpeg" alt="Noticias">
+          </div>
+
+          <div class="dashboard-card" data-navigate="foro">
+            <div class="dashboard-card-icon teal">
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8h2a2 2 0 012 2v6a2 2 0 01-2 2h-2v4l-4-4H9a1.994 1.994 0 01-1.414-.586m0 0L11 14h4a2 2 0 002-2V6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2v4l.586-.586z" />
+              </svg>
+            </div>
+            <h3>Foro</h3>
+            <p>Conecta con otros estibadores</p>
+            <img src="https://i.imgur.com/xcHiyAn.jpeg" alt="Foro">
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- PÁGINA MI CONTRATACIÓN -->
+    <section id="page-contratacion" class="page">
+      <div class="page-hero small">
+        <img src="https://i.imgur.com/guKCoFy.jpeg" alt="Operativa Terminal">
+        <div class="page-hero-content">
+          <h2>Mi Contratación</h2>
+          <p>Asignaciones del día en tiempo real</p>
+        </div>
+      </div>
+      <div class="container">
+        <div id="contratacion-loading" class="loading-state">
+          <div class="spinner"></div>
+          <p>Cargando asignaciones...</p>
+        </div>
+        <div id="contratacion-content"></div>
+      </div>
+    </section>
+
+    <!-- PÁGINA MIS JORNALES -->
+    <section id="page-jornales" class="page">
+      <div class="page-hero small">
+        <img src="https://i.imgur.com/C3UpaWV.jpeg" alt="Puerto Valencia Jornales">
+        <div class="page-hero-content">
+          <h2>Mis Jornales</h2>
+          <p>Seguimiento por quincena</p>
+        </div>
+      </div>
+      <div class="container">
+        <div id="jornales-stats" class="stats-grid"></div>
+        <div id="jornales-loading" class="loading-state">
+          <div class="spinner"></div>
+          <p>Cargando jornales...</p>
+        </div>
+        <div id="jornales-content"></div>
+      </div>
+
+      <!-- Botón flotante para añadir jornal -->
+      <button id="add-jornal-btn" class="fab-add-jornal" title="Añadir jornal manualmente" aria-label="Añadir jornal manualmente">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4" />
+        </svg>
+      </button>
+    </section>
+
+    <!-- PÁGINA SUELDÓMETRO -->
+    <section id="page-sueldometro" class="page">
+      <div class="page-hero small">
+        <img src="https://i.imgur.com/C3UpaWV.jpeg" alt="Sueldómetro">
+        <div class="page-hero-content">
+          <h2>💰 Sueldómetro</h2>
+          <p>Estimación de tu salario por quincena</p>
+        </div>
+      </div>
+      <div class="container">
+        <div id="sueldometro-loading" class="loading-state">
+          <div class="spinner"></div>
+          <p>Calculando salarios...</p>
+        </div>
+        <div id="sueldometro-irpf-control" class="irpf-control collapsed" style="display: none;">
+          <div class="irpf-control-header" onclick="this.parentElement.classList.toggle('collapsed')">
+            <span class="irpf-toggle">
+              <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+              </svg>
+            </span>
+            <span class="irpf-header-text">Configurar % IRPF</span>
+            <span id="irpf-display-value" class="irpf-display-value">15%</span>
+          </div>
+          <div class="irpf-control-content">
+            <label for="irpf-input">
+              <span class="irpf-label">% IRPF:</span>
+              <input type="number" id="irpf-input" min="0" max="50" step="0.1" value="15" />
+              <button id="irpf-lock-btn" class="lock-btn" title="Bloquear IRPF para que no cambie">🔓</button>
+              <span class="irpf-help">Introduce tu porcentaje de retención y bloquéalo con 🔒</span>
+            </label>
+          </div>
+        </div>
+        <div id="sueldometro-stats" class="stats-grid"></div>
+        <div id="sueldometro-content"></div>
+      </div>
+    </section>
+
+    <!-- PÁGINA PUERTAS -->
+    <section id="page-puertas" class="page">
+      <div class="page-hero small">
+        <img src="https://i.imgur.com/gUw97fH.jpeg" alt="Puertas Puerto">
+        <div class="page-hero-content">
+          <h2 id="puertas-titulo">Puertas del Día</h2>
+          <p id="puertas-fecha">Información actualizada de puertas</p>
+        </div>
+      </div>
+      <div class="container">
+        <div id="puertas-loading" class="loading-state">
+          <div class="spinner"></div>
+          <p>Cargando puertas...</p>
+        </div>
+        <div id="puertas-content"></div>
+      </div>
+    </section>
+
+    <!-- PÁGINA CENSO -->
+    <section id="page-censo" class="page">
+      <div class="page-hero small">
+        <img src="https://i.imgur.com/iHJOi0K.jpeg" alt="Censo">
+        <div class="page-hero-content">
+          <h2>Censo de Disponibilidad</h2>
+          <p>Estado actual de la bolsa de eventuales</p>
+        </div>
+      </div>
+      <div class="container">
+        <!-- Leyenda de colores -->
+        <div class="censo-legend">
+          <div class="censo-legend-item">
+            <span class="censo-legend-color green"></span>
+            <span>Verde: Disponible</span>
+          </div>
+          <div class="censo-legend-item">
+            <span class="censo-legend-color blue"></span>
+            <span>Azul: 3 jornadas</span>
+          </div>
+          <div class="censo-legend-item">
+            <span class="censo-legend-color yellow"></span>
+            <span>Amarillo: 2 jornadas</span>
+          </div>
+          <div class="censo-legend-item">
+            <span class="censo-legend-color orange"></span>
+            <span>Naranja: 1 jornada</span>
+          </div>
+          <div class="censo-legend-item">
+            <span class="censo-legend-color red"></span>
+            <span>Rojo: No disponible</span>
+          </div>
+        </div>
+
+        <div id="censo-loading" class="loading-state">
+          <div class="spinner"></div>
+          <p>Cargando censo...</p>
+        </div>
+        <div id="censo-content"></div>
+      </div>
+    </section>
+
+    <!-- PÁGINA ENLACES -->
+    <section id="page-enlaces" class="page">
+      <div class="page-hero small">
+        <img src="https://i.imgur.com/7F1BWQ2.jpeg" alt="Enlaces">
+        <div class="page-hero-content">
+          <h2>Enlaces y Formularios</h2>
+          <p>Accesos rápidos a recursos útiles</p>
+        </div>
+      </div>
+      <div class="container">
+        <div id="enlaces-content"></div>
+      </div>
+    </section>
+
+    <!-- PÁGINA NOTICIAS -->
+    <section id="page-noticias" class="page">
+      <div class="page-hero small">
+        <img src="https://i.imgur.com/bSOecVC.jpeg" alt="Noticias">
+        <div class="page-hero-content">
+          <h2>Noticias y Avisos</h2>
+          <p>Comunicaciones importantes</p>
+        </div>
+      </div>
+      <div class="container">
+        <div id="noticias-content"></div>
+      </div>
+    </section>
+
+    <!-- PÁGINA FORO -->
+    <section id="page-foro" class="page">
+      <div class="page-hero small">
+        <img src="https://i.imgur.com/xcHiyAn.jpeg" alt="Foro">
+        <div class="page-hero-content">
+          <h2>💬 Foro de Compañeros</h2>
+          <p>Comunícate con otros estibadores</p>
+        </div>
+      </div>
+      <div class="container foro-container">
+        <div id="foro-messages" class="foro-messages"></div>
+      </div>
+
+      <!-- Botón scroll hacia abajo -->
+      <button id="scroll-to-bottom-btn" class="scroll-to-bottom-btn" style="display: none;" title="Ir a mensajes recientes" aria-label="Ir a mensajes recientes">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+          <path d="M12 4l-1.41 1.41L16.17 11H4v2h12.17l-5.58 5.59L12 20l8-8z" transform="rotate(90 12 12)"/>
+        </svg>
+      </button>
+
+      <!-- Composer fijo en la parte inferior -->
+      <div id="foro-composer" class="foro-composer">
+        <div class="foro-composer-inner">
+          <textarea id="foro-input" placeholder="Escribe tu mensaje..." rows="2" maxlength="500"></textarea>
+          <div class="foro-composer-actions">
+            <span id="foro-char-count" class="foro-char-count">0/500</span>
+            <button id="foro-send" class="btn-primary">
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                <path d="M10.894 2.553a1 1 0 00-1.788 0l-7 14a1 1 0 001.169 1.409l5-1.429A1 1 0 009 15.571V11a1 1 0 112 0v4.571a1 1 0 00.725.962l5 1.428a1 1 0 001.17-1.408l-7-14z" />
+              </svg>
+              Enviar
+            </button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- PÁGINA CALCULADORA PREDICTIVA (EL ORÁCULO) -->
+    <section id="page-calculadora" class="page">
+      <div class="page-hero small">
+        <img src="https://i.imgur.com/guKCoFy.jpeg" alt="Calculadora Estiba">
+        <div class="page-hero-content">
+          <h2>El Oraculo</h2>
+          <p>Calcula en que turno del dia vas a entrar</p>
+        </div>
+      </div>
+      <div class="container">
+        <!-- Enlaces Rápidos -->
+        <div class="quick-links-card">
+          <h3 style="color: white; margin-bottom: 1rem;">Consulta los datos oficiales:</h3>
+          <div class="quick-links-buttons">
+            <a href="https://noray.cpevalencia.com/PrevisionDemanda.asp" target="_blank" class="btn-glass">Ver Demanda (Gruas)</a>
+            <a href="https://noray.cpevalencia.com/Chapero.asp" target="_blank" class="btn-glass">Ver Turno (No Contratados)</a>
+          </div>
+        </div>
+
+        <!-- Formulario con todas las jornadas -->
+        <div class="calculator-card">
+          <h3 class="section-title">Introduce los datos de cada jornada</h3>
+
+          <!-- Boton para cargar datos automaticamente -->
+          <div class="calc-form-group" style="margin-bottom: 1.5rem;">
+            <button id="btn-cargar-noray" onclick="cargarDatosNoray()" class="btn-secondary" style="width: 100%;">
+              Cargar datos Noray
+            </button>
+            <div id="noray-status" style="display: none; font-size: 0.75rem; text-align: center; margin-top: 0.5rem;"></div>
+          </div>
+
+          <!-- Fijos disponibles (comun para todas) -->
+          <div class="calc-form-group">
+            <label>Fijos Disponibles (Chapero)</label>
+            <div class="stepper full-width">
+              <button class="step-btn minus" onclick="updateStepper('calc-fijos', -5)">-5</button>
+              <input type="number" id="calc-fijos" value="100" min="0">
+              <button class="step-btn plus" onclick="updateStepper('calc-fijos', 5)">+5</button>
+            </div>
+            <p class="help-text">Numero entre parentesis en "no contratado (X)"</p>
+          </div>
+
+          <!-- Jornada Mañana 08-14 -->
+          <div class="jornada-input-card">
+            <div class="jornada-header">
+              <span class="jornada-badge manana">08:00 - 14:00</span>
+              <span class="jornada-label">Manana</span>
+            </div>
+            <div class="calc-grid">
+              <div class="calc-input-wrapper">
+                <label>Gruas</label>
+                <div class="stepper">
+                  <button class="step-btn minus" onclick="updateStepper('calc-gruas-1', -1)">-</button>
+                  <input type="number" id="calc-gruas-1" value="0" min="0">
+                  <button class="step-btn plus" onclick="updateStepper('calc-gruas-1', 1)">+</button>
+                </div>
+              </div>
+              <div class="calc-input-wrapper">
+                <label>Coches</label>
+                <div class="stepper">
+                  <button class="step-btn minus" onclick="updateStepper('calc-coches-1', -1)">-</button>
+                  <input type="number" id="calc-coches-1" value="0" min="0">
+                  <button class="step-btn plus" onclick="updateStepper('calc-coches-1', 1)">+</button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Jornada Tarde 14-20 -->
+          <div class="jornada-input-card">
+            <div class="jornada-header">
+              <span class="jornada-badge tarde">14:00 - 20:00</span>
+              <span class="jornada-label">Tarde</span>
+            </div>
+            <div class="calc-grid">
+              <div class="calc-input-wrapper">
+                <label>Gruas</label>
+                <div class="stepper">
+                  <button class="step-btn minus" onclick="updateStepper('calc-gruas-2', -1)">-</button>
+                  <input type="number" id="calc-gruas-2" value="0" min="0">
+                  <button class="step-btn plus" onclick="updateStepper('calc-gruas-2', 1)">+</button>
+                </div>
+              </div>
+              <div class="calc-input-wrapper">
+                <label>Coches</label>
+                <div class="stepper">
+                  <button class="step-btn minus" onclick="updateStepper('calc-coches-2', -1)">-</button>
+                  <input type="number" id="calc-coches-2" value="0" min="0">
+                  <button class="step-btn plus" onclick="updateStepper('calc-coches-2', 1)">+</button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Jornada Noche 20-02 -->
+          <div class="jornada-input-card">
+            <div class="jornada-header">
+              <span class="jornada-badge noche">20:00 - 02:00</span>
+              <span class="jornada-label">Noche</span>
+            </div>
+            <div class="calc-grid">
+              <div class="calc-input-wrapper">
+                <label>Gruas</label>
+                <div class="stepper">
+                  <button class="step-btn minus" onclick="updateStepper('calc-gruas-3', -1)">-</button>
+                  <input type="number" id="calc-gruas-3" value="0" min="0">
+                  <button class="step-btn plus" onclick="updateStepper('calc-gruas-3', 1)">+</button>
+                </div>
+              </div>
+              <div class="calc-input-wrapper">
+                <label>Coches</label>
+                <div class="stepper">
+                  <button class="step-btn minus" onclick="updateStepper('calc-coches-3', -1)">-</button>
+                  <input type="number" id="calc-coches-3" value="0" min="0">
+                  <button class="step-btn plus" onclick="updateStepper('calc-coches-3', 1)">+</button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <button id="btn-calcular-probabilidad" class="btn-primary btn-large pulsate" style="margin-top: 2rem;">
+            ¿Cuándo voy a trabajar?
+          </button>
+
+      <!-- Disclaimer -->
+             <div style="margin-top: 1.5rem; padding: 1rem; background: rgba(251, 191, 36, 0.1);
+       border-left: 4px solid #fbbf24; border-radius: 8px;">
+                    <p style="margin: 0; font-size: 0.85rem; color: #92400e; line-height: 1.5;">
+                      <strong>⚠️ Aviso importante:</strong> Los cálculos mostrados son aproximaciones
+       basadas en previsiones y disponibilidad actual.
+                     La realidad puede variar debido a factores imprevistos como cambios de última hora,
+        ausencias no programadas o variaciones en la demanda.
+                    Usa esta herramienta como referencia orientativa.
+                 </p>
+            </div>
+
+        </div>
+
+        <!-- Resultados -->
+        <div id="calc-resultado" class="calc-resultados-container hidden"></div>
+      </div>
+    </section>
+
+    <!-- INICIO DE LA SECCIÓN AÑADIDA: PÁGINA PARA GESTIONAR NOTIFICACIONES PUSH -->
+    <section id="page-push-notifications" class="page">
+        <div class="page-hero small">
+            <img src="https://i.imgur.com/7F1BWQ2.jpeg" alt="Notificaciones">
+            <div class="page-hero-content">
+                <h2>Configurar Notificaciones Push</h2>
+                <p>Recibe avisos sobre nuevas contrataciones</p>
+            </div>
+        </div>
+        <div class="container">
+            <div id="push-notification-controls" style="margin-top: 20px; padding: 15px; border: 1px solid #ccc; border-radius: 8px;">
+                <p id="push-loading-message" style="display: none;">Cargando...</p>
+                <p id="push-error-message" style="color: red; display: none;"></p>
+
+                <p id="push-denied-message" style="color: #888; display: none;">
+                    Las notificaciones han sido denegadas. Por favor, habilítalas en la
+                    configuración de tu navegador si deseas recibirlas.
+                </p>
+                
+                <button id="enable-push-btn" class="btn-primary" style="display: none; padding: 10px 15px; background-color: #007bff; color: white; border: none; border-radius: 5px; cursor: pointer;">
+                    Habilitar Notificaciones
+                </button>
+                <button id="subscribe-push-btn" class="btn-primary" style="display: none; padding: 10px 15px; background-color: #28a745; color: white; border: none; border-radius: 5px; cursor: pointer;">
+                    Suscribirse a Notificaciones
+                </button>
+                <button id="unsubscribe-push-btn" class="btn-secondary" style="display: none; padding: 10px 15px; background-color: #dc3545; color: white; border: none; border-radius: 5px; cursor: pointer;">
+                    Desuscribirse
+                </button>
+                <p id="push-subscribed-message" style="display: none; margin-top: 10px; color: #555;">Estás suscrito a las notificaciones de nuevas contrataciones.</p>
+            </div>
+        </div>
+    </section>
+    <!-- FIN DE LA SECCIÓN AÑADIDA: PÁGINA PARA GESTIONAR NOTIFICACIONES PUSH -->
+
+  </main>
+
+  <!-- Footer Copyright -->
+  <footer id="app-footer" class="app-footer" role="contentinfo">
+    <div class="footer-container">
+      <div class="footer-copyright">
+        <div class="copyright-badge">
+          <svg xmlns="http://www.w3.org/2000/svg" class="copyright-icon" viewBox="0 0 20 20" fill="currentColor">
+            <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd" />
+          </svg>
+          <span>CÓDIGO PROPIETARIO Y CONFIDENCIAL</span>
+        </div>
+        <p class="copyright-text">Copyright © 2025 TheViking816 (Adrian Lujan) - Todos los derechos reservados</p>
+        <p class="copyright-warning">Este software es código propietario. Uso no autorizado está prohibido.</p>
+      </div>
+      <div class="footer-contact">
+        <h4 class="contact-title">📞 Contacto</h4>
+        <p class="contact-name">Desarrollador: Adrian Lujan</p>
+        <div class="contact-links">
+          <a href="mailto:portalestibavlc@gmail.com" class="contact-link" title="Email">
+            <svg xmlns="http://www.w3.org/2000/svg" class="contact-icon" viewBox="0 0 20 20" fill="currentColor">
+              <path d="M2.003 5.884L10 9.882l7.997-3.998A2 2 0 0016 4H4a2 2 0 00-1.997 1.884z" />
+              <path d="M18 8.118l-8 4-8-4V14a2 2 0 002 2h12a2 2 0 002-2V8.118z" />
+            </svg>
+            portalestibavlc@gmail.com
+          </a>
+          <a href="https://instagram.com/portalestibavlc" target="_blank" rel="noopener noreferrer" class="contact-link" title="Instagram">
+            <svg xmlns="http://www.w3.org/2000/svg" class="contact-icon" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/>
+            </svg>
+            @portalestibavlc
+          </a>
+        </div>
+      </div>
     </div>
+  </footer>
 
-    <a href="https://portal-estiba-vlc.vercel.app/" class="button">
-      Ir ahora a la nueva ubicación →
-    </a>
-
-    <div class="info">
-      <h3>📌 Actualiza tus marcadores</h3>
-      <p>
-        Por favor, guarda la nueva URL en tus favoritos para acceder directamente en el futuro.
-        La redirección automática estará disponible temporalmente.
-      </p>
-    </div>
-
-    <div class="footer">
-      © 2025 Portal Estiba VLC - Todos los derechos reservados
+  <!-- MODAL - CHAPAS DEL PARTE -->
+  <div id="modal-chapas-parte" class="modal-overlay" style="display: none;" role="dialog" aria-modal="true" aria-labelledby="modal-chapas-titulo">
+    <div class="modal-container">
+      <div class="modal-header">
+        <div>
+          <h2 id="modal-chapas-titulo">Chapas contratadas en el parte</h2>
+          <p id="modal-chapas-subtitulo" style="color: #ffffff; margin-top: 0.5rem; font-size: 0.9rem;"></p>
+        </div>
+        <button id="modal-chapas-close" class="modal-close-btn" aria-label="Cerrar">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+          </svg>
+        </button>
+      </div>
+      <div class="modal-body">
+        <div id="modal-chapas-loading" class="loading-state">
+          <div class="spinner"></div>
+          <p>Cargando chapas...</p>
+        </div>
+        <div id="modal-chapas-content"></div>
+      </div>
     </div>
   </div>
 
+  <!-- Modal para configuración de usuario (Nombre y Contraseña) -->
+  <div id="change-password-modal" class="modal-overlay" style="display: none;" role="dialog" aria-modal="true" aria-labelledby="config-modal-title">
+    <div class="modal-content" style="max-height: 90vh; overflow-y: auto; position: relative;">
+      <!-- Botón de cerrar único para todo el modal -->
+      <button id="close-config-modal" class="modal-close" type="button" aria-label="Cerrar" style="position: absolute !important; top: 1rem !important; right: 1rem !important; z-index: 1000 !important; display: block !important;">&times;</button>
+
+      <!-- Sección para actualizar nombre -->
+      <div id="update-name-section" style="border-bottom: 2px solid #e5e7eb; padding-bottom: 1.5rem; margin-bottom: 1.5rem; padding-top: 1rem;">
+        <div class="modal-header" style="border-bottom: none; padding-bottom: 0; padding-top: 0;">
+          <h3 id="config-modal-title" style="padding-right: 3rem;">Actualizar mi nombre</h3>
+        </div>
+        <div class="modal-body">
+          <div class="form-group">
+            <label for="user-name-input">Nombre para mostrar</label>
+            <input type="text" id="user-name-input" placeholder="Ej: Juan García" maxlength="50">
+            <p style="font-size: 0.75rem; color: #6b7280; margin-top: 0.25rem;">Este nombre se mostrará en lugar de tu número de chapa</p>
+          </div>
+          <p id="name-change-error" class="error-message" role="alert" aria-live="polite"></p>
+          <p id="name-change-success" class="success-message" role="status" aria-live="polite"></p>
+        </div>
+        <div class="modal-footer">
+          <button id="cancel-name-change" class="btn-secondary" type="button">Cancelar</button>
+          <button id="save-user-name" class="btn-primary" type="button">Guardar Nombre</button>
+        </div>
+      </div>
+
+      <!-- Sección para cambiar contraseña -->
+      <form id="change-password-form" onsubmit="return false;">
+        <div class="modal-header" style="border-bottom: none; padding-bottom: 0;">
+          <h3 id="change-password-title">Cambiar Contraseña</h3>
+        </div>
+        <div class="modal-body">
+          <!-- Campo de username oculto para gestores de contraseñas -->
+          <input type="text" id="change-password-username" autocomplete="username" style="display:none;" aria-hidden="true">
+          <div class="form-group">
+            <label for="current-password">Contraseña Actual</label>
+            <input type="password" id="current-password" placeholder="Introduce tu contraseña actual" autocomplete="current-password" required>
+          </div>
+          <div class="form-group">
+            <label for="new-password">Nueva Contraseña</label>
+            <input type="password" id="new-password" placeholder="Introduce tu nueva contraseña" autocomplete="new-password" required>
+          </div>
+          <div class="form-group">
+            <label for="confirm-password">Confirmar Nueva Contraseña</label>
+            <input type="password" id="confirm-password" placeholder="Confirma tu nueva contraseña" autocomplete="new-password" required>
+          </div>
+          <p id="password-change-error" class="error-message" role="alert" aria-live="polite"></p>
+          <p id="password-change-success" class="success-message" role="status" aria-live="polite"></p>
+        </div>
+        <div class="modal-footer">
+          <button id="cancel-password-change" class="btn-secondary" type="button">Cancelar</button>
+          <button id="confirm-password-change" class="btn-primary" type="submit">Cambiar Contraseña</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Modal para añadir jornal manual -->
+  <div id="add-jornal-modal" class="modal-overlay" style="display: none;" role="dialog" aria-modal="true" aria-labelledby="add-jornal-title">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3 id="add-jornal-title">Añadir Jornal Manual</h3>
+        <button id="close-jornal-modal" class="modal-close" type="button" aria-label="Cerrar">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div class="form-group">
+          <label for="jornal-fecha">Fecha *</label>
+          <input type="date" id="jornal-fecha" required>
+        </div>
+        <div class="form-group">
+          <label for="jornal-jornada">Jornada *</label>
+          <select id="jornal-jornada" required>
+            <option value="">Selecciona una jornada</option>
+            <option value="02 a 08">02 a 08</option>
+            <option value="08 a 14">08 a 14</option>
+            <option value="14 a 20">14 a 20</option>
+            <option value="20 a 02">20 a 02</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="jornal-tipo-dia">Tipo de Día *</label>
+          <select id="jornal-tipo-dia" required>
+            <option value="">Selecciona tipo de día</option>
+            <option value="LABORABLE">Laborable</option>
+            <option value="SABADO">Sábado</option>
+            <option value="FESTIVO">Festivo</option>
+            <option value="FEST. A LAB.">Festivo a Laborable (20-02)</option>
+            <option value="LAB A FEST">Laborable a Festivo (20-02)</option>
+            <option value="FEST. A FEST.">Festivo a Festivo (20-02)</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="jornal-puesto">Puesto *</label>
+          <select id="jornal-puesto" required>
+            <option value="">Selecciona un puesto</option>
+            <option value="Especialista">Especialista</option>
+            <option value="Conductor de 1a">Conductor de 1a</option>
+            <option value="Conductor de 2a">Conductor de 2a</option>
+            <option value="Conductor de Coches">Conductor de Coches</option>
+            <option value="Trincador">Trincador</option>
+            <option value="Trincador de Coches">Trincador de Coches</option>
+            <option value="otro">Otro (especificar)</option>
+          </select>
+        </div>
+        <div class="form-group" id="jornal-puesto-otro-group" style="display: none;">
+          <label for="jornal-puesto-otro">Especifica el puesto</label>
+          <input type="text" id="jornal-puesto-otro" placeholder="Ej: Gruista">
+        </div>
+        <div class="form-group">
+          <label for="jornal-empresa">Empresa *</label>
+          <select id="jornal-empresa" required>
+            <option value="">Selecciona una empresa</option>
+            <option value="MSC">MSC</option>
+            <option value="CSP">CSP</option>
+            <option value="APM">APM</option>
+            <option value="ERH">ERH</option>
+            <option value="TRASMED">TRASMED</option>
+            <option value="VTEU">VTEU</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="jornal-buque">Buque</label>
+          <input type="text" id="jornal-buque" placeholder="Ej: MSC SARA (opcional)">
+        </div>
+        <div class="form-group">
+          <label for="jornal-parte">Parte</label>
+          <input type="number" id="jornal-parte" placeholder="Ej: 1" min="1">
+        </div>
+        <p id="jornal-error" class="error-message"></p>
+        <p id="jornal-success" class="success-message"></p>
+      </div>
+      <div class="modal-footer">
+        <button id="cancel-jornal" class="btn-secondary">Cancelar</button>
+        <button id="save-jornal" class="btn-primary">Guardar Jornal</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal para reportar bugs -->
+  <div id="report-jornal-modal" class="modal-overlay" style="display: none;" role="dialog" aria-modal="true" aria-labelledby="report-bug-title">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3 id="report-bug-title">Reportar Bug o Problema</h3>
+        <button id="close-report-modal" class="modal-close" type="button" aria-label="Cerrar">&times;</button>
+      </div>
+      <div class="modal-body">
+        <p style="margin-bottom: 1rem; color: var(--puerto-dark-blue); font-size: 0.875rem;">
+          Ayúdanos a mejorar la aplicación reportando cualquier error o problema que encuentres.
+        </p>
+        <div class="form-group">
+          <label for="report-chapa">Chapa *</label>
+          <input type="number" id="report-chapa" placeholder="Tu número de chapa" required readonly>
+        </div>
+        <div class="form-group">
+          <label for="report-tipo">Tipo de problema *</label>
+          <select id="report-tipo" required>
+            <option value="">Selecciona el tipo de problema</option>
+            <option value="Error de carga">Error de carga de datos</option>
+            <option value="Error visual">Error visual / diseño</option>
+            <option value="Funcionalidad">Problema con funcionalidad</option>
+            <option value="Performance">Lentitud / Performance</option>
+            <option value="Login">Problema con login/contraseña</option>
+            <option value="Datos incorrectos">Datos incorrectos mostrados</option>
+            <option value="Sugerencia">Sugerencia de mejora</option>
+            <option value="Otro">Otro</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="report-descripcion">Descripción del problema *</label>
+          <textarea id="report-descripcion" rows="5" placeholder="Describe detalladamente el problema que encontraste..." required style="width: 100%; padding: 0.5rem; border: 1px solid #ddd; border-radius: 4px; font-family: inherit;"></textarea>
+        </div>
+        <p id="report-error" class="error-message"></p>
+        <p id="report-success" class="success-message"></p>
+      </div>
+      <div class="modal-footer">
+        <button id="cancel-report" class="btn-secondary">Cancelar</button>
+        <button id="send-report" class="btn-primary">Enviar Reporte</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Botón de instalación PWA flotante -->
+  <button id="install-pwa-btn" class="install-pwa-btn" aria-label="Instalar aplicación">
+    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+    </svg>
+    Instalar App
+  </button>
+
+  <!-- Scripts -->
+  <!-- jsPDF para exportar a PDF -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
+
+  <!-- Supabase Library (CDN) -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+  <!-- Data Layer: Usa supabase.js para base de datos PostgreSQL -->
+  <!-- NOTA: Para volver a Google Sheets, reemplaza supabase.js con sheets.js -->
+  <script src="supabase.js?v=22"></script>
+
+  <!-- Sistema de Protección de Código - DEBE cargarse ANTES de app.js -->
+  <script src="protection.js?v=23"></script>
+
+  <script src="app.js?v=22"></script>
+
+  <!-- PWA Service Worker Registration -->
   <script>
-    // Contador regresivo
-    let countdown = 3;
-    const countdownElement = document.getElementById('countdown');
+    // Registrar el Service Worker para PWA
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('./service-worker.js')
+          .then(registration => {
+            console.log('✅ Service Worker registrado:', registration.scope);
 
-    const timer = setInterval(() => {
-      countdown--;
-      if (countdown > 0) {
-        countdownElement.textContent = countdown;
-      } else {
-        clearInterval(timer);
-        countdownElement.textContent = '¡Vamos!';
-        // Redirección manual por si el meta refresh falla
-        setTimeout(() => {
-          window.location.href = 'https://portal-estiba-vlc.vercel.app/';
-        }, 500);
-      }
-    }, 1000);
+            // Verificar actualizaciones
+            registration.addEventListener('updatefound', () => {
+              const newWorker = registration.installing;
+              console.log('🔄 Nueva versión de Service Worker encontrada');
 
-    // Redirección inmediata si el usuario hace clic en cualquier parte
-    document.addEventListener('click', function(e) {
-      if (!e.target.classList.contains('button')) {
-        window.location.href = 'https://portal-estiba-vlc.vercel.app/';
+              newWorker.addEventListener('statechange', () => {
+                if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+                  // Nueva versión disponible, ofrecer recargar
+                  console.log('🆕 Nueva versión disponible');
+                  if (confirm('Hay una nueva versión de la app disponible. ¿Deseas actualizar ahora?')) {
+                    newWorker.postMessage({ type: 'SKIP_WAITING' });
+                    window.location.reload();
+                  }
+                }
+              });
+            });
+          })
+          .catch(error => {
+            console.warn('❌ Error registrando Service Worker:', error);
+          });
+
+        // Detectar cuando el Service Worker se actualiza (solo después de confirmación del usuario)
+        let refreshing;
+        navigator.serviceWorker.addEventListener('controllerchange', () => {
+          if (refreshing) return;
+          refreshing = true;
+          console.log('🔄 Service Worker actualizado, recargando...');
+          // Solo recargar si el usuario ya confirmó (se llamó a SKIP_WAITING)
+          // No recargar automáticamente sin confirmación
+        });
+      });
+    }
+
+    // Detectar modo instalación PWA y mostrar botón personalizado
+    let deferredPrompt;
+    const installBtn = document.getElementById('install-pwa-btn');
+
+    window.addEventListener('beforeinstallprompt', (e) => {
+      // Prevenir el prompt automático
+      e.preventDefault();
+      deferredPrompt = e;
+
+      // Mostrar botón de instalación solo en la página de login
+      console.log('💡 La app puede ser instalada - mostrando botón');
+      if (installBtn) {
+        // Función para verificar si estamos en login
+        const checkAndShowButton = () => {
+          const currentPage = document.querySelector('.page.active')?.id;
+          if (currentPage === 'page-login') { // Corregido: 'login' a 'page-login' para tu estructura
+            installBtn.classList.add('visible');
+          } else {
+            installBtn.classList.remove('visible');
+          }
+        };
+
+        // Verificar inmediatamente
+        checkAndShowButton();
+
+        // Verificar cada vez que cambie la página (solo si existe el elemento)
+        const mainContentElement = document.getElementById('main-content'); // Observar el main-content
+        if (mainContentElement) {
+          const observer = new MutationObserver(checkAndShowButton);
+          observer.observe(mainContentElement, {
+            attributes: true,
+            subtree: true,
+            attributeFilter: ['class']
+          });
+        }
       }
     });
+
+    // Manejar clic en el botón de instalación
+    if (installBtn) {
+      installBtn.addEventListener('click', async () => {
+        if (!deferredPrompt) {
+          console.log('⚠️ No hay prompt de instalación disponible');
+          // En iOS Safari, mostrar instrucciones
+          if (/iPhone|iPad|iPod/.test(navigator.userAgent)) {
+            alert('Para instalar en iOS:\n\n1. Toca el botón Compartir (📤)\n2. Desplázate y toca "Agregar a pantalla de inicio"\n3. Toca "Agregar"');
+          }
+          return;
+        }
+
+        // Mostrar el prompt nativo de instalación
+        deferredPrompt.prompt();
+
+        // Esperar la respuesta del usuario
+        const { outcome } = await deferredPrompt.userChoice;
+        console.log(`👤 Usuario ${outcome === 'accepted' ? 'aceptó' : 'rechazó'} la instalación`);
+
+        // Ocultar botón después de mostrar el prompt
+        installBtn.classList.remove('visible');
+        deferredPrompt = null;
+      });
+    }
+
+    // Detectar si la app fue instalada
+    window.addEventListener('appinstalled', () => {
+      console.log('✅ ¡App instalada exitosamente!');
+      if (installBtn) {
+        installBtn.classList.remove('visible');
+      }
+      deferredPrompt = null;
+    });
+
+    // Detectar modo standalone (app ya instalada) - ocultar botón
+    if (window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true) {
+      console.log('📱 App ejecutándose en modo instalado');
+      if (installBtn) {
+        installBtn.style.display = 'none';
+      }
+    }
   </script>
+
+  <!-- ========================================================================= -->
+  <!-- INICIO DE LA SECCIÓN AÑADIDA: LÓGICA DE NOTIFICACIONES PUSH -->
+  <!-- ========================================================================= -->
+  <script>
+    // ** TU CLAVE PÚBLICA VAPID REAL, COPIADA DEL BACKEND **
+    const VAPID_PUBLIC_KEY = 'BOu8QBoKbLiIv1DBUJ_jII0U4LPuUs4H4j1cwYotoUTBLJTRVLiQpYiAyhsJsrCNa8ii6aghW8FShRqKiJ9NAF0'; 
+    
+    // ¡IMPORTANTE! Esta debe ser la URL pública de tu servidor Node.js desplegado en Vercel
+    const BACKEND_API_URL = 'https://portalestiba-push-backend.vercel.app/api/push'; 
+
+    const pushLoadingMessage = document.getElementById('push-loading-message');
+    const pushErrorMessage = document.getElementById('push-error-message');
+    const pushDeniedMessage = document.getElementById('push-denied-message');
+    const enablePushBtn = document.getElementById('enable-push-btn');
+    const subscribePushBtn = document.getElementById('subscribe-push-btn');
+    const unsubscribePushBtn = document.getElementById('unsubscribe-push-btn');
+    const pushSubscribedMessage = document.getElementById('push-subscribed-message');
+
+    function updatePushUI(permission, isSubscribed, loading = false, error = null) {
+        pushLoadingMessage.style.display = loading ? 'block' : 'none';
+        pushErrorMessage.style.display = error ? 'block' : 'none';
+        pushErrorMessage.textContent = error || '';
+
+        pushDeniedMessage.style.display = 'none';
+        enablePushBtn.style.display = 'none';
+        subscribePushBtn.style.display = 'none';
+        unsubscribePushBtn.style.display = 'none';
+        pushSubscribedMessage.style.display = 'none';
+
+        if (loading) return;
+
+        if (permission === 'denied') {
+            pushDeniedMessage.style.display = 'block';
+        } else if (permission === 'default') {
+            enablePushBtn.style.display = 'block';
+        } else if (permission === 'granted') {
+            if (isSubscribed) {
+                unsubscribePushBtn.style.display = 'block';
+                pushSubscribedMessage.style.display = 'block';
+            } else {
+                subscribePushBtn.style.display = 'block';
+            }
+        }
+    }
+
+    function urlBase64ToUint8Array(base64String) {
+        const padding = '='.repeat((4 - base64String.length % 4) % 4);
+        const base64 = (base64String + padding)
+          .replace(/-/g, '+')
+          .replace(/_/g, '/');
+        const rawData = window.atob(base64);
+        const outputArray = new Uint8Array(rawData.length);
+        for (let i = 0; i < rawData.length; ++i) {
+          outputArray[i] = rawData.charCodeAt(i);
+        }
+        return outputArray;
+    }
+
+    async function initializePushNotifications() {
+        updatePushUI(Notification.permission, false, true); // Set initial loading state
+        if (!('serviceWorker' in navigator) || !('PushManager' in window)) {
+            updatePushUI(Notification.permission, false, false, 'Las notificaciones push no están soportadas por tu navegador.');
+            return;
+        }
+
+        const swRegistration = await navigator.serviceWorker.ready;
+        const subscription = await swRegistration.pushManager.getSubscription();
+        updatePushUI(Notification.permission, !!subscription, false);
+    }
+
+    async function subscribeUser() {
+        updatePushUI(Notification.permission, false, true);
+        try {
+            const swRegistration = await navigator.serviceWorker.ready;
+            const convertedVapidKey = urlBase64ToUint8Array(VAPID_PUBLIC_KEY);
+
+            const subscription = await swRegistration.pushManager.subscribe({
+                userVisibleOnly: true,
+                applicationServerKey: convertedVapidKey,
+            });
+
+            // Obtener la chapa del usuario desde localStorage
+            const currentChapa = localStorage.getItem('currentChapa');
+
+            // Convertir subscription a JSON y agregar user_chapa
+            const subscriptionData = subscription.toJSON();
+
+            const response = await fetch(`${BACKEND_API_URL}/subscribe`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    ...subscriptionData,
+                    user_chapa: currentChapa
+                }),
+            });
+
+            if (!response.ok) {
+                const errorBody = await response.text();
+                throw new Error(`Falló al guardar la suscripción push en el servidor: ${response.status} - ${errorBody}`);
+            }
+
+            alert('Te has suscrito a las notificaciones de nuevas contrataciones!');
+            updatePushUI(Notification.permission, true);
+
+        } catch (e) {
+            console.error('Error al suscribirse a notificaciones push:', e);
+            updatePushUI(Notification.permission, false, false, 'Error al suscribirse: ' + e.message);
+        }
+    }
+
+    async function unsubscribeUser() {
+        updatePushUI(Notification.permission, true, true);
+        try {
+            const swRegistration = await navigator.serviceWorker.ready;
+            const subscription = await swRegistration.pushManager.getSubscription();
+
+            if (subscription) {
+                  const response = await fetch(`${BACKEND_API_URL}/unsubscribe`, {
+                      method: 'POST',
+                      headers: { 'Content-Type': 'application/json' },
+                      body: JSON.stringify({ endpoint: subscription.endpoint }),
+                  });
+
+                  if (!response.ok) {
+                    const errorBody = await response.text();
+                    console.warn(`Falló la desuscripción en el servidor: ${response.status} - ${errorBody}`);
+                    // Continuar con la desuscripción local aunque el servidor falle
+                  }
+
+                await subscription.unsubscribe();
+            }
+            alert('Te has desuscrito de las notificaciones.');
+            updatePushUI(Notification.permission, false);
+
+        } catch (e) {
+            console.error('Error al desuscribirse:', e);
+            updatePushUI(Notification.permission, false, false, 'Error al desuscribirse: ' + e.message);
+        }
+    }
+
+    async function requestNotificationPermissionAndSubscribe() {
+        updatePushUI(Notification.permission, false, true);
+        try {
+            const permissionResult = await Notification.requestPermission();
+            if (permissionResult === 'granted') {
+                await subscribeUser();
+            } else {
+                updatePushUI(permissionResult, false, false, 'Permiso de notificación denegado.');
+            }
+        } catch (e) {
+            console.error('Error al solicitar permiso de notificación:', e);
+            updatePushUI(Notification.permission, false, false, 'Error al solicitar permiso: ' + e.message);
+        }
+    }
+
+    // Event Listeners para los botones
+    enablePushBtn.addEventListener('click', requestNotificationPermissionAndSubscribe);
+    subscribePushBtn.addEventListener('click', subscribeUser);
+    unsubscribePushBtn.addEventListener('click', unsubscribeUser);
+
+    // Inicializar cuando la página de notificaciones sea visible
+    const pushNotificationsPage = document.getElementById('page-push-notifications');
+    if (pushNotificationsPage) { // Asegurarse de que la página existe
+      const observerPushPage = new MutationObserver((mutations) => { 
+          mutations.forEach((mutation) => {
+              if (mutation.attributeName === 'class' && pushNotificationsPage.classList.contains('active')) {
+                  initializePushNotifications();
+              }
+          });
+      });
+      observerPushPage.observe(pushNotificationsPage, { attributes: true });
+
+      // También inicializar si ya estamos en la página al cargar
+      if (pushNotificationsPage.classList.contains('active')) {
+          initializePushNotifications();
+      }
+    }
+  </script>
+  <!-- ========================================================================= -->
+  <!-- FIN DE LA SECCIÓN AÑADIDA: LÓGICA DE NOTIFICACIONES PUSH -->
+  <!-- ========================================================================= -->
+  
 </body>
 </html>
