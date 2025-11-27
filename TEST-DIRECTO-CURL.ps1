@@ -18,12 +18,12 @@ $payload = @{
         id = 999999
         chapa = "816"
         fecha = (Get-Date -Format "yyyy-MM-dd")
-        jornada = "20-02"
+        jornada = "20 a 02"
         puesto = "Gruista PRUEBA DIRECTA"
         empresa = "MSC"
         buque = "PRUEBA CURL DIRECTA"
         parte = "999"
-        origen = "importacion"
+        origen = "https://test.com"
     }
 } | ConvertTo-Json -Depth 10
 
