@@ -6680,22 +6680,30 @@ async function loadCalculadora() {
             }
           } else {
             // No sale contratado segun la simulacion directa
-            // Usar siempre el caso normal basado en cobertura
-            {
-              // Caso normal: no sale y no esta justo detras
-              var cobertura = demandaEventuales / Math.max(1, distanciaNecesaria);
+            // La puerta NO pasa por el usuario en esta jornada
+            // Calcular probabilidad segun lo cerca que se queda
 
-              if (cobertura >= 0.95) {
-                probBaseSalir = 0.35 + (cobertura - 0.95) * 1.5; // 35-42%
-              } else if (cobertura >= 0.8) {
-                probBaseSalir = 0.22 + (cobertura - 0.8) * 0.87; // 22-35%
-              } else if (cobertura >= 0.5) {
-                probBaseSalir = 0.10 + (cobertura - 0.5) * 0.4; // 10-22%
-              } else if (cobertura >= 0.2) {
-                probBaseSalir = 0.03 + (cobertura - 0.2) * 0.23; // 3-10%
-              } else {
-                probBaseSalir = Math.max(0.01, cobertura * 0.15); // 0-3%
-              }
+            var posicionRestante = posUsuarioCalc - puertaPrevista;
+            if (posicionRestante < 0) {
+              // La puerta pasó de largo (dio vuelta), calcular distancia real
+              posicionRestante = (limiteFin - puertaPrevista) + (posUsuarioCalc - limiteInicio) + 1;
+            }
+
+            // Si se queda MUY cerca (< 10 posiciones), probabilidad media
+            // Si se queda lejos (> 30 posiciones), probabilidad baja
+            if (posicionRestante <= 5) {
+              // Muy cerca (1-5 posiciones), probabilidad media-alta
+              probBaseSalir = 0.35 + (5 - posicionRestante) * 0.03; // 35-50%
+            } else if (posicionRestante <= 15) {
+              // Cerca (6-15 posiciones), probabilidad media
+              probBaseSalir = 0.20 + (15 - posicionRestante) * 0.015; // 20-35%
+            } else if (posicionRestante <= 30) {
+              // Media distancia (16-30 posiciones), probabilidad media-baja
+              probBaseSalir = 0.08 + (30 - posicionRestante) * 0.008; // 8-20%
+            } else {
+              // Lejos (> 30 posiciones), probabilidad muy baja
+              var cobertura = demandaEventuales / Math.max(1, distanciaNecesaria);
+              probBaseSalir = Math.min(0.08, Math.max(0.01, cobertura * 0.15)); // 1-8%
             }
           }
 
@@ -6728,16 +6736,21 @@ async function loadCalculadora() {
         }
 
         // SISTEMA SIMPLIFICADO DE PROBABILIDADES
-        // Calcular la demanda total del dia y ver cuantas veces "cubre" al usuario
-        // Si la demanda total del dia es suficiente para alcanzar al usuario, prob alta
+        // PRIORIDAD: Si la puerta PASA por el usuario en una jornada, esa debe tener prob muy alta
 
         var demandaTotalDia = 0;
         var primeraJornadaConDatos = -1;
+        var primeraJornadaQueAlcanza = -1; // Primera jornada donde la puerta pasa por el usuario
+
         for (var j = 0; j < puntuacionesJornadas.length; j++) {
           if (!puntuacionesJornadas[j].sinDatos) {
             demandaTotalDia += puntuacionesJornadas[j].demandaEventuales;
             if (primeraJornadaConDatos === -1) {
               primeraJornadaConDatos = j;
+            }
+            // Detectar primera jornada que alcanza al usuario
+            if (primeraJornadaQueAlcanza === -1 && puntuacionesJornadas[j].saleContratado) {
+              primeraJornadaQueAlcanza = j;
             }
           }
         }
@@ -6766,6 +6779,25 @@ async function loadCalculadora() {
           }
 
           var probBaseSalirAjustada = datos.probBaseSalir;
+
+          // ============================================================================
+          // REGLA CLAVE: Si esta jornada es la PRIMERA que alcanza al usuario,
+          // darle prioridad (probabilidad alta pero no abrumadora)
+          // ============================================================================
+          if (primeraJornadaQueAlcanza !== -1 && j === primeraJornadaQueAlcanza) {
+            // Esta es la jornada donde la puerta PASA por el usuario
+            // Darle probabilidad alta, pero permitir que jornadas cercanas tengan probabilidad
+            if (datos.margen >= 10) {
+              // Si hay margen grande, muy seguro
+              probBaseSalirAjustada = Math.max(0.75, datos.probBaseSalir);
+            } else if (datos.margen >= 0) {
+              // Margen pequeño positivo, probable
+              probBaseSalirAjustada = Math.max(0.65, datos.probBaseSalir);
+            } else {
+              // Margen negativo pero la puerta pasa, moderadamente probable
+              probBaseSalirAjustada = Math.max(0.55, datos.probBaseSalir);
+            }
+          }
 
           // CLAVE: Si la cobertura total del dia es alta (>=1.5),
           // las jornadas posteriores deben tener probabilidad ajustada
