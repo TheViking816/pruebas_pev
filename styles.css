@@ -1015,15 +1015,15 @@ body::before {
 
 /* Foro */
 .foro-container {
-  padding-bottom: 200px !important;
+  padding-bottom: 280px !important;
 }
 
 .foro-messages {
   display: flex;
   flex-direction: column;
   gap: 1rem;
-  margin-bottom: 1rem;
-  max-height: calc(100vh - 380px);
+  margin-bottom: 2rem;
+  max-height: calc(100vh - 400px);
   overflow-y: auto;
   overflow-x: hidden;
   scroll-behavior: smooth;

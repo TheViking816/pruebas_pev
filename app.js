@@ -3781,6 +3781,11 @@ async function loadSueldometro() {
       // No hay relevo en 02-08
       if (jornada === '02-08') return null;
 
+      // Si tipoDia es undefined o null, asumir LABORABLE
+      if (!tipoDia) {
+        tipoDia = 'LABORABLE';
+      }
+
       // Tarifa especial 93,55€ para:
       // - Festivos y domingos (cualquier tipo de día que incluya FEST)
       // - Sábados desde 14-20 hasta 20-02
@@ -3794,6 +3799,11 @@ async function loadSueldometro() {
 
     // Función auxiliar para calcular tarifa de horas de remate (Grupo I por defecto)
     const calcularTarifaRemate = (jornada, tipoDia) => {
+      // Si tipoDia es undefined o null, asumir LABORABLE
+      if (!tipoDia) {
+        tipoDia = 'LABORABLE';
+      }
+
       const tarifasRemate = {
         '02-08': {
           'LABORABLE': 61.40,
