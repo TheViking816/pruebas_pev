@@ -30,7 +30,7 @@ serve(async (req) => {
 
     // 2. Obtener usuarios suscritos a notificaciones
     const { data: subscriptions, error: subsError } = await supabase
-      .from('push_notifications')
+      .from('push_subscriptions')
       .select('*');
 
     if (subsError) {
