@@ -170,8 +170,9 @@ function calculateDailyProbability(
     const { gruas, coches } = demand as { gruas: number; coches: number };
     const totalDemand = gruas + coches;
 
-    // Posiciones que se cubrirán en esta jornada
-    const positionsCovered = totalDemand - fijos;
+    // Si fijos = 0 (no disponible), usar totalDemand directamente
+    // Si fijos > 0, restar del total
+    const positionsCovered = fijos > 0 ? totalDemand - fijos : totalDemand;
 
     // Probabilidad basada en posición del usuario vs posiciones cubiertas
     if (userPosition <= positionsCovered) {
