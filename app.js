@@ -1199,6 +1199,16 @@ function showPage(pageName) {
     }
   });
 
+  // Ocultar footer en página del foro para evitar solapamiento con compositor
+  const appFooter = document.getElementById('app-footer');
+  if (appFooter) {
+    if (pageName === 'foro') {
+      appFooter.style.display = 'none';
+    } else {
+      appFooter.style.display = '';
+    }
+  }
+
   // Scroll al inicio
   window.scrollTo(0, 0);
 }
