@@ -1,0 +1,35 @@
+💡 Opciones que tienes:
+
+  Opción 1: Notificación Simple (MÁS RÁPIDO)
+
+  En vez de calcular la probabilidad exacta, enviar:
+  🔮 Hay nuevos datos en Noray
+  Abre el Oráculo para ver tus probabilidades
+
+  Opción 2: Extraer Función Completa (PRECISO pero
+  COMPLEJO)
+
+  Portar las ~400 líneas de lógica del oráculo a la
+  edge function. Incluiría:
+  - Leer CSV de puertas de Google Sheets
+  - Obtener censo de Supabase
+  - Replicar TODA la lógica de cálculo de
+  probabilidades
+  - ~500-600 líneas de código en TypeScript
+
+  Opción 3: API Híbrida (INTERMEDIO)
+
+  Crear un endpoint en Vercel que:
+  - Usa el mismo código del frontend (app.js)
+  - La edge function llama a ese endpoint
+  - El endpoint devuelve probabilidades calculadas
+
+  ¿Qué prefieres?
+
+  Te recomiendo Opción 1 para no complicarte. La
+  notificación te avisa que hay datos nuevos y tú abres
+   el oráculo cuando quieras.
+
+  O puedo hacer Opción 2 si necesitas que la
+  notificación muestre la probabilidad exacta, pero
+  tardaré más en implementarlo y será mucho código.
