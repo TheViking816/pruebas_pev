@@ -97,7 +97,8 @@ serve(async (req) => {
 
     const title = '🎉 ¡Nueva Contratación!';
     // Construir mensaje con la información disponible
-    let bodyParts = [jornadaNombre, fechaFormateada];
+    // Usar jornada directamente (ej: "20 a 02") en vez de nombre (ej: "Noche")
+    let bodyParts = [jornada, fechaFormateada];
     if (empresa) bodyParts.push(empresa);
     if (buque) bodyParts.push(buque);
     const body = bodyParts.join(' - ');
@@ -108,6 +109,8 @@ serve(async (req) => {
       title,
       body,
       url: '/jornales',
+      icon: 'https://i.imgur.com/Q91Pi44.png',
+      badge: 'https://i.imgur.com/Q91Pi44.png',
       chapa_target: userChapa
     };
 
