@@ -15,7 +15,7 @@ WHERE event_object_table = 'jornales'
 -- Debe aparecer 1 fila. Si no aparece, el trigger NO EXISTE.
 
 -- PASO 2: Ver últimos jornales insertados
-SELECT id, chapa, fecha, jornada, puesto, empresa, buque, created_at
+SELECT id, chapa, fecha, jornada, puesto, empresa, buque, updated_at
 FROM jornales
 WHERE chapa = '816'
 ORDER BY id DESC

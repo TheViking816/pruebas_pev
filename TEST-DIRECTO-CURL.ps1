@@ -38,7 +38,7 @@ $headers = @{
 }
 
 Write-Host "📤 Llamando a edge function..." -ForegroundColor Yellow
-Write-Host "URL: $url"
+Write-Host "URL: $url" -ForegroundColor Cyan
 Write-Host ""
 
 try {

@@ -111,8 +111,9 @@ WHERE jobname = 'daily-oracle-notifications';
 
 -- Insertar jornal de prueba para chapa 816
 -- IMPORTANTE: Esto debería disparar la notificación AHORA MISMO
+-- NOTA: El formato de jornada es "14 a 20" NO "14-20"
 INSERT INTO jornales (chapa, fecha, jornada, puesto, empresa, buque, parte, origen)
-VALUES ('816', CURRENT_DATE, '14-20', 'Gruista TEST', 'MSC', 'BUQUE DE PRUEBA INMEDIATA', '999', 'importacion');
+VALUES ('816', CURRENT_DATE, '14 a 20', 'Gruista TEST', 'MSC', 'BUQUE DE PRUEBA INMEDIATA', '999', 'https://test.com');
 
 -- ============================================================================
 -- PASO 8: VER LOGS DEL TRIGGER

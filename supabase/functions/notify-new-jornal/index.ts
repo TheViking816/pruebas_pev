@@ -72,17 +72,22 @@ serve(async (req) => {
     }
 
     // Construir título y mensaje de la notificación
+    // IMPORTANTE: El formato en BD es "08 a 14" NO "08-14"
     let jornadaNombre = '';
     switch (jornada) {
+      case '08 a 14':
       case '08-14':
         jornadaNombre = 'Mañana';
         break;
+      case '14 a 20':
       case '14-20':
         jornadaNombre = 'Tarde';
         break;
+      case '20 a 02':
       case '20-02':
         jornadaNombre = 'Noche';
         break;
+      case '02 a 08':
       case '02-08':
         jornadaNombre = 'Súper';
         break;
