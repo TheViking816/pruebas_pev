@@ -1,7 +1,7 @@
 # Configuración de Supabase para Portal Estiba VLC
 
 [project]
-name = "portal-estiba-vlc"
+id = "icszzxkdxatfytpmoviq"
 
 [api]
 port = 54321
