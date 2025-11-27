@@ -26,17 +26,21 @@ serve(async (req) => {
       return new Response(JSON.stringify({ error: 'No record found' }), { status: 400 });
     }
 
-    // Extraer información del jornal
+    // Extraer información del jornal (estructura real de la tabla)
     const userChapa = jornal.chapa;
     const fecha = jornal.fecha;
     const jornada = jornal.jornada;
-    const tipoTrabajo = jornal.trabajo || 'Trabajo general';
+    const puesto = jornal.puesto || 'Trabajo general';
+    const empresa = jornal.empresa || '';
+    const buque = jornal.buque || '';
 
     console.log(`📋 Nuevo jornal detectado:`, {
       chapa: userChapa,
       fecha: fecha,
       jornada: jornada,
-      trabajo: tipoTrabajo
+      puesto: puesto,
+      empresa: empresa,
+      buque: buque
     });
 
     // Verificar si el usuario tiene suscripción activa
@@ -87,7 +91,11 @@ serve(async (req) => {
     }
 
     const title = '🎉 ¡Nueva Contratación!';
-    const body = `${jornadaNombre} - ${fechaFormateada}`;
+    // Construir mensaje con la información disponible
+    let bodyParts = [jornadaNombre, fechaFormateada];
+    if (empresa) bodyParts.push(empresa);
+    if (buque) bodyParts.push(buque);
+    const body = bodyParts.join(' - ');
 
     // Enviar notificación al backend de push en Vercel
     const nodePushServerUrl = 'https://portalestiba-push-backend-one.vercel.app';

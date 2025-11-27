@@ -72,6 +72,38 @@ Esta rama de prueba (`test/scraper-y-notificaciones`) integra todas las funciona
    - Instrucciones completas de despliegue del sistema
    - Hereda de rama `render`
 
+9. **`supabase/cleanup-old-notifications.sql`**
+   - Script para limpiar sistema de notificaciones viejo
+   - Elimina cron jobs obsoletos y edge functions viejas
+   - Instrucciones para verificar que solo quede el nuevo sistema
+
+---
+
+## ⚠️ Migración desde Sistema Viejo
+
+Si ya tenías notificaciones configuradas con la edge function `send-push-notification`, **debes migrar al nuevo sistema**:
+
+### ¿Qué cambió?
+
+| Sistema Viejo | Sistema Nuevo |
+|---------------|---------------|
+| Edge function: `send-push-notification` | Edge function: `notify-new-jornal` |
+| Usaba campos incorrectos (`trabajo`, `sueldo`) | Usa estructura real de la tabla (`puesto`, `empresa`, `buque`) |
+| Poca documentación | Completamente documentado |
+| Sin script de setup | Script SQL completo con testing |
+
+### Pasos de Migración
+
+1. **Ejecuta el script de limpieza**: `supabase/cleanup-old-notifications.sql`
+2. **Despliega la nueva edge function**: `supabase functions deploy notify-new-jornal`
+3. **Configura el nuevo trigger**: Ejecuta `supabase/setup-jornal-notifications.sql`
+4. **Elimina la edge function vieja** desde Dashboard o CLI: `supabase functions delete send-push-notification`
+5. **Prueba** insertando un jornal de prueba
+
+### ¿Necesito mantener ambos sistemas?
+
+**NO.** El sistema nuevo (`notify-new-jornal`) reemplaza completamente al viejo. Mantener ambos causaría notificaciones duplicadas.
+
 ---
 
 ## 🚀 Cómo Probar Esta Rama
@@ -95,21 +127,25 @@ vercel --prod
 ### 2. Probar Notificaciones de Nuevos Jornales
 
 ```bash
-# 1. Desplegar edge function
+# 1. Limpiar sistema viejo (opcional pero recomendado)
+# Ejecutar: supabase/cleanup-old-notifications.sql
+# En: https://supabase.com/dashboard/project/[PROJECT-ID]/sql
+
+# 2. Desplegar edge function
 cd supabase
 supabase functions deploy notify-new-jornal
 
-# 2. Configurar trigger en Supabase
+# 3. Configurar trigger en Supabase
 # Ejecutar el contenido de: supabase/setup-jornal-notifications.sql
 # En: https://supabase.com/dashboard/project/[PROJECT-ID]/sql
 
-# 3. Probar insertando un jornal de prueba
-# En Supabase SQL Editor:
-INSERT INTO jornales (chapa, fecha, jornada, trabajo, sueldo)
-VALUES ('TU_CHAPA', CURRENT_DATE, '08-14', 'Grúa', 100.00);
+# 4. Probar insertando un jornal de prueba
+# En Supabase SQL Editor (usando estructura real de la tabla):
+INSERT INTO jornales (chapa, fecha, jornada, puesto, empresa, buque, parte, origen)
+VALUES ('TU_CHAPA', CURRENT_DATE, '08-14', 'Gruista', 'MSC', 'BUQUE TEST', '1', 'importacion');
 
-# 4. Verificar que llegó la notificación push a tu dispositivo
-# 5. Ver logs en: https://supabase.com/dashboard/project/[PROJECT-ID]/functions/notify-new-jornal/logs
+# 5. Verificar que llegó la notificación push a tu dispositivo
+# 6. Ver logs en: https://supabase.com/dashboard/project/[PROJECT-ID]/functions/notify-new-jornal/logs
 ```
 
 ### 3. Probar Notificaciones Diarias del Oráculo

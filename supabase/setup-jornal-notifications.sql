@@ -20,24 +20,22 @@
 --    SELECT * FROM supabase_functions.hooks;
 -- ============================================================================
 
--- Habilitar la extensión http si no está habilitada (para llamar edge functions)
-CREATE EXTENSION IF NOT EXISTS http WITH SCHEMA extensions;
+-- Habilitar la extensión pg_net (para llamar edge functions via HTTP)
+CREATE EXTENSION IF NOT EXISTS pg_net WITH SCHEMA extensions;
 
 -- Crear función que se ejecutará cuando se inserte un nuevo jornal
 CREATE OR REPLACE FUNCTION notify_new_jornal_trigger()
 RETURNS TRIGGER AS $$
 DECLARE
   request_id bigint;
-  project_url text := current_setting('app.settings.supabase_url', true);
-  service_role_key text := current_setting('app.settings.service_role_key', true);
 BEGIN
-  -- Llamar a la Edge Function de Supabase
+  -- Llamar a la Edge Function de Supabase usando pg_net
   -- IMPORTANTE: Reemplaza 'icszzxkdxatfytpmoviq' con tu Project ID real
-  SELECT http_post(
-    url := project_url || '/functions/v1/notify-new-jornal',
+  SELECT net.http_post(
+    url := 'https://icszzxkdxatfytpmoviq.supabase.co/functions/v1/notify-new-jornal',
     headers := jsonb_build_object(
       'Content-Type', 'application/json',
-      'Authorization', 'Bearer ' || service_role_key
+      'Authorization', 'Bearer ' || current_setting('app.settings.service_role_key', true)
     ),
     body := jsonb_build_object(
       'type', 'INSERT',
@@ -78,8 +76,8 @@ WHERE trigger_name = 'on_jornal_inserted';
 
 -- Para probar el sistema, inserta un jornal de prueba (reemplaza con chapa real):
 /*
-INSERT INTO jornales (chapa, fecha, jornada, trabajo, sueldo)
-VALUES ('12345', CURRENT_DATE, '08-14', 'Grúa', 100.00);
+INSERT INTO jornales (chapa, fecha, jornada, puesto, empresa, buque, parte, origen)
+VALUES ('12345', CURRENT_DATE, '08-14', 'Gruista', 'MSC', 'BUQUE TEST', '1', 'importacion');
 */
 
 -- Verificar en logs de la Edge Function si se envió la notificación:
