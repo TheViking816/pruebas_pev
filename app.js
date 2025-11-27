@@ -5936,13 +5936,31 @@ window.cargarDatosNoray = async function() {
   }
 
   try {
-    // Intentar cargar desde Google Apps Script primero
-    var url = 'https://script.google.com/macros/s/AKfycbyv6swXpt80WOfTyRhm0n4IBGqcxqeBZCxR1x8bwrhGBRz34I7zZjBzlaJ8lXgHcbDS/exec?action=all';
+    var data = null;
 
-    var response = await fetch(url);
-    var data = await response.json();
+    // Intentar cargar desde el scraper de Render primero
+    try {
+      console.log('Intentando cargar desde scraper de Render...');
+      var renderUrl = 'https://noray-scraper.onrender.com/api/all';
+      var renderResponse = await fetch(renderUrl);
+      var renderData = await renderResponse.json();
 
-    console.log('Respuesta raw del Apps Script:', data);
+      if (renderData.success && renderData.demandas) {
+        console.log('Datos obtenidos desde scraper de Render:', renderData);
+        data = renderData;
+      }
+    } catch (renderError) {
+      console.warn('Error cargando desde Render, intentando Apps Script...', renderError);
+    }
+
+    // Si el scraper de Render falla, usar Google Apps Script como fallback
+    if (!data) {
+      console.log('Usando Apps Script como fallback...');
+      var url = 'https://script.google.com/macros/s/AKfycbyv6swXpt80WOfTyRhm0n4IBGqcxqeBZCxR1x8bwrhGBRz34I7zZjBzlaJ8lXgHcbDS/exec?action=all';
+      var response = await fetch(url);
+      data = await response.json();
+      console.log('Respuesta raw del Apps Script:', data);
+    }
 
     if (data.success) {
       // Verificar si los datos son validos (no todos en 0)
