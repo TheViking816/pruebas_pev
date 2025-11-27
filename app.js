@@ -6166,6 +6166,23 @@ async function loadCalculadora() {
   var TAMANO_SP = 443; // Posiciones 1-443
   var TAMANO_OC = 76;  // Posiciones 444-519
 
+  // ============================================================================
+  // ⚙️ CONFIGURACIÓN: FACTOR DE DISPONIBILIDAD EN SEGUNDA VUELTA DEL DÍA
+  // ============================================================================
+  // Cuando el censo da una vuelta completa en el mismo día (vuelve a pasar por
+  // la puerta inicial), solo una parte de la gente puede trabajar un segundo turno.
+  //
+  // VALORES SUGERIDOS:
+  // - 2.0  = Mitad de gente disponible (muy restrictivo)
+  // - 1.5  = 2/3 de gente disponible (moderado)
+  // - 1.25 = 80% de gente disponible (permisivo)
+  // - 1.0  = Toda la gente disponible (sin restricción)
+  //
+  // FÓRMULA: disponibilidad_segunda_vuelta = disponibilidad_normal / FACTOR
+  // Ejemplo: Si FACTOR = 2.0, un verde (1.0) pasa a valer 0.5 en segunda vuelta
+  // ============================================================================
+  var FACTOR_SEGUNDA_VUELTA = 2.0;  // <-- MODIFICA ESTE VALOR
+
   // Obtener posicion del usuario
   var posicionUsuario = await SheetsAPI.getPosicionChapa(AppState.currentUser);
   var esUsuarioOC = posicionUsuario > LIMITE_SP;
@@ -6429,7 +6446,7 @@ async function loadCalculadora() {
         // Funcion para verificar si el usuario sale contratado
         // Avanza posicion por posicion, contando solo disponibles
         // IMPORTANTE: Detecta si la puerta PASA por el usuario, este disponible o no
-        function verificarContratacion(puertaInicio, demanda, usuario, esSegundaVueltaDia) {
+        function verificarContratacion(puertaInicio, demanda, usuario, puertaInicialDia) {
           var posActual = puertaInicio;
           var contratados = 0;
           var vueltas = 0;
@@ -6437,15 +6454,30 @@ async function loadCalculadora() {
           var puertaPasoPorUsuario = false; // Nueva variable: la puerta paso por la posicion del usuario
           var maxIteraciones = tamanoCenso * 3;
           var iteraciones = 0;
-
-          // Factor de disponibilidad para segunda vuelta del dia
-          var factorSegundaVuelta = esSegundaVueltaDia ? 0.5 : 1.0;
+          var yaEsSegundaVuelta = false; // Para controlar cuando empezamos a aplicar el factor
 
           while (contratados < demanda && iteraciones < maxIteraciones) {
             posActual++;
             if (posActual > limiteFin) {
               posActual = limiteInicio;
               vueltas++;
+            }
+
+            // ============================================================================
+            // DETECCIÓN DE SEGUNDA VUELTA DEL DÍA
+            // ============================================================================
+            // La segunda vuelta se activa cuando:
+            // 1. Ya se ha dado al menos UNA vuelta completa del censo (vueltas > 0)
+            // 2. La puerta vuelve a pasar por la puerta inicial del día (02-08)
+            //
+            // Ejemplo: Si puerta inicial del día es 334
+            // - Primera pasada: 334 -> 443 -> 1 -> 333 (aún primera vuelta)
+            // - Al llegar a 334 otra vez: AHORA empieza segunda vuelta
+            //
+            // En segunda vuelta: disponibilidad se divide por FACTOR_SEGUNDA_VUELTA
+            // ============================================================================
+            if (!yaEsSegundaVuelta && vueltas > 0 && posActual >= puertaInicialDia) {
+              yaEsSegundaVuelta = true;
             }
 
             // Verificar si la puerta pasa por la posicion del usuario (este o no disponible)
@@ -6456,10 +6488,10 @@ async function loadCalculadora() {
             // Obtener peso de disponibilidad (0, 0.25, 0.5, 0.75, 1.0)
             var pesoDisponibilidad = getPesoDisponibilidad(posActual);
 
-            // Si es segunda vuelta del dia, dividir disponibilidad entre 2
-            // (solo la mitad de la gente puede trabajar un segundo turno)
-            if (esSegundaVueltaDia && pesoDisponibilidad > 0) {
-              pesoDisponibilidad = pesoDisponibilidad * factorSegundaVuelta;
+            // Si es segunda vuelta del dia, aplicar factor de reducción
+            // (solo una parte de la gente puede trabajar un segundo turno)
+            if (yaEsSegundaVuelta && pesoDisponibilidad > 0) {
+              pesoDisponibilidad = pesoDisponibilidad / FACTOR_SEGUNDA_VUELTA;
             }
 
             // Sumar peso fraccional de disponibilidad
@@ -6481,7 +6513,8 @@ async function loadCalculadora() {
             puertaPasoPorUsuario: puertaPasoPorUsuario, // La puerta paso por el usuario aunque este en rojo
             puertaFinal: posActual,
             vueltas: vueltas,
-            contratados: contratados
+            contratados: contratados,
+            yaEsSegundaVuelta: yaEsSegundaVuelta
           };
         }
 
@@ -6498,9 +6531,6 @@ async function loadCalculadora() {
 
         // Array para guardar puntuaciones de cada jornada (luego normalizamos a 100%)
         var puntuacionesJornadas = [];
-
-        // Contador de vueltas completas del censo en el mismo dia
-        var vueltasCompletasDia = 0;
 
         for (var i = 0; i < jornadasAMostrar.length; i++) {
           var jornada = jornadasAMostrar[i];
@@ -6576,46 +6606,15 @@ async function loadCalculadora() {
           // Guardar puerta antes del avance
           var puertaAntes = puertaPrevista;
 
-          // Detectar si es segunda vuelta del DIA (no solo del censo)
-          // Esto ocurre cuando en jornadas anteriores del mismo dia, la puerta ya dio una vuelta completa
-          // Ejemplo: si puerta inicial era 203 y ahora estamos en 203 otra vez (o paso por ahi)
-          var esSegundaVueltaDia = false;
-          if (i > 0 && vueltasCompletasDia >= 1) {
-            // Si ya dimos al menos una vuelta completa en el dia, esta es segunda vuelta
-            esSegundaVueltaDia = true;
-          }
-
-          // Limitar a maximo 2 vueltas por dia (maximo 2 turnos)
-          if (vueltasCompletasDia >= 2) {
-            // No procesar mas jornadas, ya se alcanzó el limite de turnos
-            puntuacionesJornadas.push({
-              jornada: jornada,
-              puntuacion: 0,
-              sinDatos: true,
-              puertaAntes: puertaPrevista,
-              puertaDespues: puertaPrevista,
-              distanciaNecesaria: 0,
-              demandaEventuales: 0,
-              vuelta: vueltasCompletasDia + 1,
-              saleContratado: false,
-              margen: 0
-            });
-            continue;
-          }
-
           // Verificar si el usuario sale contratado usando la funcion que recorre el censo
-          var resultadoContratacion = verificarContratacion(puertaAntes, demandaEventuales, posUsuarioCalc, esSegundaVueltaDia);
+          // Pasamos puertaInicialDia para detectar cuando empieza la segunda vuelta del día
+          var resultadoContratacion = verificarContratacion(puertaAntes, demandaEventuales, posUsuarioCalc, puertaInicialDia);
 
           puertaPrevista = resultadoContratacion.puertaFinal;
           var vuelta = resultadoContratacion.vueltas + 1;
           var saleContratado = resultadoContratacion.alcanzado;
           var puertaPasoPorUsuario = resultadoContratacion.puertaPasoPorUsuario;
-
-          // Actualizar contador de vueltas completas del dia
-          // Si la puerta dio una vuelta (pasó por el inicio del censo), incrementar
-          if (resultadoContratacion.vueltas > vueltasCompletasDia) {
-            vueltasCompletasDia = resultadoContratacion.vueltas;
-          }
+          var esSegundaVueltaDia = resultadoContratacion.yaEsSegundaVuelta;
 
           // Calcular cuantas posiciones disponibles faltan para llegar al usuario
           var distanciaNecesaria = calcularDistanciaEfectiva(puertaAntes, posUsuarioCalc);
