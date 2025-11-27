@@ -3538,8 +3538,10 @@ body::before {
   color: white;
   padding: 2rem 1rem;
   margin-top: 3rem;
+  margin-left: var(--sidebar-width);
   border-top: 3px solid #ffd700;
   font-size: 0.9rem;
+  transition: margin-left 0.3s ease;
 }
 
 .footer-container {
@@ -3671,6 +3673,7 @@ body::before {
   .app-footer {
     padding: 1.5rem 1rem;
     margin-top: 2rem;
+    margin-left: 0;
   }
 
   .copyright-badge {
