@@ -76,34 +76,106 @@ serve(async (req) => {
           continue;
         }
 
-        // Calcular probabilidad para cada jornada
-        const probabilities = calculateDailyProbability(
-          userPosition,
-          scraperData.demandas,
-          scraperData.fijos
-        );
+        // Calcular probabilidad simplificada para cada jornada
+        const jornadasConfig = [
+          { codigo: '08-14', nombre: 'Mañana (08-14)' },
+          { codigo: '14-20', nombre: 'Tarde (14-20)' },
+          { codigo: '20-02', nombre: 'Noche (20-02)' }
+        ];
+
+        const puertaInicial = 223; // Puerta inicial típica
+        let puertaPrevista = puertaInicial;
+        const resultados: any[] = [];
+        let esPrimeraJornadaActiva = true;
+
+        for (const jornada of jornadasConfig) {
+          const demanda = scraperData.demandas[jornada.codigo];
+          if (!demanda) continue;
+
+          const gruas = demanda.gruas || 0;
+          const coches = demanda.coches || 0;
+          const demandaTotal = (gruas * 7) + coches;
+
+          // Calcular demanda eventuales (restar fijos solo en primera jornada)
+          let demandaEventuales = demandaTotal;
+          if (esPrimeraJornadaActiva && scraperData.fijos > 0) {
+            const fijosParaCalculo = Math.floor(scraperData.fijos / 2);
+            demandaEventuales = Math.max(0, demandaTotal - fijosParaCalculo);
+            esPrimeraJornadaActiva = false;
+          }
+
+          if (demandaEventuales === 0) {
+            resultados.push({ jornada: jornada.nombre, probabilidad: 0 });
+            continue;
+          }
+
+          // Calcular si alcanza al usuario
+          const puertaAntes = puertaPrevista;
+          const distanciaNecesaria = userPosition > puertaAntes ? userPosition - puertaAntes : 440 - puertaAntes + userPosition;
+
+          const alcanza = demandaEventuales >= distanciaNecesaria;
+          puertaPrevista = (puertaAntes + demandaEventuales) % 440;
+
+          // Calcular probabilidad
+          let probabilidad = 0;
+          if (alcanza) {
+            const margen = demandaEventuales - distanciaNecesaria;
+            const ratioMargen = margen / Math.max(1, demandaEventuales);
+
+            if (ratioMargen >= 1) {
+              probabilidad = 82 + Math.min(6, (ratioMargen - 1) * 3);
+            } else if (ratioMargen >= 0) {
+              probabilidad = 42 + 40 * (ratioMargen / (ratioMargen + 0.25));
+            } else {
+              probabilidad = 38;
+            }
+          } else {
+            const cobertura = demandaEventuales / Math.max(1, distanciaNecesaria);
+            if (cobertura >= 0.95) {
+              probabilidad = 35 + (cobertura - 0.95) * 150;
+            } else if (cobertura >= 0.8) {
+              probabilidad = 22 + (cobertura - 0.8) * 87;
+            } else if (cobertura >= 0.5) {
+              probabilidad = 10 + (cobertura - 0.5) * 40;
+            } else if (cobertura >= 0.2) {
+              probabilidad = 3 + (cobertura - 0.2) * 23;
+            } else {
+              probabilidad = Math.max(1, cobertura * 15);
+            }
+          }
+
+          resultados.push({
+            jornada: jornada.nombre,
+            probabilidad: Math.min(95, Math.max(0, probabilidad))
+          });
+        }
+
+        // Normalizar probabilidades
+        const sumaProbs = resultados.reduce((sum, r) => sum + r.probabilidad, 0);
+        const probNoTrabajar = Math.max(0, 100 - sumaProbs);
 
         // Determinar mejor jornada
-        const bestShift = Object.entries(probabilities)
-          .sort(([,a], [,b]) => b - a)[0];
+        const mejorResultado = resultados.reduce((best, current) =>
+          current.probabilidad > best.probabilidad ? current : best
+        , { jornada: 'N/A', probabilidad: 0 });
 
-        const bestShiftName = bestShift[0];
-        const bestProbability = Math.round(bestShift[1]);
+        const bestProbability = Math.round(mejorResultado.probabilidad);
+        const bestShiftName = mejorResultado.jornada;
 
         // Construir mensaje
         let title = '🔮 Tu Oráculo del Día';
         let body = '';
-        let icon = '';
 
-        if (bestProbability >= 70) {
-          icon = '✅';
-          body = `${icon} ¡Alta probabilidad! ${bestProbability}% en ${bestShiftName}`;
+        if (bestProbability >= 80) {
+          body = `¡Calienta que sales! ${bestProbability}% en ${bestShiftName}`;
+        } else if (bestProbability >= 60) {
+          body = `Bastante probable: ${bestProbability}% en ${bestShiftName}`;
         } else if (bestProbability >= 40) {
-          icon = '⚠️';
-          body = `${icon} Probabilidad media: ${bestProbability}% en ${bestShiftName}`;
+          body = `Va a estar justo: ${bestProbability}% en ${bestShiftName}`;
+        } else if (bestProbability >= 20) {
+          body = `Poco probable: ${bestProbability}% (mejor: ${bestShiftName})`;
         } else {
-          icon = '❌';
-          body = `${icon} Baja probabilidad hoy: ${bestProbability}% (mejor turno: ${bestShiftName})`;
+          body = `Difícil hoy: ${bestProbability}% (mejor: ${bestShiftName})`;
         }
 
         // Enviar notificación
@@ -156,35 +228,3 @@ serve(async (req) => {
   }
 });
 
-/**
- * Calcula la probabilidad de trabajar en cada jornada
- */
-function calculateDailyProbability(
-  userPosition: number,
-  demandas: any,
-  fijos: number
-): Record<string, number> {
-  const probabilities: Record<string, number> = {};
-
-  for (const [shift, demand] of Object.entries(demandas)) {
-    const { gruas, coches } = demand as { gruas: number; coches: number };
-    const totalDemand = gruas + coches;
-
-    // Si fijos = 0 (no disponible), usar totalDemand directamente
-    // Si fijos > 0, restar del total
-    const positionsCovered = fijos > 0 ? totalDemand - fijos : totalDemand;
-
-    // Probabilidad basada en posición del usuario vs posiciones cubiertas
-    if (userPosition <= positionsCovered) {
-      probabilities[shift] = 100; // Seguro que sale
-    } else if (userPosition <= positionsCovered + 10) {
-      // Probabilidad decreciente en el margen
-      const distance = userPosition - positionsCovered;
-      probabilities[shift] = Math.max(0, 100 - (distance * 10));
-    } else {
-      probabilities[shift] = 0;
-    }
-  }
-
-  return probabilities;
-}
