@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="refresh" content="3;url=https://portal-estiba-vlc.vercel.app/">
+  <title>Portal Estiba VLC - Redirigiendo...</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+
+    .container {
+      background: white;
+      padding: 50px 40px;
+      border-radius: 20px;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+      max-width: 600px;
+      width: 100%;
+      text-align: center;
+      animation: slideIn 0.5s ease-out;
+    }
+
+    @keyframes slideIn {
+      from {
+        opacity: 0;
+        transform: translateY(30px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .icon {
+      font-size: 80px;
+      margin-bottom: 20px;
+      animation: bounce 2s infinite;
+    }
+
+    @keyframes bounce {
+      0%, 20%, 50%, 80%, 100% {
+        transform: translateY(0);
+      }
+      40% {
+        transform: translateY(-20px);
+      }
+      60% {
+        transform: translateY(-10px);
+      }
+    }
+
+    h1 {
+      color: #333;
+      margin-bottom: 15px;
+      font-size: 32px;
+      font-weight: 700;
+    }
+
+    .subtitle {
+      color: #666;
+      font-size: 18px;
+      margin-bottom: 30px;
+      line-height: 1.6;
+    }
+
+    .highlight {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      padding: 15px 25px;
+      border-radius: 10px;
+      margin: 20px 0;
+      font-weight: bold;
+      font-size: 20px;
+    }
+
+    .countdown {
+      font-size: 48px;
+      color: #667eea;
+      font-weight: bold;
+      margin: 20px 0;
+      animation: pulse 1s infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% {
+        transform: scale(1);
+      }
+      50% {
+        transform: scale(1.1);
+      }
+    }
+
+    .button {
+      display: inline-block;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      padding: 15px 40px;
+      text-decoration: none;
+      border-radius: 50px;
+      font-weight: bold;
+      font-size: 18px;
+      margin-top: 20px;
+      transition: all 0.3s ease;
+      box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+    }
+
+    .button:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(102, 126, 234, 0.6);
+    }
+
+    .info {
+      margin-top: 30px;
+      padding: 20px;
+      background: #f8f9fa;
+      border-radius: 10px;
+      border-left: 4px solid #667eea;
+    }
+
+    .info h3 {
+      color: #333;
+      margin-bottom: 10px;
+      font-size: 18px;
+    }
+
+    .info p {
+      color: #666;
+      line-height: 1.6;
+      font-size: 14px;
+    }
+
+    .footer {
+      margin-top: 30px;
+      color: #999;
+      font-size: 12px;
+    }
+
+    .loading-bar {
+      width: 100%;
+      height: 4px;
+      background: #e0e0e0;
+      border-radius: 2px;
+      overflow: hidden;
+      margin: 20px 0;
+    }
+
+    .loading-progress {
+      height: 100%;
+      background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+      animation: loading 3s linear;
+    }
+
+    @keyframes loading {
+      from {
+        width: 0%;
+      }
+      to {
+        width: 100%;
+      }
+    }
+
+    @media (max-width: 600px) {
+      .container {
+        padding: 30px 20px;
+      }
+
+      h1 {
+        font-size: 24px;
+      }
+
+      .subtitle {
+        font-size: 16px;
+      }
+
+      .highlight {
+        font-size: 16px;
+        padding: 12px 20px;
+      }
+
+      .icon {
+        font-size: 60px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="icon">🚀</div>
+    <h1>¡Portal Estiba VLC se ha mudado!</h1>
+    <p class="subtitle">
+      Hemos mejorado nuestros servidores para ofrecerte una mejor experiencia.
+      <br>Te estamos redirigiendo a la nueva ubicación...
+    </p>
+
+    <div class="highlight">
+      portal-estiba-vlc.vercel.app
+    </div>
+
+    <div class="countdown" id="countdown">3</div>
+
+    <div class="loading-bar">
+      <div class="loading-progress"></div>
+    </div>
+
+    <a href="https://portal-estiba-vlc.vercel.app/" class="button">
+      Ir ahora a la nueva ubicación →
+    </a>
+
+    <div class="info">
+      <h3>📌 Actualiza tus marcadores</h3>
+      <p>
+        Por favor, guarda la nueva URL en tus favoritos para acceder directamente en el futuro.
+        La redirección automática estará disponible temporalmente.
+      </p>
+    </div>
+
+    <div class="footer">
+      © 2025 Portal Estiba VLC - Todos los derechos reservados
+    </div>
+  </div>
+
+  <script>
+    // Contador regresivo
+    let countdown = 3;
+    const countdownElement = document.getElementById('countdown');
+
+    const timer = setInterval(() => {
+      countdown--;
+      if (countdown > 0) {
+        countdownElement.textContent = countdown;
+      } else {
+        clearInterval(timer);
+        countdownElement.textContent = '¡Vamos!';
+        // Redirección manual por si el meta refresh falla
+        setTimeout(() => {
+          window.location.href = 'https://portal-estiba-vlc.vercel.app/';
+        }, 500);
+      }
+    }, 1000);
+
+    // Redirección inmediata si el usuario hace clic en cualquier parte
+    document.addEventListener('click', function(e) {
+      if (!e.target.classList.contains('button')) {
+        window.location.href = 'https://portal-estiba-vlc.vercel.app/';
+      }
+    });
+  </script>
+</body>
+</html>

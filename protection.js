@@ -26,13 +26,14 @@
   const PROTECTION_CONFIG = {
     // Dominios autorizados (solo estos pueden ejecutar la app)
     AUTHORIZED_DOMAINS: [
-      'theviking816.github.io',
-      'localhost',           // Para desarrollo local
-      '127.0.0.1'            // Para desarrollo local
+      'portal-estiba-vlc.vercel.app',  // Vercel (URL oficial nueva)
+      'theviking816.github.io',        // GitHub Pages (deprecado, solo redirección)
+      'localhost',                      // Para desarrollo local
+      '127.0.0.1'                       // Para desarrollo local
     ],
 
     // URL oficial de la aplicación
-    OFFICIAL_URL: 'https://theviking816.github.io/PortalEstibaVLC/',
+    OFFICIAL_URL: 'https://portal-estiba-vlc.vercel.app/',
 
     // Información del propietario
     OWNER: {
