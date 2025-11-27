@@ -60,11 +60,8 @@ serve(async (req) => {
     const censoMap = new Map(censoData.map(u => [u.chapa.toString(), u.posicion]));
 
     // 4. Para cada suscriptor, calcular probabilidad y enviar notificación
-    const nodePushServerUrl = Deno.env.get('NODE_PUSH_SERVER_URL');
-    if (!nodePushServerUrl) {
-      console.error('NODE_PUSH_SERVER_URL no configurado');
-      return new Response(JSON.stringify({ error: 'URL del servidor push no configurada' }), { status: 500 });
-    }
+    // URL del servidor push en Vercel
+    const nodePushServerUrl = 'https://portalestiba-push-backend-one.vercel.app';
 
     let notificationsSent = 0;
     let notificationsFailed = 0;
