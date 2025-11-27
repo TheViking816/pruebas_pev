@@ -110,7 +110,7 @@ Esto llama directamente a la edge function simulando un webhook.
 La edge function:
 1. Obtiene datos reales de Noray (demandas de grúas y coches)
 2. Obtiene tu posición del censo
-3. Obtiene la puerta actual del sistema de puertas
+3. Usa puerta inicial 223 (valor estándar del sistema)
 4. Calcula probabilidad para cada jornada (Mañana, Tarde, Noche)
 5. Te envía la jornada con mayor probabilidad
 
