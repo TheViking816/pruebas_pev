@@ -59,7 +59,41 @@ serve(async (req) => {
     // Crear map de chapa -> posición
     const censoMap = new Map(censoData.map(u => [u.chapa.toString(), u.posicion]));
 
-    // 4. Para cada suscriptor, calcular probabilidad y enviar notificación
+    // 4. Obtener puertas para detectar siguiente jornada y puerta actual
+    const { data: puertasData, error: puertasError } = await supabase
+      .from('puertas')
+      .select('*')
+      .order('id', { ascending: true });
+
+    if (puertasError) {
+      console.error('Error obteniendo puertas:', puertasError);
+      return new Response(JSON.stringify({ error: puertasError.message }), { status: 500 });
+    }
+
+    // Filtrar solo puertas laborables (no festivos)
+    const puertasLaborables = puertasData.filter(p => p.jornada !== 'Festivo');
+
+    // Detectar siguiente jornada a contratar
+    function detectarSiguienteJornada(puertas: any[]): string {
+      const ahora = new Date();
+      const horaActual = ahora.getHours();
+
+      // Lógica similar al frontend
+      if (horaActual >= 2 && horaActual < 8) return '08-14';
+      if (horaActual >= 8 && horaActual < 14) return '14-20';
+      if (horaActual >= 14 && horaActual < 20) return '20-02';
+      return '08-14'; // Después de las 20:00, siguiente es mañana
+    }
+
+    const siguienteJornada = detectarSiguienteJornada(puertasLaborables);
+    console.log('📍 Siguiente jornada:', siguienteJornada);
+
+    // Obtener puerta actual para la siguiente jornada
+    const puertaData = puertasLaborables.find(p => p.jornada === siguienteJornada);
+    const puertaActual = puertaData ? parseInt(puertaData.puertaSP || '223') : 223;
+    console.log('🚪 Puerta actual SP:', puertaActual);
+
+    // 5. Para cada suscriptor, calcular probabilidad y enviar notificación
     // URL del servidor push en Vercel
     const nodePushServerUrl = 'https://portalestiba-push-backend-one.vercel.app';
 
@@ -83,8 +117,7 @@ serve(async (req) => {
           { codigo: '20-02', nombre: 'Noche (20-02)' }
         ];
 
-        const puertaInicial = 223; // Puerta inicial típica
-        let puertaPrevista = puertaInicial;
+        let puertaPrevista = puertaActual;
         const resultados: any[] = [];
         let esPrimeraJornadaActiva = true;
 
