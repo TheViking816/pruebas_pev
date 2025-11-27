@@ -48,7 +48,7 @@ serve(async (req) => {
     // 3. Obtener datos del censo para las posiciones
     const { data: censoData, error: censoError } = await supabase
       .from('censo')
-      .select('chapa, posicion, nombre')
+      .select('chapa, posicion')
       .order('posicion', { ascending: true });
 
     if (censoError) {
