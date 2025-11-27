@@ -6689,21 +6689,24 @@ async function loadCalculadora() {
               posicionRestante = (limiteFin - puertaPrevista) + (posUsuarioCalc - limiteInicio) + 1;
             }
 
-            // Si se queda MUY cerca (< 10 posiciones), probabilidad media
-            // Si se queda lejos (> 30 posiciones), probabilidad baja
-            if (posicionRestante <= 5) {
-              // Muy cerca (1-5 posiciones), probabilidad media-alta
-              probBaseSalir = 0.35 + (5 - posicionRestante) * 0.03; // 35-50%
-            } else if (posicionRestante <= 15) {
-              // Cerca (6-15 posiciones), probabilidad media
-              probBaseSalir = 0.20 + (15 - posicionRestante) * 0.015; // 20-35%
+            // PROBABILIDAD SUAVE Y PROGRESIVA según distancia
+            // Dentro del rango +-50 posiciones, probabilidades muy similares
+            if (posicionRestante <= 10) {
+              // Muy cerca (1-10 posiciones), prob alta
+              probBaseSalir = 0.38 + (10 - posicionRestante) * 0.008; // 38-46%
             } else if (posicionRestante <= 30) {
-              // Media distancia (16-30 posiciones), probabilidad media-baja
-              probBaseSalir = 0.08 + (30 - posicionRestante) * 0.008; // 8-20%
+              // Cerca (11-30 posiciones), prob media-alta
+              probBaseSalir = 0.28 + (30 - posicionRestante) * 0.005; // 28-38%
+            } else if (posicionRestante <= 50) {
+              // Rango medio (31-50 posiciones), prob media
+              probBaseSalir = 0.20 + (50 - posicionRestante) * 0.004; // 20-28%
+            } else if (posicionRestante <= 100) {
+              // Algo lejos (51-100 posiciones), prob media-baja
+              probBaseSalir = 0.10 + (100 - posicionRestante) * 0.002; // 10-20%
             } else {
-              // Lejos (> 30 posiciones), probabilidad muy baja
+              // Muy lejos (>100 posiciones), prob baja
               var cobertura = demandaEventuales / Math.max(1, distanciaNecesaria);
-              probBaseSalir = Math.min(0.08, Math.max(0.01, cobertura * 0.15)); // 1-8%
+              probBaseSalir = Math.min(0.10, Math.max(0.02, cobertura * 0.20)); // 2-10%
             }
           }
 
@@ -6781,42 +6784,21 @@ async function loadCalculadora() {
           var probBaseSalirAjustada = datos.probBaseSalir;
 
           // ============================================================================
-          // REGLA CLAVE: Si esta jornada es la PRIMERA que alcanza al usuario,
-          // darle prioridad (probabilidad alta pero no abrumadora)
+          // AJUSTE SUAVE Y PROGRESIVO: Sin cambios radicales
+          // Si la puerta está cerca (+-50 posiciones), probabilidades similares
           // ============================================================================
           if (primeraJornadaQueAlcanza !== -1 && j === primeraJornadaQueAlcanza) {
             // Esta es la jornada donde la puerta PASA por el usuario
-            // Darle probabilidad alta, pero permitir que jornadas cercanas tengan probabilidad
-            if (datos.margen >= 10) {
-              // Si hay margen grande, muy seguro
-              probBaseSalirAjustada = Math.max(0.75, datos.probBaseSalir);
-            } else if (datos.margen >= 0) {
-              // Margen pequeño positivo, probable
-              probBaseSalirAjustada = Math.max(0.65, datos.probBaseSalir);
+            // Darle un pequeño boost, pero NO radical
+            if (datos.margen >= 100) {
+              // Margen muy grande (>100), boost pequeño
+              probBaseSalirAjustada = Math.max(0.52, datos.probBaseSalir);
+            } else if (datos.margen >= 50) {
+              // Margen grande (50-100), boost mínimo
+              probBaseSalirAjustada = Math.max(0.48, datos.probBaseSalir);
             } else {
-              // Margen negativo pero la puerta pasa, moderadamente probable
-              probBaseSalirAjustada = Math.max(0.55, datos.probBaseSalir);
-            }
-          }
-
-          // CLAVE: Si la cobertura total del dia es alta (>=1.5),
-          // las jornadas posteriores deben tener probabilidad ajustada
-          // porque si no sales en una, casi seguro sales en la siguiente
-          if (coberturaTotalDia >= 1.5 && j > primeraJornadaConDatos) {
-            // Hay demanda de sobra en el dia, si no saliste antes, saldras ahora
-            // Calcular cuanta demanda queda para esta jornada y siguientes
-            var demandaRestante = 0;
-            for (var k = j; k < puntuacionesJornadas.length; k++) {
-              if (!puntuacionesJornadas[k].sinDatos) {
-                demandaRestante += puntuacionesJornadas[k].demandaEventuales;
-              }
-            }
-            // Si la demanda restante cubre la distancia, alta probabilidad
-            var coberturaRestante = demandaRestante / Math.max(1, datos.distanciaNecesaria);
-            if (coberturaRestante >= 1.0) {
-              probBaseSalirAjustada = Math.max(probBaseSalirAjustada, 0.75);
-            } else if (coberturaRestante >= 0.7) {
-              probBaseSalirAjustada = Math.max(probBaseSalirAjustada, 0.55);
+              // Margen pequeño (<50), prácticamente igual
+              probBaseSalirAjustada = Math.max(0.45, datos.probBaseSalir);
             }
           }
 
