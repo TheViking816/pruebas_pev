@@ -44,8 +44,9 @@ serve(async (req) => {
     });
 
     // Verificar si el usuario tiene suscripción activa
+    // IMPORTANTE: La tabla se llama 'push_notifications', NO 'push_subscriptions'
     const { data: subscription, error: subError } = await supabase
-      .from('push_subscriptions')
+      .from('push_notifications')
       .select('*')
       .eq('user_chapa', userChapa)
       .single();
