@@ -222,7 +222,8 @@ serve(async (req) => {
         const notificationPayload = {
           title,
           body,
-          url: '/oraculo',
+          url: '/?page=oraculo',
+          page: 'oraculo',
           icon: 'https://i.imgur.com/Q91Pi44.png',
           badge: 'https://i.imgur.com/Q91Pi44.png',
           chapa_target: userChapa

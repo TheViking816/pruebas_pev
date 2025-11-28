@@ -8,7 +8,7 @@
  * También cachea recursos de Supabase y sus APIs.
  */
 
-const CACHE_NAME = 'estiba-vlc-v8';
+const CACHE_NAME = 'estiba-vlc-v9';
 
 // Recursos locales que SIEMPRE deben cachearse (fallarán la instalación si no existen)
 const localResources = [
@@ -228,8 +228,25 @@ self.addEventListener('push', (event) => {
 self.addEventListener('notificationclick', (event) => {
   event.notification.close(); // Cierra la notificación al hacer clic
 
-  const targetPage = event.notification.data.page || 'contratacion';
-  const targetUrl = event.notification.data.url || `/?page=${targetPage}`;
+  // Extraer page y url de los datos de la notificación
+  let targetPage = event.notification.data.page;
+  let targetUrl = event.notification.data.url;
+
+  // Si no hay page pero sí url, intentar extraer page del url
+  if (!targetPage && targetUrl) {
+    const urlParams = new URLSearchParams(targetUrl.split('?')[1]);
+    targetPage = urlParams.get('page') || 'contratacion';
+  }
+
+  // Si no hay targetPage, usar default
+  if (!targetPage) {
+    targetPage = 'contratacion';
+  }
+
+  // Si no hay targetUrl, construirlo
+  if (!targetUrl) {
+    targetUrl = `/?page=${targetPage}`;
+  }
 
   // Abre una nueva ventana o enfoca una existente
   event.waitUntil(
