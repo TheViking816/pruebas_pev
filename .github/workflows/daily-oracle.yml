@@ -1,0 +1,17 @@
+name: Notificaciones Diarias Oráculo
+on:
+  schedule:
+    # Ejecutar a las 18:00 UTC (ajusta a la hora que necesites)
+    # Ejemplo: Si quieres que salga a las 20:00 hora España, en invierno es 19:00 UTC
+    - cron: '0 19 * * *'
+  workflow_dispatch: # Permite lanzarlo manualmente desde la web de GitHub para probar
+
+jobs:
+  trigger-oracle:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Invocar Supabase Edge Function
+        run: |
+          curl -X POST '${{ secrets.SUPABASE_FUNCTION_URL }}' \
+          -H "Authorization: Bearer ${{ secrets.SUPABASE_ANON_KEY }}" \
+          -H "Content-Type: application/json"
