@@ -1589,7 +1589,8 @@ async function mostrarChapasDelParte(parteInfo) {
       .select('*')
       .eq('parte', parteInfo.parte)
       .eq('fecha', fechaISO)
-      .eq('jornada', parteInfo.jornada);
+      .eq('jornada', parteInfo.jornada)
+      .order('id', { ascending: true });
 
     if (error) {
       console.error('❌ Error de Supabase:', error);
@@ -1646,14 +1647,8 @@ async function mostrarChapasDelParte(parteInfo) {
       const grid = document.createElement('div');
       grid.className = 'chapas-grid';
 
-      // Ordenar chapas numéricamente
-      const chapasOrdenadas = chapas.sort((a, b) => {
-        const numA = parseInt(a) || 0;
-        const numB = parseInt(b) || 0;
-        return numA - numB;
-      });
-
-      chapasOrdenadas.forEach(chapa => {
+      // Mantener el orden original de la tabla jornales (sin ordenar alfabéticamente)
+      chapas.forEach(chapa => {
         const badge = document.createElement('div');
         badge.className = 'chapa-badge';
         badge.innerHTML = `

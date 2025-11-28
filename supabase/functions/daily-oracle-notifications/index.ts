@@ -20,10 +20,7 @@ serve(async (req) => {
 
     if (!scraperData.success || !scraperData.demandas) {
       console.error('Error obteniendo datos del scraper:', scraperData);
-      return new Response(JSON.stringify({
-        error: 'No se pudieron obtener datos del scraper',
-        scraperData
-      }), { status: 500 });
+      return new Response(JSON.stringify({ error: 'No se pudieron obtener datos del scraper', scraperData }), { status: 500 });
     }
 
     console.log('✅ Datos del scraper obtenidos:', scraperData);
@@ -56,10 +53,7 @@ serve(async (req) => {
       return new Response(JSON.stringify({ error: censoError.message }), { status: 500 });
     }
 
-    // Crear map de chapa -> {posicion, color}
-    // Asegurar que la chapa sea string para comparación
-    const censoMap = new Map(censoData.map(u => [String(u.chapa), { posicion: u.posicion, color: u.color }]));
-    console.log(`📊 Censo cargado: ${censoMap.size} trabajadores`);
+    console.log(`📊 Censo cargado: ${censoData.length} trabajadores`);
 
     // 4. Obtener puertas reales desde CSV
     const puertasURL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQrQ5bGZDNShEWi1lwx_l1EvOxC0si5kbN8GBxj34rF0FkyGVk6IZOiGk5D91_TZXBHO1mchydFvvUl/pub?gid=3770623&single=true&output=csv';
@@ -101,117 +95,150 @@ serve(async (req) => {
 
     // Convertir a array
     const puertas = jornadasOrdenadas.map(j => puertasPorJornada[j]).filter(p => p);
-
     console.log('🚪 Puertas obtenidas:', puertas);
 
-    // 5. Detectar siguiente jornada basándose en hora actual
-    function detectarSiguienteJornada(): string {
-      const ahora = new Date();
-      const horaActual = ahora.getHours();
+    // 5. IMPORTANTE: Las notificaciones del Oráculo SIEMPRE usan la jornada 08-14
+    // porque es la jornada del día siguiente que más importa a los trabajadores
+    const jornadaOraculo = '08-14';
+    console.log('📍 Jornada del Oráculo (siempre 08-14):', jornadaOraculo);
 
-      // Detectar basándose en la hora actual
-      if (horaActual >= 2 && horaActual < 8) return '08-14';
-      if (horaActual >= 8 && horaActual < 14) return '14-20';
-      if (horaActual >= 14 && horaActual < 20) return '20-02';
-      return '08-14'; // Después de las 20:00, siguiente es mañana
+    // Constantes
+    const LIMITE_SP = 440;
+    const INICIO_OC = 441;
+    const FIN_OC = 500;
+
+    // Crear censos separados SP y OC
+    const censoSP = censoData.filter(u => u.posicion >= 1 && u.posicion <= LIMITE_SP);
+    const censoOC = censoData.filter(u => u.posicion >= INICIO_OC && u.posicion <= FIN_OC);
+
+    // Función para obtener peso según color (IGUAL QUE EN PWA)
+    function getPesoDisponibilidad(persona: any) {
+      if (!persona) return 0;
+
+      const color = typeof persona.color === 'number'
+        ? ['red', 'orange', 'yellow', 'blue', 'green'][persona.color]
+        : persona.color?.toString().toLowerCase();
+
+      switch (color) {
+        case 'red':
+        case 'rojo': return 0;
+        case 'orange':
+        case 'naranja': return 0.25;
+        case 'yellow':
+        case 'amarillo': return 0.50;
+        case 'blue':
+        case 'azul': return 0.75;
+        case 'green':
+        case 'verde': return 1.00;
+        default: return 0; // Por defecto NO disponible (igual que PWA)
+      }
     }
 
-    const siguienteJornada = detectarSiguienteJornada();
-    console.log('📍 Siguiente jornada:', siguienteJornada);
+    // Función para contar disponibles entre dos posiciones (IGUAL QUE EN PWA)
+    function contarDisponiblesEntre(desde: number, hasta: number, censoActual: any[], limiteInicio: number, limiteFin: number) {
+      let disponibles = 0;
 
-    // 5. Para cada suscriptor, calcular probabilidad y enviar notificación
+      if (desde <= hasta) {
+        // Rango directo
+        for (let pos = desde + 1; pos <= hasta; pos++) {
+          const persona = censoActual.find(c => c.posicion === pos);
+          disponibles += getPesoDisponibilidad(persona);
+        }
+      } else {
+        // Rango con vuelta: desde -> fin + inicio -> hasta
+        for (let pos = desde + 1; pos <= limiteFin; pos++) {
+          const persona = censoActual.find(c => c.posicion === pos);
+          disponibles += getPesoDisponibilidad(persona);
+        }
+        for (let pos = limiteInicio; pos <= hasta; pos++) {
+          const persona = censoActual.find(c => c.posicion === pos);
+          disponibles += getPesoDisponibilidad(persona);
+        }
+      }
+
+      return disponibles;
+    }
+
+    // Función para calcular distancia efectiva (IGUAL QUE EN PWA)
+    function calcularDistanciaEfectiva(
+      puerta: number,
+      usuario: number,
+      censoActual: any[],
+      limiteInicio: number,
+      limiteFin: number
+    ): number {
+      let distancia;
+
+      if (usuario > puerta) {
+        // Usuario está delante
+        distancia = contarDisponiblesEntre(puerta, usuario, censoActual, limiteInicio, limiteFin);
+      } else if (usuario < puerta) {
+        // Usuario está detrás, hay que dar la vuelta
+        distancia = contarDisponiblesEntre(puerta, limiteFin, censoActual, limiteInicio, limiteFin)
+                  + contarDisponiblesEntre(limiteInicio - 1, usuario, censoActual, limiteInicio, limiteFin);
+      } else {
+        // Misma posición
+        return 0;
+      }
+
+      // Sumar el peso de disponibilidad del propio usuario (IMPORTANTE)
+      const usuarioData = censoActual.find(c => c.posicion === usuario);
+      const pesoUsuario = getPesoDisponibilidad(usuarioData);
+      distancia += pesoUsuario;
+
+      return distancia;
+    }
+
     // URL del servidor push en Vercel
     const nodePushServerUrl = 'https://portalestiba-push-backend-one.vercel.app';
-
     let notificationsSent = 0;
     let notificationsFailed = 0;
 
-    // Función para calcular peso según color
-    function getPesoDisponible(color: any): number {
-      // El color puede ser número (0-4) o string
-      if (typeof color === 'number') {
-        // 0=red, 1=orange, 2=yellow, 3=blue, 4=green
-        if (color === 4) return 1.0;  // green
-        if (color === 3) return 0.75; // blue
-        if (color === 2) return 0.5;  // yellow
-        if (color === 1) return 0.25; // orange
-        if (color === 0) return 0.0;  // red
-        return 1.0; // Por defecto, disponible
-      }
-
-      // Si es string
-      const colorLower = color?.toString().toLowerCase() || '';
-      if (colorLower === 'green' || colorLower === 'verde') return 1.0;
-      if (colorLower === 'blue' || colorLower === 'azul') return 0.75;
-      if (colorLower === 'yellow' || colorLower === 'amarillo') return 0.5;
-      if (colorLower === 'orange' || colorLower === 'naranja') return 0.25;
-      if (colorLower === 'red' || colorLower === 'rojo') return 0.0;
-      return 1.0; // Por defecto, considerar disponible
-    }
-
     for (const subscription of subscriptions) {
       try {
-        const userChapa = String(subscription.user_chapa); // Asegurar que sea string
-        const userData = censoMap.get(userChapa);
+        const userChapa = String(subscription.user_chapa);
+        const userData = censoData.find(u => String(u.chapa) === userChapa);
 
         if (!userData) {
           console.warn(`⚠️ Usuario ${userChapa} no encontrado en censo, saltando...`);
-          console.log(`🔍 Debug: Buscando chapa="${userChapa}" en censo con ${censoMap.size} entradas`);
           continue;
         }
 
         const userPosition = userData.posicion;
-        const userColor = userData.color;
 
         // Determinar si el usuario es SP o OC
-        const LIMITE_SP = 440;
         const esUsuarioSP = userPosition <= LIMITE_SP;
+        const censoActual = esUsuarioSP ? censoSP : censoOC;
+        const limiteInicio = esUsuarioSP ? 1 : INICIO_OC;
+        const limiteFin = esUsuarioSP ? LIMITE_SP : FIN_OC;
 
-        // Obtener puerta actual según la siguiente jornada
+        // Obtener puerta actual para la jornada 08-14
         const puertasLaborables = puertas.filter(p => p.jornada !== 'Festivo');
-        const puertaData = puertasLaborables.find(p => p.jornada === siguienteJornada);
+        const puertaData = puertasLaborables.find(p => p.jornada === jornadaOraculo);
 
         if (!puertaData) {
-          console.warn(`⚠️ No se encontró puerta para jornada ${siguienteJornada}, saltando usuario ${userChapa}...`);
+          console.warn(`⚠️ No se encontró puerta para jornada ${jornadaOraculo}, saltando usuario ${userChapa}...`);
           continue;
         }
 
-        const puertaActual = esUsuarioSP ? puertaData.puertaSP : puertaData.puertaOC;
+        const puertaActual = parseInt(esUsuarioSP ? puertaData.puertaSP : puertaData.puertaOC) || 0;
 
-        // Calcular distancia EFECTIVA considerando disponibilidad (colores)
-        let distanciaEfectiva = 0;
-        const tamanoCenso = esUsuarioSP ? LIMITE_SP : 500;
-        const inicioRango = esUsuarioSP ? 1 : 441;
-        const finRango = esUsuarioSP ? LIMITE_SP : 500;
-
-        // Filtrar censo según tipo (SP o OC)
-        const censoFiltrado = censoData.filter(u => {
-          if (esUsuarioSP) {
-            return u.posicion >= inicioRango && u.posicion <= finRango;
-          } else {
-            return u.posicion >= inicioRango && u.posicion <= finRango;
-          }
-        });
-
-        // Calcular distancia efectiva desde puerta hasta usuario
-        if (userPosition > puertaActual) {
-          // Usuario adelante, contar desde puerta hasta usuario
-          for (const persona of censoFiltrado) {
-            if (persona.posicion > puertaActual && persona.posicion < userPosition) {
-              distanciaEfectiva += getPesoDisponible(persona.color);
-            }
-          }
-        } else {
-          // Puerta pasó al usuario (circular), contar desde puerta hasta fin + inicio hasta usuario
-          for (const persona of censoFiltrado) {
-            if (persona.posicion > puertaActual || persona.posicion < userPosition) {
-              distanciaEfectiva += getPesoDisponible(persona.color);
-            }
-          }
+        if (puertaActual === 0) {
+          console.warn(`⚠️ Puerta en 0 para ${esUsuarioSP ? 'SP' : 'OC'}, jornada ${jornadaOraculo}. Saltando usuario ${userChapa}...`);
+          continue;
         }
 
-        // Redondear distancia efectiva
+        // Calcular distancia EFECTIVA usando la MISMA función que la PWA
+        const distanciaEfectiva = calcularDistanciaEfectiva(
+          puertaActual,
+          userPosition,
+          censoActual,
+          limiteInicio,
+          limiteFin
+        );
+
         const distanciaPuerta = Math.round(distanciaEfectiva);
+
         console.log(`🚪 Usuario ${userChapa} (${esUsuarioSP ? 'SP' : 'OC'}): Puerta=${puertaActual}, Pos=${userPosition}, Distancia efectiva=${distanciaPuerta}`);
 
         // Construir mensaje con distancia efectiva a la puerta
@@ -222,8 +249,7 @@ serve(async (req) => {
         const notificationPayload = {
           title,
           body,
-          url: '/?page=oraculo',
-          page: 'oraculo',
+          url: '/calculadora', // URL correcta para el Oráculo
           icon: 'https://i.imgur.com/Q91Pi44.png',
           badge: 'https://i.imgur.com/Q91Pi44.png',
           chapa_target: userChapa
@@ -231,7 +257,9 @@ serve(async (req) => {
 
         const pushResponse = await fetch(`${nodePushServerUrl}/api/push/notify-oracle`, {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          headers: {
+            'Content-Type': 'application/json'
+          },
           body: JSON.stringify(notificationPayload)
         });
 
@@ -243,7 +271,6 @@ serve(async (req) => {
           const errorText = await pushResponse.text();
           console.error(`❌ Error enviando a ${userChapa}: ${pushResponse.status} - ${errorText}`);
         }
-
       } catch (userError) {
         notificationsFailed++;
         console.error(`❌ Error procesando usuario ${subscription.user_chapa}:`, userError);
@@ -264,10 +291,8 @@ serve(async (req) => {
       headers: { 'Content-Type': 'application/json' },
       status: 200
     });
-
   } catch (error) {
     console.error('❌ Error en Edge Function:', error.message);
     return new Response(JSON.stringify({ error: error.message }), { status: 500 });
   }
 });
-
