@@ -125,8 +125,20 @@ serve(async (req) => {
     let notificationsFailed = 0;
 
     // Función para calcular peso según color
-    function getPesoDisponible(color: string): number {
-      const colorLower = color?.toLowerCase() || '';
+    function getPesoDisponible(color: any): number {
+      // El color puede ser número (0-4) o string
+      if (typeof color === 'number') {
+        // 0=red, 1=orange, 2=yellow, 3=blue, 4=green
+        if (color === 4) return 1.0;  // green
+        if (color === 3) return 0.75; // blue
+        if (color === 2) return 0.5;  // yellow
+        if (color === 1) return 0.25; // orange
+        if (color === 0) return 0.0;  // red
+        return 1.0; // Por defecto, disponible
+      }
+
+      // Si es string
+      const colorLower = color?.toString().toLowerCase() || '';
       if (colorLower === 'green' || colorLower === 'verde') return 1.0;
       if (colorLower === 'blue' || colorLower === 'azul') return 0.75;
       if (colorLower === 'yellow' || colorLower === 'amarillo') return 0.5;
