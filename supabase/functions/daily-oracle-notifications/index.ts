@@ -57,7 +57,9 @@ serve(async (req) => {
     }
 
     // Crear map de chapa -> {posicion, color}
-    const censoMap = new Map(censoData.map(u => [u.chapa.toString(), { posicion: u.posicion, color: u.color }]));
+    // Asegurar que la chapa sea string para comparación
+    const censoMap = new Map(censoData.map(u => [String(u.chapa), { posicion: u.posicion, color: u.color }]));
+    console.log(`📊 Censo cargado: ${censoMap.size} trabajadores`);
 
     // 4. Obtener puertas reales desde CSV
     const puertasURL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQrQ5bGZDNShEWi1lwx_l1EvOxC0si5kbN8GBxj34rF0FkyGVk6IZOiGk5D91_TZXBHO1mchydFvvUl/pub?gid=3770623&single=true&output=csv';
@@ -149,11 +151,12 @@ serve(async (req) => {
 
     for (const subscription of subscriptions) {
       try {
-        const userChapa = subscription.user_chapa;
+        const userChapa = String(subscription.user_chapa); // Asegurar que sea string
         const userData = censoMap.get(userChapa);
 
         if (!userData) {
           console.warn(`⚠️ Usuario ${userChapa} no encontrado en censo, saltando...`);
+          console.log(`🔍 Debug: Buscando chapa="${userChapa}" en censo con ${censoMap.size} entradas`);
           continue;
         }
 
