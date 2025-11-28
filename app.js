@@ -6007,7 +6007,7 @@ window.cargarDatosNoray = async function() {
           if (data.fijos > 0 || (data.demandas['08-14'].gruas > 0 || data.demandas['14-20'].gruas > 0 || data.demandas['20-02'].gruas > 0)) {
             datosValidos = true;
           }
-        }
+        }  
 
         // Si sigue sin ser válido, intentar cargar datos guardados o mostrar modal
         if (!datosValidos) {
@@ -6768,10 +6768,14 @@ async function loadCalculadora() {
             } else if (posicionRestante <= 100) {
               // Algo lejos (51-100 posiciones), prob media-baja
               probBaseSalir = 0.10 + (100 - posicionRestante) * 0.002; // 10-20%
-            } else {
-              // Muy lejos (>100 posiciones), prob baja
+            } else if (posicionRestante <= 150) {
+              // Lejos (101-150 posiciones), prob baja
               var cobertura = demandaEventuales / Math.max(1, distanciaNecesaria);
-              probBaseSalir = Math.min(0.10, Math.max(0.02, cobertura * 0.20)); // 2-10%
+              probBaseSalir = Math.min(0.06, Math.max(0.015, cobertura * 0.12)); // 1.5-6%
+            } else {
+              // Muy muy lejos (>150 posiciones), prob muy baja
+              var cobertura = demandaEventuales / Math.max(1, distanciaNecesaria);
+              probBaseSalir = Math.min(0.025, Math.max(0.008, cobertura * 0.06)); // 0.8-2.5%
             }
           }
 
@@ -6849,21 +6853,75 @@ async function loadCalculadora() {
           var probBaseSalirAjustada = datos.probBaseSalir;
 
           // ============================================================================
-          // AJUSTE SUAVE Y PROGRESIVO: Sin cambios radicales
-          // Si la puerta está cerca (+-50 posiciones), probabilidades similares
+          // AJUSTE SUAVE Y PROGRESIVO: Distribuir probabilidad cuando hay transición cerca
+          // Si una jornada se quedó cerca pero no llega, y la siguiente pasa pero por poco,
+          // las probabilidades deben ser similares (progresión suave)
           // ============================================================================
-          if (primeraJornadaQueAlcanza !== -1 && j === primeraJornadaQueAlcanza) {
-            // Esta es la jornada donde la puerta PASA por el usuario
-            // Darle un pequeño boost, pero NO radical
-            if (datos.margen >= 100) {
-              // Margen muy grande (>100), boost pequeño
-              probBaseSalirAjustada = Math.max(0.52, datos.probBaseSalir);
-            } else if (datos.margen >= 50) {
-              // Margen grande (50-100), boost mínimo
-              probBaseSalirAjustada = Math.max(0.48, datos.probBaseSalir);
-            } else {
-              // Margen pequeño (<50), prácticamente igual
-              probBaseSalirAjustada = Math.max(0.45, datos.probBaseSalir);
+
+          // BOOST para última jornada cuando la cobertura total es alta
+          // Si es la última jornada con datos y la cobertura >= 1.0, significa que
+          // al final del día la puerta pasará al usuario, así que esta jornada
+          // debe capturar la probabilidad residual
+          var esUltimaJornada = (j === puntuacionesJornadas.length - 1) ||
+                                (j < puntuacionesJornadas.length - 1 && puntuacionesJornadas[j+1].sinDatos);
+
+          if (esUltimaJornada && !datos.saleContratado && coberturaTotalDia >= 1.0) {
+            // La puerta pasará al usuario al final del día, pero no en esta jornada específica
+            // Aumentar la probabilidad proporcionalmente a la cobertura
+            var boostUltimaJornada = Math.min(0.55, 0.20 + (coberturaTotalDia - 1.0) * 0.20);
+            probBaseSalirAjustada = Math.max(probBaseSalirAjustada, boostUltimaJornada);
+          }
+
+          // Detectar si la jornada ANTERIOR se quedó relativamente cerca pero no llegó
+          var jornadaAnteriorCerca = false;
+          var distanciaFaltanteAnterior = 0;
+          if (j > 0 && !puntuacionesJornadas[j-1].sinDatos && !puntuacionesJornadas[j-1].saleContratado) {
+            var anterior = puntuacionesJornadas[j-1];
+            // La distancia que falta es la distanciaNecesaria de la jornada actual
+            // (desde donde empieza esta jornada hasta el usuario)
+            distanciaFaltanteAnterior = datos.distanciaNecesaria;
+
+            // Considerar "cerca" hasta 120 posiciones (más flexible)
+            if (distanciaFaltanteAnterior <= 120) {
+              jornadaAnteriorCerca = true;
+            }
+          }
+
+          // CASO 1: Esta jornada SÍ alcanza al usuario
+          if (datos.saleContratado) {
+            // Si la anterior se quedó cerca Y esta pasa por poco margen
+            if (jornadaAnteriorCerca && datos.margen <= 100) {
+              // Ambas están en zona de transición → equilibrar probabilidades
+              // Cuanto más cerca se quedó la anterior y menos margen tiene esta, más reducir
+              var ratioEquilibrio = distanciaFaltanteAnterior / Math.max(1, datos.margen);
+
+              // Reducir proporcionalmente al ratio
+              // Ratio alto (anterior muy cerca, esta con poco margen) = reducir más
+              // Si ratio ≈ 1: factor 0.85 (reducir 15%)
+              // Si ratio alto (5-6): factor 0.65 (reducir 35%)
+              // Si ratio bajo (< 1): factor 0.92 (reducir 8%)
+              var factorReduccion = Math.max(0.65, Math.min(0.95, 0.88 - (ratioEquilibrio - 1) * 0.10));
+              probBaseSalirAjustada = datos.probBaseSalir * factorReduccion;
+            }
+          }
+          // CASO 2: Esta jornada NO alcanza
+          else {
+            // Ver si la SIGUIENTE jornada sí alcanza y por poco
+            if (j < puntuacionesJornadas.length - 1 && !puntuacionesJornadas[j+1].sinDatos) {
+              var siguiente = puntuacionesJornadas[j+1];
+              var distanciaFaltante = datos.distanciaNecesaria;
+
+              // Si la siguiente SÍ alcanza con poco margen Y nosotros nos quedamos cerca
+              if (siguiente.saleContratado && siguiente.margen <= 100 && distanciaFaltante <= 120) {
+                // Aumentar probabilidad de esta jornada para equilibrar
+                var ratioEquilibrio = distanciaFaltante / Math.max(1, siguiente.margen);
+
+                // Aumentar más cuando estamos muy cerca y la siguiente tiene poco margen
+                // Si distanciaFaltante ≈ margen siguiente: aumentar bastante
+                // Si distanciaFaltante << margen siguiente: aumentar mucho
+                var factorAumento = Math.max(1.20, Math.min(1.80, 1.45 + (1 - ratioEquilibrio) * 0.30));
+                probBaseSalirAjustada = Math.min(0.62, datos.probBaseSalir * factorAumento);
+              }
             }
           }
 
@@ -6888,10 +6946,19 @@ async function loadCalculadora() {
         var probNoTrabajar = probAcumuladaNoSalir;
 
         // Si la cobertura total es muy alta, forzar prob de no trabajar a ser baja
-        if (coberturaTotalDia >= 2.0) {
-          probNoTrabajar = Math.min(probNoTrabajar, 0.05);
+        // Cobertura >= 1.0 significa que al final del día la puerta pasará al usuario
+        if (coberturaTotalDia >= 2.5) {
+          probNoTrabajar = Math.min(probNoTrabajar, 0.015); // 1.5% máximo
+        } else if (coberturaTotalDia >= 2.0) {
+          probNoTrabajar = Math.min(probNoTrabajar, 0.02); // 2% máximo
+        } else if (coberturaTotalDia >= 1.7) {
+          probNoTrabajar = Math.min(probNoTrabajar, 0.03); // 3% máximo
         } else if (coberturaTotalDia >= 1.5) {
-          probNoTrabajar = Math.min(probNoTrabajar, 0.10);
+          probNoTrabajar = Math.min(probNoTrabajar, 0.04); // 4% máximo
+        } else if (coberturaTotalDia >= 1.2) {
+          probNoTrabajar = Math.min(probNoTrabajar, 0.06); // 6% máximo
+        } else if (coberturaTotalDia >= 1.0) {
+          probNoTrabajar = Math.min(probNoTrabajar, 0.08); // 8% máximo
         }
 
         // Normalizar para que sumen 100%

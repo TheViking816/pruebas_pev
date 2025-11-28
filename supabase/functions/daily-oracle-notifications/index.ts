@@ -45,10 +45,10 @@ serve(async (req) => {
 
     console.log(`📋 Encontrados ${subscriptions.length} usuarios suscritos`);
 
-    // 3. Obtener datos del censo para las posiciones
+    // 3. Obtener datos del censo con colores para calcular distancia efectiva
     const { data: censoData, error: censoError } = await supabase
       .from('censo')
-      .select('chapa, posicion')
+      .select('chapa, posicion, color')
       .order('posicion', { ascending: true });
 
     if (censoError) {
@@ -56,10 +56,50 @@ serve(async (req) => {
       return new Response(JSON.stringify({ error: censoError.message }), { status: 500 });
     }
 
-    // Crear map de chapa -> posición
-    const censoMap = new Map(censoData.map(u => [u.chapa.toString(), u.posicion]));
+    // Crear map de chapa -> {posicion, color}
+    const censoMap = new Map(censoData.map(u => [u.chapa.toString(), { posicion: u.posicion, color: u.color }]));
 
-    // 4. Detectar siguiente jornada basándose en hora actual
+    // 4. Obtener puertas reales desde CSV
+    const puertasURL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQrQ5bGZDNShEWi1lwx_l1EvOxC0si5kbN8GBxj34rF0FkyGVk6IZOiGk5D91_TZXBHO1mchydFvvUl/pub?gid=3770623&single=true&output=csv';
+
+    const puertasResponse = await fetch(puertasURL);
+    const puertasText = await puertasResponse.text();
+
+    // Parsear CSV de puertas (formato complejo)
+    const lines = puertasText.split('\n').map(l => l.trim()).filter(l => l !== '');
+    const jornadasOrdenadas = ['02-08', '08-14', '14-20', '20-02', 'Festivo'];
+    const puertasPorJornada: any = {};
+
+    // Procesar las puertas
+    for (const line of lines) {
+      if (line.includes('No se admiten') || line.includes('!!')) continue;
+
+      const columns = line.split(',').map(c => c.trim().replace(/"/g, ''));
+      if (columns.length < 7) continue;
+
+      const rawJornada = columns[2];
+      if (!rawJornada) continue;
+
+      const jornada = rawJornada.replace(/\s+.*/, '');
+
+      if (jornadasOrdenadas.includes(jornada) && !puertasPorJornada[jornada]) {
+        const puertaSP = columns[3] ? parseInt(columns[3]) : 0;
+        const puertaOC = columns[4] ? parseInt(columns[4]) : 0;
+
+        puertasPorJornada[jornada] = {
+          jornada: jornada,
+          puertaSP: puertaSP,
+          puertaOC: puertaOC
+        };
+      }
+    }
+
+    // Convertir a array
+    const puertas = jornadasOrdenadas.map(j => puertasPorJornada[j]).filter(p => p);
+
+    console.log('🚪 Puertas obtenidas:', puertas);
+
+    // 5. Detectar siguiente jornada basándose en hora actual
     function detectarSiguienteJornada(): string {
       const ahora = new Date();
       const horaActual = ahora.getHours();
@@ -74,10 +114,6 @@ serve(async (req) => {
     const siguienteJornada = detectarSiguienteJornada();
     console.log('📍 Siguiente jornada:', siguienteJornada);
 
-    // Puerta inicial fija (valor estándar del sistema)
-    const puertaActual = 223;
-    console.log('🚪 Puerta inicial SP:', puertaActual);
-
     // 5. Para cada suscriptor, calcular probabilidad y enviar notificación
     // URL del servidor push en Vercel
     const nodePushServerUrl = 'https://portalestiba-push-backend-one.vercel.app';
@@ -85,116 +121,84 @@ serve(async (req) => {
     let notificationsSent = 0;
     let notificationsFailed = 0;
 
+    // Función para calcular peso según color
+    function getPesoDisponible(color: string): number {
+      const colorLower = color?.toLowerCase() || '';
+      if (colorLower === 'green' || colorLower === 'verde') return 1.0;
+      if (colorLower === 'blue' || colorLower === 'azul') return 0.75;
+      if (colorLower === 'yellow' || colorLower === 'amarillo') return 0.5;
+      if (colorLower === 'orange' || colorLower === 'naranja') return 0.25;
+      if (colorLower === 'red' || colorLower === 'rojo') return 0.0;
+      return 1.0; // Por defecto, considerar disponible
+    }
+
     for (const subscription of subscriptions) {
       try {
         const userChapa = subscription.user_chapa;
-        const userPosition = censoMap.get(userChapa);
+        const userData = censoMap.get(userChapa);
 
-        if (!userPosition) {
+        if (!userData) {
           console.warn(`⚠️ Usuario ${userChapa} no encontrado en censo, saltando...`);
           continue;
         }
 
-        // Calcular probabilidad simplificada para cada jornada
-        const jornadasConfig = [
-          { codigo: '08-14', nombre: 'Mañana (08-14)' },
-          { codigo: '14-20', nombre: 'Tarde (14-20)' },
-          { codigo: '20-02', nombre: 'Noche (20-02)' }
-        ];
+        const userPosition = userData.posicion;
+        const userColor = userData.color;
 
-        let puertaPrevista = puertaActual;
-        const resultados: any[] = [];
-        let esPrimeraJornadaActiva = true;
+        // Determinar si el usuario es SP o OC
+        const LIMITE_SP = 440;
+        const esUsuarioSP = userPosition <= LIMITE_SP;
 
-        for (const jornada of jornadasConfig) {
-          const demanda = scraperData.demandas[jornada.codigo];
-          if (!demanda) continue;
+        // Obtener puerta actual según la siguiente jornada
+        const puertasLaborables = puertas.filter(p => p.jornada !== 'Festivo');
+        const puertaData = puertasLaborables.find(p => p.jornada === siguienteJornada);
 
-          const gruas = demanda.gruas || 0;
-          const coches = demanda.coches || 0;
-          const demandaTotal = (gruas * 7) + coches;
+        if (!puertaData) {
+          console.warn(`⚠️ No se encontró puerta para jornada ${siguienteJornada}, saltando usuario ${userChapa}...`);
+          continue;
+        }
 
-          // Calcular demanda eventuales (restar fijos solo en primera jornada)
-          let demandaEventuales = demandaTotal;
-          if (esPrimeraJornadaActiva && scraperData.fijos > 0) {
-            const fijosParaCalculo = Math.floor(scraperData.fijos / 2);
-            demandaEventuales = Math.max(0, demandaTotal - fijosParaCalculo);
-            esPrimeraJornadaActiva = false;
-          }
+        const puertaActual = esUsuarioSP ? puertaData.puertaSP : puertaData.puertaOC;
 
-          if (demandaEventuales === 0) {
-            resultados.push({ jornada: jornada.nombre, probabilidad: 0 });
-            continue;
-          }
+        // Calcular distancia EFECTIVA considerando disponibilidad (colores)
+        let distanciaEfectiva = 0;
+        const tamanoCenso = esUsuarioSP ? LIMITE_SP : 500;
+        const inicioRango = esUsuarioSP ? 1 : 441;
+        const finRango = esUsuarioSP ? LIMITE_SP : 500;
 
-          // Calcular si alcanza al usuario
-          const puertaAntes = puertaPrevista;
-          const distanciaNecesaria = userPosition > puertaAntes ? userPosition - puertaAntes : 440 - puertaAntes + userPosition;
-
-          const alcanza = demandaEventuales >= distanciaNecesaria;
-          puertaPrevista = (puertaAntes + demandaEventuales) % 440;
-
-          // Calcular probabilidad
-          let probabilidad = 0;
-          if (alcanza) {
-            const margen = demandaEventuales - distanciaNecesaria;
-            const ratioMargen = margen / Math.max(1, demandaEventuales);
-
-            if (ratioMargen >= 1) {
-              probabilidad = 82 + Math.min(6, (ratioMargen - 1) * 3);
-            } else if (ratioMargen >= 0) {
-              probabilidad = 42 + 40 * (ratioMargen / (ratioMargen + 0.25));
-            } else {
-              probabilidad = 38;
-            }
+        // Filtrar censo según tipo (SP o OC)
+        const censoFiltrado = censoData.filter(u => {
+          if (esUsuarioSP) {
+            return u.posicion >= inicioRango && u.posicion <= finRango;
           } else {
-            const cobertura = demandaEventuales / Math.max(1, distanciaNecesaria);
-            if (cobertura >= 0.95) {
-              probabilidad = 35 + (cobertura - 0.95) * 150;
-            } else if (cobertura >= 0.8) {
-              probabilidad = 22 + (cobertura - 0.8) * 87;
-            } else if (cobertura >= 0.5) {
-              probabilidad = 10 + (cobertura - 0.5) * 40;
-            } else if (cobertura >= 0.2) {
-              probabilidad = 3 + (cobertura - 0.2) * 23;
-            } else {
-              probabilidad = Math.max(1, cobertura * 15);
+            return u.posicion >= inicioRango && u.posicion <= finRango;
+          }
+        });
+
+        // Calcular distancia efectiva desde puerta hasta usuario
+        if (userPosition > puertaActual) {
+          // Usuario adelante, contar desde puerta hasta usuario
+          for (const persona of censoFiltrado) {
+            if (persona.posicion > puertaActual && persona.posicion < userPosition) {
+              distanciaEfectiva += getPesoDisponible(persona.color);
             }
           }
-
-          resultados.push({
-            jornada: jornada.nombre,
-            probabilidad: Math.min(95, Math.max(0, probabilidad))
-          });
-        }
-
-        // Normalizar probabilidades
-        const sumaProbs = resultados.reduce((sum, r) => sum + r.probabilidad, 0);
-        const probNoTrabajar = Math.max(0, 100 - sumaProbs);
-
-        // Determinar mejor jornada
-        const mejorResultado = resultados.reduce((best, current) =>
-          current.probabilidad > best.probabilidad ? current : best
-        , { jornada: 'N/A', probabilidad: 0 });
-
-        const bestProbability = Math.round(mejorResultado.probabilidad);
-        const bestShiftName = mejorResultado.jornada;
-
-        // Construir mensaje
-        let title = '🔮 Tu Oráculo del Día';
-        let body = '';
-
-        if (bestProbability >= 80) {
-          body = `¡Calienta que sales! ${bestProbability}% en ${bestShiftName}`;
-        } else if (bestProbability >= 60) {
-          body = `Bastante probable: ${bestProbability}% en ${bestShiftName}`;
-        } else if (bestProbability >= 40) {
-          body = `Va a estar justo: ${bestProbability}% en ${bestShiftName}`;
-        } else if (bestProbability >= 20) {
-          body = `Poco probable: ${bestProbability}% (mejor: ${bestShiftName})`;
         } else {
-          body = `Difícil hoy: ${bestProbability}% (mejor: ${bestShiftName})`;
+          // Puerta pasó al usuario (circular), contar desde puerta hasta fin + inicio hasta usuario
+          for (const persona of censoFiltrado) {
+            if (persona.posicion > puertaActual || persona.posicion < userPosition) {
+              distanciaEfectiva += getPesoDisponible(persona.color);
+            }
+          }
         }
+
+        // Redondear distancia efectiva
+        const distanciaPuerta = Math.round(distanciaEfectiva);
+        console.log(`🚪 Usuario ${userChapa} (${esUsuarioSP ? 'SP' : 'OC'}): Puerta=${puertaActual}, Pos=${userPosition}, Distancia efectiva=${distanciaPuerta}`);
+
+        // Construir mensaje con distancia efectiva a la puerta
+        const title = '🔮 Tu Oráculo del Día';
+        const body = `Estás a ${distanciaPuerta} posiciones de la puerta! Entra al Oráculo para ver en qué jornada trabajas.`;
 
         // Enviar notificación
         const notificationPayload = {
