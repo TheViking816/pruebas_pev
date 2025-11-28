@@ -82,15 +82,18 @@ serve(async (req) => {
 
       const jornada = rawJornada.replace(/\s+.*/, '');
 
-      if (jornadasOrdenadas.includes(jornada) && !puertasPorJornada[jornada]) {
+      if (jornadasOrdenadas.includes(jornada)) {
         const puertaSP = columns[3] ? parseInt(columns[3]) : 0;
         const puertaOC = columns[4] ? parseInt(columns[4]) : 0;
 
-        puertasPorJornada[jornada] = {
-          jornada: jornada,
-          puertaSP: puertaSP,
-          puertaOC: puertaOC
-        };
+        // Solo guardar si tiene valores válidos (> 0), o si no existe todavía
+        if ((puertaSP > 0 || puertaOC > 0) || !puertasPorJornada[jornada]) {
+          puertasPorJornada[jornada] = {
+            jornada: jornada,
+            puertaSP: puertaSP,
+            puertaOC: puertaOC
+          };
+        }
       }
     }
 
