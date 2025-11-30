@@ -32,4 +32,4 @@
 
   O puedo hacer Opción 2 si necesitas que la
   notificación muestre la probabilidad exacta, pero
-  tardaré más en implementarlo y será mucho código..
+  tardaré más en implementarlo y será mucho código.
