@@ -1791,6 +1791,33 @@ async function guardarJornalManual(jornal) {
 }
 
 /**
+ * Elimina un jornal de Supabase
+ */
+async function eliminarJornal(jornalId, chapa) {
+  try {
+    console.log(`🗑️ Eliminando jornal ID: ${jornalId}`);
+
+    const { data, error } = await supabase
+      .from('jornales')
+      .delete()
+      .eq('id', jornalId)
+      .eq('chapa', chapa) // Seguridad: solo eliminar si es del usuario
+      .select();
+
+    if (error) throw error;
+
+    // Limpiar cache
+    clearCacheByPrefix(`supabase_jornales_${chapa}`);
+
+    return { success: true, data: data };
+
+  } catch (error) {
+    console.error('❌ Error al eliminar jornal:', error);
+    return { success: false, message: error.message };
+  }
+}
+
+/**
  * Actualiza el nombre de un usuario en Supabase
  * @param {string} chapa - Chapa del usuario
  * @param {string} nombre - Nuevo nombre a guardar

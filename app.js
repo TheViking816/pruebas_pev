@@ -201,6 +201,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // Inicializar funciones que no dependen del login
   initAddJornalManual();
+  initEliminarJornal();
+  initForgotPassword();
   initReportJornal();
   initForoEnhanced();
   initSyncJornalesButton();
@@ -2103,6 +2105,7 @@ function createQuincenaCard(year, month, quincena, jornales) {
               <th style="white-space: nowrap;">Empresa</th>
               <th style="white-space: nowrap;">Buque</th>
               <th style="white-space: nowrap;">Parte</th>
+              <th style="white-space: nowrap; text-align: center;">Acciones</th>
             </tr>
           </thead>
           <tbody>
@@ -2117,6 +2120,13 @@ function createQuincenaCard(year, month, quincena, jornales) {
                 <td style="white-space: nowrap;">${row.empresa}</td>
                 <td style="white-space: nowrap;">${row.buque}</td>
                 <td style="white-space: nowrap;">${row.parte}</td>
+                <td style="white-space: nowrap; text-align: center;">
+                  <button class="btn-delete-jornal" data-jornal-id="${row.id}" style="background: #dc3545; color: white; border: none; border-radius: 4px; padding: 0.4rem 0.8rem; cursor: pointer; font-size: 0.85rem; transition: background 0.2s;" title="Eliminar jornal">
+                    <svg xmlns="http://www.w3.org/2000/svg" style="width: 16px; height: 16px; vertical-align: middle;" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                    </svg>
+                  </button>
+                </td>
               </tr>
             `).join('')}
           </tbody>
@@ -5525,6 +5535,210 @@ function initAddJornalManual() {
     } catch (error) {
       console.error('❌ Error guardando jornal:', error);
       errorMsg.textContent = 'Error al guardar el jornal. Inténtalo de nuevo.';
+      errorMsg.style.display = 'block';
+    }
+  });
+}
+
+/**
+ * Inicializar funcionalidad de eliminar jornal
+ */
+function initEliminarJornal() {
+  // Usar delegación de eventos en el contenedor de jornales
+  const jornalesContent = document.getElementById('jornales-content');
+
+  if (!jornalesContent) return;
+
+  // Eliminar event listener anterior si existe para evitar duplicados
+  const oldListener = jornalesContent._deleteJornalListener;
+  if (oldListener) {
+    jornalesContent.removeEventListener('click', oldListener);
+  }
+
+  // Crear nuevo event listener
+  const deleteListener = async (e) => {
+    const deleteBtn = e.target.closest('.btn-delete-jornal');
+
+    if (!deleteBtn) return;
+
+    const jornalId = deleteBtn.dataset.jornalId;
+
+    if (!jornalId) {
+      console.error('❌ No se encontró ID del jornal');
+      return;
+    }
+
+    // Confirmar eliminación
+    if (!confirm('¿Estás seguro de que quieres eliminar este jornal? Esta acción no se puede deshacer.')) {
+      return;
+    }
+
+    try {
+      console.log('🗑️ Eliminando jornal con ID:', jornalId);
+
+      // Deshabilitar botón mientras se elimina
+      deleteBtn.disabled = true;
+      deleteBtn.style.opacity = '0.5';
+      deleteBtn.innerHTML = '<span style="font-size: 0.85rem;">Eliminando...</span>';
+
+      // Eliminar de Supabase
+      const result = await eliminarJornal(jornalId, AppState.currentUser);
+
+      if (result.success) {
+        console.log('✅ Jornal eliminado correctamente');
+
+        // Limpiar cache de jornales
+        const cacheKeys = Object.keys(localStorage);
+        cacheKeys.forEach(key => {
+          if (key.startsWith(`supabase_jornales`) && key.includes(AppState.currentUser)) {
+            localStorage.removeItem(key);
+            console.log(`🗑️ Cache limpiado: ${key}`);
+          }
+        });
+
+        // Recargar la vista de jornales
+        await loadJornales();
+
+        // Recargar Sueldómetro si estamos en esa página también
+        if (document.getElementById('page-sueldometro')?.classList.contains('active')) {
+          await loadSueldometro();
+        }
+
+        // Mostrar mensaje de éxito temporal
+        const successMessage = document.createElement('div');
+        successMessage.style.cssText = 'position: fixed; top: 20px; right: 20px; background: #10b981; color: white; padding: 1rem 1.5rem; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); z-index: 9999; font-weight: 500;';
+        successMessage.textContent = '✅ Jornal eliminado correctamente';
+        document.body.appendChild(successMessage);
+
+        setTimeout(() => {
+          successMessage.remove();
+        }, 3000);
+
+      } else {
+        throw new Error(result.message || 'Error desconocido al eliminar');
+      }
+
+    } catch (error) {
+      console.error('❌ Error eliminando jornal:', error);
+
+      // Mostrar mensaje de error
+      const errorMessage = document.createElement('div');
+      errorMessage.style.cssText = 'position: fixed; top: 20px; right: 20px; background: #ef4444; color: white; padding: 1rem 1.5rem; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); z-index: 9999; font-weight: 500;';
+      errorMessage.textContent = '❌ Error al eliminar el jornal. Inténtalo de nuevo.';
+      document.body.appendChild(errorMessage);
+
+      setTimeout(() => {
+        errorMessage.remove();
+      }, 4000);
+
+      // Recargar para restaurar el botón
+      await loadJornales();
+    }
+  };
+
+  // Guardar referencia al listener
+  jornalesContent._deleteJornalListener = deleteListener;
+
+  // Añadir event listener
+  jornalesContent.addEventListener('click', deleteListener);
+}
+
+/**
+ * Inicializar funcionalidad de recuperar contraseña
+ */
+function initForgotPassword() {
+  const forgotPasswordLink = document.getElementById('forgot-password-link');
+  const modal = document.getElementById('forgot-password-modal');
+  const closeBtn = document.getElementById('close-forgot-password-modal');
+  const cancelBtn = document.getElementById('cancel-forgot-password');
+  const sendBtn = document.getElementById('send-recovery-email');
+
+  const chapaInput = document.getElementById('forgot-password-chapa');
+  const errorMsg = document.getElementById('forgot-password-error');
+  const successMsg = document.getElementById('forgot-password-success');
+
+  if (!modal || !forgotPasswordLink) return;
+
+  // Abrir modal
+  forgotPasswordLink.addEventListener('click', () => {
+    modal.style.display = 'flex';
+    chapaInput.value = '';
+    errorMsg.style.display = 'none';
+    successMsg.style.display = 'none';
+  });
+
+  // Cerrar modal
+  const cerrarModal = () => {
+    modal.style.display = 'none';
+    chapaInput.value = '';
+    errorMsg.style.display = 'none';
+    successMsg.style.display = 'none';
+  };
+
+  closeBtn.addEventListener('click', cerrarModal);
+  cancelBtn.addEventListener('click', cerrarModal);
+
+  // Cerrar al hacer clic fuera del modal
+  modal.addEventListener('click', (e) => {
+    if (e.target === modal) {
+      cerrarModal();
+    }
+  });
+
+  // Enviar solicitud de recuperación
+  sendBtn.addEventListener('click', async () => {
+    errorMsg.style.display = 'none';
+    successMsg.style.display = 'none';
+
+    // Validar chapa
+    if (!chapaInput.value || !chapaInput.value.trim()) {
+      errorMsg.textContent = 'Por favor, introduce tu número de chapa';
+      errorMsg.style.display = 'block';
+      return;
+    }
+
+    const chapa = chapaInput.value.trim();
+
+    // Crear cuerpo del email
+    const emailSubject = `🔐 Solicitud de Recuperación de Contraseña - Chapa ${chapa}`;
+    const emailBody = `Solicitud de Recuperación de Contraseña
+
+📋 Información:
+--------------------------
+Chapa: ${chapa}
+Fecha: ${new Date().toLocaleString('es-ES')}
+
+📝 Mensaje:
+--------------------------
+Hola, he olvidado mi contraseña y necesito recuperar el acceso a mi cuenta.
+
+Por favor, ayúdame a restablecer mi contraseña.
+
+Gracias,
+Chapa ${chapa}
+
+--------------------------
+Enviado desde Portal Estiba VLC`;
+
+    try {
+      // Crear enlace mailto
+      const mailtoLink = `mailto:portalestibavlc@gmail.com?subject=${encodeURIComponent(emailSubject)}&body=${encodeURIComponent(emailBody)}`;
+
+      // Abrir cliente de correo
+      window.location.href = mailtoLink;
+
+      // Mostrar mensaje de éxito
+      successMsg.textContent = '✅ Se ha abierto tu cliente de correo. Envía el mensaje y el equipo de soporte te ayudará a recuperar tu contraseña.';
+      successMsg.style.display = 'block';
+
+      // Cerrar modal después de 4 segundos
+      setTimeout(() => {
+        cerrarModal();
+      }, 4000);
+
+    } catch (error) {
+      console.error('❌ Error creando email:', error);
+      errorMsg.textContent = 'Error al crear el email. Inténtalo de nuevo.';
       errorMsg.style.display = 'block';
     }
   });
