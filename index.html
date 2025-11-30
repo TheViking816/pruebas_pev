@@ -921,6 +921,14 @@
     </div>
   </div>
 
+  <!-- Botón flotante del Chatbot IA -->
+  <a href="./chatbot/index.html" id="chatbot-fab" class="chatbot-fab" title="Asistente IA" aria-label="Abrir Asistente IA">
+    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z" />
+    </svg>
+    <span class="chatbot-fab-badge">✨</span>
+  </a>
+
   <!-- Botón de instalación PWA flotante -->
   <button id="install-pwa-btn" class="install-pwa-btn" aria-label="Instalar aplicación">
     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
@@ -934,12 +942,20 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
 
+  <!-- Stripe SDK -->
+  <script src="https://js.stripe.com/v3/"></script>
+
   <!-- Supabase Library (CDN) -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
   <!-- Data Layer: Usa supabase.js para base de datos PostgreSQL -->
   <!-- NOTA: Para volver a Google Sheets, reemplaza supabase.js con sheets.js -->
   <script src="supabase.js?v=22"></script>
+
+  <!-- Sistema Freemium: Premium y Stripe -->
+  <script type="module" src="services/premium.js?v=1"></script>
+  <script type="module" src="services/stripe.js?v=1"></script>
+  <script type="module" src="components/FeatureLock.js?v=1"></script>
 
   <!-- Sistema de Protección de Código - DEBE cargarse ANTES de app.js -->
   <script src="protection.js?v=23"></script>

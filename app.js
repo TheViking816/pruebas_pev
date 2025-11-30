@@ -3217,6 +3217,21 @@ async function loadSueldometro() {
 
   if (!content) return;
 
+  // ============================================================================
+  // VERIFICACIÓN DE ACCESO PREMIUM
+  // ============================================================================
+  if (window.FeatureLock) {
+    const featureLock = new window.FeatureLock('sueldometro');
+    const isBloqueado = await featureLock.bloquear('#page-sueldometro .container');
+
+    if (isBloqueado) {
+      console.log('🔒 Sueldómetro bloqueado para usuario sin premium');
+      loading.classList.add('hidden');
+      return; // No cargar contenido si está bloqueado
+    }
+  }
+  // ============================================================================
+
   loading.classList.remove('hidden');
   content.innerHTML = '';
   stats.innerHTML = '';
@@ -6379,6 +6394,20 @@ async function loadCalculadora() {
   var resultadoDiv = document.getElementById('calc-resultado');
 
   if (resultadoDiv) resultadoDiv.classList.add('hidden');
+
+  // ============================================================================
+  // VERIFICACIÓN DE ACCESO PREMIUM
+  // ============================================================================
+  if (window.FeatureLock) {
+    const featureLock = new window.FeatureLock('oraculo');
+    const isBloqueado = await featureLock.bloquear('#page-calculadora .container');
+
+    if (isBloqueado) {
+      console.log('🔒 Oráculo bloqueado para usuario sin premium');
+      return; // No cargar contenido si está bloqueado
+    }
+  }
+  // ============================================================================
 
   // ============================================================================
   // AUTO-CARGA DE DATOS DE NORAY AL ABRIR EL ORÁCULO
