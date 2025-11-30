@@ -489,7 +489,7 @@ Antes de poner en producción:
 Tu sistema freemium está configurado y listo para monetizar el Portal Estiba VLC a partir del **1 de enero de 2026**.
 
 **Resumen de Precios:**
-- 💰 Suscripción: **€9.99/mes**
+- 💰 Suscripción: **€4.99/mes**
 - 🎁 Período de gracia: **GRATIS hasta 01/01/2026**
 - ✨ Features premium: Sueldómetro, Oráculo, Chatbot IA
 

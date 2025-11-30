@@ -24,7 +24,10 @@
       "Bash(git stash pop:*)",
       "Bash(git merge:*)",
       "Bash(cd:*)",
-      "Bash(supabase functions deploy:*)"
+      "Bash(supabase functions deploy:*)",
+      "Bash(git ls-remote:*)",
+      "Bash(git ls-tree:*)",
+      "Bash(mkdir:*)"
     ],
     "deny": [],
     "ask": []

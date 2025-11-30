@@ -46,7 +46,7 @@ class FeatureLock {
         <p>Desbloquea ${this.getNombreFeature()} con una suscripción premium</p>
         <button class="premium-button" id="unlock-btn-${this.featureName}">
           <span class="premium-icon">⭐</span>
-          Desbloquear por €9.99/mes
+          Desbloquear por €4.99/mes
         </button>
         <p class="feature-lock-benefits">
           ✅ Acceso completo a Sueldómetro<br>
