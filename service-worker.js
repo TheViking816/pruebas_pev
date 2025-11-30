@@ -8,7 +8,7 @@
  * También cachea recursos de Supabase y sus APIs.
  */
 
-const CACHE_NAME = 'estiba-vlc-v9';
+const CACHE_NAME = 'estiba-vlc-v10';
 
 // Recursos locales que SIEMPRE deben cachearse (fallarán la instalación si no existen)
 const localResources = [
@@ -199,10 +199,20 @@ self.addEventListener('push', (event) => {
     page = 'contratacion'
   } = data;
 
+  // Determinar el texto del botón de acción según la página
+  let actionTitle = 'Ver';
+  if (page === 'calculadora') {
+    actionTitle = 'Abrir Oráculo';
+  } else if (page === 'contratacion') {
+    actionTitle = 'Abrir Parte';
+  } else if (page === 'jornales') {
+    actionTitle = 'Ver Jornales';
+  }
+
   const options = {
     body: body,
     // Usamos el icono que ya tienes en tu manifest y está en Imgur
-    icon: 'https://i.imgur.com/Q91Pi44.png', 
+    icon: 'https://i.imgur.com/Q91Pi44.png',
     badge: 'https://i.imgur.com/Q91Pi44.png', // Badge para móviles
     vibrate: [200, 100, 200], // Patrón de vibración
     data: {
@@ -213,8 +223,8 @@ self.addEventListener('push', (event) => {
     },
     actions: [
       {
-        action: 'ver-contratacion',
-        title: 'Ver Contratación',
+        action: `ver-${page}`,
+        title: actionTitle,
       },
       // Puedes añadir más acciones si lo necesitas, por ejemplo, 'Descartar'
     ],
