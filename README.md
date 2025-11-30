@@ -12,11 +12,11 @@
 
 ```
 ████████████████████████████████████████████████████████████████████████
-█                                                                      █
+█                                                                     █
 █  ESTE SOFTWARE ES CÓDIGO PROPIETARIO Y CONFIDENCIAL                 █
-█  Copyright © 2025 TheViking816 (Adrian Marin)                       █
+█  Copyright © 2025 Adrian Lujan                                      █
 █  Todos los derechos reservados                                      █
-█                                                                      █
+█                                                                     █
 ████████████████████████████████████████████████████████████████████████
 ```
 
@@ -200,7 +200,7 @@ Las credenciales de Supabase (ANON_KEY) son públicas **por diseño**. La seguri
 ---
 
 ```
-Copyright © 2025 TheViking816 (Adrian Marin)
+Copyright © 2025 (Adrian Lujan)
 Todos los derechos reservados.
 
 Este proyecto está protegido por las leyes de propiedad intelectual
