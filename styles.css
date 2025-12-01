@@ -3706,8 +3706,8 @@ body::before {
 }
 
 .feature-lock-overlay {
-  position: absolute;
-  top: 0;
+  position: fixed;
+  top: var(--header-height);
   left: 0;
   right: 0;
   bottom: 0;
@@ -3717,8 +3717,14 @@ body::before {
   align-items: center;
   justify-content: center;
   z-index: 1000;
-  border-radius: 12px;
   pointer-events: all;
+}
+
+/* En desktop, dejar espacio para sidebar */
+@media (min-width: 769px) {
+  .feature-lock-overlay {
+    left: var(--sidebar-width);
+  }
 }
 
 .feature-lock-content {

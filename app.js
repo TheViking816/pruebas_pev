@@ -3222,7 +3222,7 @@ async function loadSueldometro() {
   // ============================================================================
   if (window.FeatureLock) {
     const featureLock = new window.FeatureLock('sueldometro');
-    const isBloqueado = await featureLock.bloquear('#page-sueldometro .container');
+    const isBloqueado = await featureLock.bloquear('#page-sueldometro');
 
     if (isBloqueado) {
       console.log('🔒 Sueldómetro bloqueado para usuario sin premium');
@@ -6400,7 +6400,7 @@ async function loadCalculadora() {
   // ============================================================================
   if (window.FeatureLock) {
     const featureLock = new window.FeatureLock('oraculo');
-    const isBloqueado = await featureLock.bloquear('#page-calculadora .container');
+    const isBloqueado = await featureLock.bloquear('#page-calculadora');
 
     if (isBloqueado) {
       console.log('🔒 Oráculo bloqueado para usuario sin premium');

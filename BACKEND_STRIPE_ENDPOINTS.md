@@ -337,7 +337,7 @@ STRIPE_SECRET_KEY=sk_live_TU_STRIPE_SECRET_KEY_AQUI
 
 STRIPE_WEBHOOK_SECRET=whsec_TU_WEBHOOK_SECRET_AQUI
 
-FRONTEND_URL=https://portalestibavlc.netlify.app
+FRONTEND_URL=https://portalestibavlc.vercel.app
 ```
 
 **IMPORTANTE**: Usa tus claves reales de Stripe que te proporcioné anteriormente. NO las subas a GitHub, solo configúralas en Vercel.
