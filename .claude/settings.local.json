@@ -27,7 +27,8 @@
       "Bash(supabase functions deploy:*)",
       "Bash(git ls-remote:*)",
       "Bash(git ls-tree:*)",
-      "Bash(mkdir:*)"
+      "Bash(mkdir:*)",
+      "Bash(git clone:*)"
     ],
     "deny": [],
     "ask": []

@@ -8,12 +8,12 @@
  */
 export async function tienePremium(chapa) {
   try {
-    if (!window.supabase) {
+    if (!window.supabaseClient) {
       console.error('❌ Supabase no está inicializado');
       return false;
     }
 
-    const { data, error } = await window.supabase.rpc('tiene_acceso_premium', {
+    const { data, error } = await window.supabaseClient.rpc('tiene_acceso_premium', {
       chapa_usuario: chapa
     });
 
@@ -37,14 +37,14 @@ export async function tieneAccesoFeature(chapa, feature) {
   try {
     console.log(`🔍 [PREMIUM DEBUG] Verificando acceso para chapa=${chapa}, feature=${feature}`);
 
-    if (!window.supabase) {
+    if (!window.supabaseClient) {
       console.error('❌ Supabase no está inicializado');
       return false;
     }
 
     console.log(`🔍 [PREMIUM DEBUG] Llamando a RPC 'tiene_acceso_feature'...`);
 
-    const { data, error } = await window.supabase.rpc('tiene_acceso_feature', {
+    const { data, error } = await window.supabaseClient.rpc('tiene_acceso_feature', {
       chapa_usuario: chapa,
       nombre_feature: feature
     });
@@ -72,12 +72,12 @@ export async function tieneAccesoFeature(chapa, feature) {
  */
 export async function obtenerInfoSuscripcion(chapa) {
   try {
-    if (!window.supabase) {
+    if (!window.supabaseClient) {
       console.error('❌ Supabase no está inicializado');
       return null;
     }
 
-    const { data, error } = await window.supabase
+    const { data, error } = await window.supabaseClient
       .from('usuarios_premium')
       .select('*')
       .eq('chapa', chapa)

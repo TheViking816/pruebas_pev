@@ -8,22 +8,18 @@ serve(async (req)=>{
     const supabaseUrl = Deno.env.get('SUPABASE_URL');
     const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
-    console.log('🔔 Iniciando envío de notificaciones diarias del Oráculo...');
-    // 1. Obtener datos del scraper de Noray
-    const scraperUrl = 'https://noray-scraper.onrender.com/api/all';
-    const scraperResponse = await fetch(scraperUrl);
-    const scraperData = await scraperResponse.json();
-    if (!scraperData.success || !scraperData.demandas) {
-      console.error('Error obteniendo datos del scraper:', scraperData);
-      return new Response(JSON.stringify({
-        error: 'No se pudieron obtener datos del scraper',
-        scraperData
-      }), {
-        status: 500
-      });
+
+    // Leer parámetro de prueba (si existe)
+    const body = await req.json().catch(() => ({}));
+    const testChapa = body.test_chapa || null;
+
+    if (testChapa) {
+      console.log(`🧪 MODO PRUEBA: Solo se enviará notificación a chapa ${testChapa}`);
     }
-    console.log('✅ Datos del scraper obtenidos:', scraperData);
-    // 2. Obtener usuarios suscritos a notificaciones
+
+    console.log('🔔 Iniciando envío de notificaciones diarias del Oráculo...');
+
+    // 1. Obtener usuarios suscritos a notificaciones
     const { data: subscriptions, error: subsError } = await supabase.from('push_subscriptions').select('*');
     if (subsError) {
       console.error('Error obteniendo suscripciones:', subsError);
@@ -42,6 +38,59 @@ serve(async (req)=>{
       });
     }
     console.log(`📋 Encontrados ${subscriptions.length} usuarios suscritos`);
+
+    // 1.1. Filtrar por chapa de prueba si está en modo test
+    let filteredSubscriptions = subscriptions;
+    if (testChapa) {
+      filteredSubscriptions = subscriptions.filter(sub => String(sub.user_chapa) === String(testChapa));
+      console.log(`🧪 Filtrado para prueba: ${filteredSubscriptions.length} suscripción(es) de chapa ${testChapa}`);
+
+      if (filteredSubscriptions.length === 0) {
+        console.warn(`⚠️ No se encontró suscripción para chapa ${testChapa}`);
+        return new Response(JSON.stringify({
+          success: false,
+          message: `No hay suscripción activa para chapa ${testChapa}`
+        }), {
+          status: 200
+        });
+      }
+    }
+
+    // 1.2. Filtrar y eliminar suscripciones con endpoints inválidos EN PARALELO
+    const invalidSubscriptions = filteredSubscriptions.filter(sub =>
+      sub.endpoint.includes('permanently-removed.invalid') ||
+      sub.endpoint.includes('invalid')
+    );
+
+    if (invalidSubscriptions.length > 0 && !testChapa) {
+      // Solo eliminar suscripciones inválidas en modo producción, no en prueba
+      console.log(`🗑️ Encontradas ${invalidSubscriptions.length} suscripciones inválidas, eliminando en paralelo...`);
+      await Promise.all(
+        invalidSubscriptions.map(async (invalidSub) => {
+          const { error: deleteError } = await supabase
+            .from('push_subscriptions')
+            .delete()
+            .eq('id', invalidSub.id);
+
+          if (deleteError) {
+            console.error(`❌ Error eliminando suscripción inválida ${invalidSub.user_chapa}:`, deleteError);
+          } else {
+            console.log(`✅ Suscripción inválida eliminada: chapa ${invalidSub.user_chapa}`);
+          }
+        })
+      );
+    } else if (invalidSubscriptions.length > 0 && testChapa) {
+      console.log(`⚠️ Modo prueba: se detectaron ${invalidSubscriptions.length} suscripciones inválidas pero NO se eliminarán`);
+    }
+
+    // Filtrar suscripciones válidas
+    const validSubscriptions = filteredSubscriptions.filter(sub =>
+      !sub.endpoint.includes('permanently-removed.invalid') &&
+      !sub.endpoint.includes('invalid')
+    );
+
+    console.log(`📋 Suscripciones válidas: ${validSubscriptions.length}`);
+
     // 3. Obtener datos del censo con colores para calcular distancia efectiva
     const { data: censoData, error: censoError } = await supabase.from('censo').select('chapa, posicion, color').order('posicion', {
       ascending: true
@@ -177,42 +226,50 @@ serve(async (req)=>{
     }
     // URL del servidor push en Vercel
     const nodePushServerUrl = 'https://portalestiba-push-backend-one.vercel.app';
-    let notificationsSent = 0;
-    let notificationsFailed = 0;
-    for (const subscription of subscriptions){
+    const puertasLaborables = puertas.filter((p)=>p.jornada !== 'Festivo');
+    const puertaData = puertasLaborables.find((p)=>p.jornada === jornadaOraculo);
+
+    if (!puertaData) {
+      console.error(`⚠️ No se encontró puerta para jornada ${jornadaOraculo}`);
+      return new Response(JSON.stringify({
+        error: 'No se encontró puerta para la jornada del Oráculo'
+      }), {
+        status: 500
+      });
+    }
+
+    // Preparar todas las notificaciones y enviarlas EN PARALELO
+    console.log('📤 Enviando notificaciones en paralelo...');
+    const notificationPromises = validSubscriptions.map(async (subscription) => {
       try {
         const userChapa = String(subscription.user_chapa);
         const userData = censoData.find((u)=>String(u.chapa) === userChapa);
+
         if (!userData) {
-          console.warn(`⚠️ Usuario ${userChapa} no encontrado en censo, saltando...`);
-          continue;
+          console.warn(`⚠️ Usuario ${userChapa} no encontrado en censo`);
+          return { success: false, chapa: userChapa, reason: 'not_in_censo' };
         }
+
         const userPosition = userData.posicion;
-        // Determinar si el usuario es SP o OC
         const esUsuarioSP = userPosition <= LIMITE_SP;
         const censoActual = esUsuarioSP ? censoSP : censoOC;
         const limiteInicio = esUsuarioSP ? 1 : INICIO_OC;
         const limiteFin = esUsuarioSP ? LIMITE_SP : FIN_OC;
-        // Obtener puerta actual para la jornada 08-14
-        const puertasLaborables = puertas.filter((p)=>p.jornada !== 'Festivo');
-        const puertaData = puertasLaborables.find((p)=>p.jornada === jornadaOraculo);
-        if (!puertaData) {
-          console.warn(`⚠️ No se encontró puerta para jornada ${jornadaOraculo}, saltando usuario ${userChapa}...`);
-          continue;
-        }
         const puertaActual = parseInt(esUsuarioSP ? puertaData.puertaSP : puertaData.puertaOC) || 0;
+
         if (puertaActual === 0) {
-          console.warn(`⚠️ Puerta en 0 para ${esUsuarioSP ? 'SP' : 'OC'}, jornada ${jornadaOraculo}. Saltando usuario ${userChapa}...`);
-          continue;
+          console.warn(`⚠️ Puerta en 0 para ${esUsuarioSP ? 'SP' : 'OC'}, usuario ${userChapa}`);
+          return { success: false, chapa: userChapa, reason: 'invalid_door' };
         }
-        // Calcular distancia EFECTIVA usando la MISMA función que la PWA
+
+        // Calcular distancia efectiva
         const distanciaEfectiva = calcularDistanciaEfectiva(puertaActual, userPosition, censoActual, limiteInicio, limiteFin);
         const distanciaPuerta = Math.round(distanciaEfectiva);
-        console.log(`🚪 Usuario ${userChapa} (${esUsuarioSP ? 'SP' : 'OC'}): Puerta=${puertaActual}, Pos=${userPosition}, Distancia efectiva=${distanciaPuerta}`);
-        // Construir mensaje con distancia efectiva a la puerta
+
+        // Construir mensaje
         const title = '🔮 Previsión para mañana';
         const body = `Estás a ${distanciaPuerta} posiciones de la puerta! Entra al Oráculo para ver en qué jornada trabajas.`;
-        // Enviar notificación
+
         const notificationPayload = {
           title,
           body,
@@ -222,6 +279,7 @@ serve(async (req)=>{
           badge: 'https://i.imgur.com/Q91Pi44.png',
           chapa_target: userChapa
         };
+
         const pushResponse = await fetch(`${nodePushServerUrl}/api/push/notify-oracle`, {
           method: 'POST',
           headers: {
@@ -229,24 +287,62 @@ serve(async (req)=>{
           },
           body: JSON.stringify(notificationPayload)
         });
+
         if (pushResponse.ok) {
-          notificationsSent++;
-          console.log(`✅ Notificación enviada a chapa ${userChapa}: ${body}`);
+          console.log(`✅ Notificación enviada a chapa ${userChapa}`);
+          return { success: true, chapa: userChapa };
         } else {
-          notificationsFailed++;
           const errorText = await pushResponse.text();
           console.error(`❌ Error enviando a ${userChapa}: ${pushResponse.status} - ${errorText}`);
+
+          // Si el servidor devuelve 410 (Gone) o 404, marcar para eliminar
+          if (pushResponse.status === 410 || pushResponse.status === 404) {
+            return { success: false, chapa: userChapa, removeSubscription: true, subscriptionId: subscription.id };
+          }
+          return { success: false, chapa: userChapa };
         }
       } catch (userError) {
-        notificationsFailed++;
         console.error(`❌ Error procesando usuario ${subscription.user_chapa}:`, userError);
+        return { success: false, chapa: subscription.user_chapa };
       }
+    });
+
+    // Esperar a que todas las notificaciones se envíen
+    const results = await Promise.all(notificationPromises);
+
+    // Contar resultados
+    const notificationsSent = results.filter(r => r.success).length;
+    const notificationsFailed = results.filter(r => !r.success).length;
+    const subscriptionsToRemove = results
+      .filter(r => r.removeSubscription)
+      .map(r => r.subscriptionId);
+
+    // Eliminar suscripciones que fallaron con 410/404 EN PARALELO
+    if (subscriptionsToRemove.length > 0) {
+      console.log(`🗑️ Eliminando ${subscriptionsToRemove.length} suscripciones inválidas en paralelo...`);
+      await Promise.all(
+        subscriptionsToRemove.map(async (subId) => {
+          const { error: deleteError } = await supabase
+            .from('push_subscriptions')
+            .delete()
+            .eq('id', subId);
+
+          if (deleteError) {
+            console.error(`❌ Error eliminando suscripción ${subId}:`, deleteError);
+          } else {
+            console.log(`✅ Suscripción eliminada: ${subId}`);
+          }
+        })
+      );
     }
+
     const summary = {
       success: true,
       total: subscriptions.length,
+      validSubscriptions: validSubscriptions.length,
       sent: notificationsSent,
       failed: notificationsFailed,
+      removedInvalid: invalidSubscriptions.length + subscriptionsToRemove.length,
       timestamp: new Date().toISOString()
     };
     console.log('📊 Resumen:', summary);
