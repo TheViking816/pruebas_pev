@@ -1211,6 +1211,10 @@ function showPage(pageName) {
     }
   }
 
+  // IMPORTANTE: Desbloquear scroll al cambiar de página
+  // (puede estar bloqueado si venimos de una página premium bloqueada)
+  document.body.style.overflow = '';
+
   // Scroll al inicio
   window.scrollTo(0, 0);
 }

@@ -17,12 +17,19 @@ class FeatureLock {
    * Verifica si el feature está desbloqueado
    */
   async verificarAcceso() {
+    console.log(`🔐 [FeatureLock] Verificando acceso para feature: ${this.featureName}`);
+    console.log(`🔐 [FeatureLock] Chapa desde localStorage: ${this.chapa}`);
+
     if (!this.chapa) {
+      console.warn(`⚠️ [FeatureLock] No hay chapa en localStorage, bloqueando feature`);
       this.isUnlocked = false;
       return false;
     }
 
+    console.log(`🔐 [FeatureLock] Llamando a tieneAccesoFeature...`);
     this.isUnlocked = await tieneAccesoFeature(this.chapa, this.featureName);
+    console.log(`🔐 [FeatureLock] Resultado: ${this.isUnlocked ? '✅ ACCESO PERMITIDO' : '🔒 ACCESO DENEGADO'}`);
+
     return this.isUnlocked;
   }
 
