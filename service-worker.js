@@ -8,7 +8,7 @@
  * También cachea recursos de Supabase y sus APIs.
  */
 
-const CACHE_NAME = 'estiba-vlc-v10';
+const CACHE_NAME = 'estiba-vlc-v11';
 
 // Recursos locales que SIEMPRE deben cachearse (fallarán la instalación si no existen)
 const localResources = [
@@ -17,7 +17,21 @@ const localResources = [
   './styles.css',
   './app.js',
   './manifest.json',
-  './supabase.js'
+  './supabase.js',
+  // Servicios Premium
+  './services/premium.js',
+  './services/stripe.js',
+  './components/FeatureLock.js',
+  // Chatbot
+  './chatbot/index.html',
+  './chatbot/chat-app.js',
+  './chatbot/chat-styles.css',
+  './chatbot/ai-engine.js',
+  './chatbot/pwa-data-bridge.js',
+  './chatbot/voice-handler.js',
+  './chatbot/supabase.js',
+  './chatbot/service-worker.js',
+  './chatbot/manifest.json'
 ];
 
 // Recursos externos que se cachearán bajo demanda (no bloquean la instalación)
@@ -33,7 +47,9 @@ const externalResources = [
   'https://i.imgur.com/iHJOi0K.jpeg', // Img censo
   // CDNs externos
   'https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js',
-  'https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js'
+  'https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js',
+  'https://js.stripe.com/v3/',
+  'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2'
 ];
 
 // Instalación - cachear recursos estáticos
