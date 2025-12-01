@@ -3711,13 +3711,14 @@ body::before {
   left: 0;
   right: 0;
   bottom: 0;
-  background: rgba(255, 255, 255, 0.97);
-  backdrop-filter: blur(8px);
+  background: linear-gradient(135deg, rgba(10, 46, 92, 0.96) 0%, rgba(15, 23, 42, 0.98) 100%);
+  backdrop-filter: blur(12px);
   display: flex;
   align-items: center;
   justify-content: center;
   z-index: 1000;
   pointer-events: all;
+  overflow: hidden;
 }
 
 /* En desktop, dejar espacio para sidebar */
@@ -3746,12 +3747,14 @@ body::before {
 
 .feature-lock-content h3 {
   font-size: 1.5rem;
-  color: #0f172a;
+  color: #ffffff;
   margin-bottom: 0.5rem;
+  font-weight: 700;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
 }
 
 .feature-lock-content p {
-  color: #64748b;
+  color: #e2e8f0;
   margin-bottom: 1.5rem;
 }
 
@@ -3782,7 +3785,7 @@ body::before {
 
 .feature-lock-benefits {
   font-size: 0.875rem !important;
-  color: #475569 !important;
+  color: #cbd5e1 !important;
   margin-top: 1.5rem !important;
   line-height: 1.8;
   text-align: left;

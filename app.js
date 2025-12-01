@@ -3227,9 +3227,13 @@ async function loadSueldometro() {
     if (isBloqueado) {
       console.log('🔒 Sueldómetro bloqueado para usuario sin premium');
       loading.classList.add('hidden');
+      document.body.style.overflow = 'hidden'; // Bloquear scroll
       return; // No cargar contenido si está bloqueado
     }
   }
+
+  // Desbloquear scroll si tiene acceso
+  document.body.style.overflow = '';
   // ============================================================================
 
   loading.classList.remove('hidden');
@@ -6404,9 +6408,13 @@ async function loadCalculadora() {
 
     if (isBloqueado) {
       console.log('🔒 Oráculo bloqueado para usuario sin premium');
+      document.body.style.overflow = 'hidden'; // Bloquear scroll
       return; // No cargar contenido si está bloqueado
     }
   }
+
+  // Desbloquear scroll si tiene acceso
+  document.body.style.overflow = '';
   // ============================================================================
 
   // ============================================================================
