@@ -48,6 +48,10 @@ function initSupabase() {
   }
 
   supabase = window.supabase.createClient(SUPABASE_CONFIG.URL, SUPABASE_CONFIG.ANON_KEY);
+
+  // Exportar el cliente globalmente para que premium-check.js pueda acceder
+  window.supabaseClient = supabase;
+
   console.log('✅ Supabase inicializado correctamente');
   return true;
 }

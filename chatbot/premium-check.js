@@ -4,10 +4,14 @@
  */
 
 // PASO 1: Ocultar TODO inmediatamente para evitar que se vea contenido sin permiso
+// Guardar referencia al estilo para poder eliminarlo después
+let premiumLockStyle = null;
+
 (function ocultarContenidoInmediato() {
   // Añadir estilos inline inmediatamente
-  const style = document.createElement('style');
-  style.textContent = `
+  premiumLockStyle = document.createElement('style');
+  premiumLockStyle.id = 'premium-lock-style';
+  premiumLockStyle.textContent = `
     #chat-container,
     .input-area,
     #quick-actions {
@@ -17,7 +21,7 @@
       overflow: hidden;
     }
   `;
-  document.head.appendChild(style);
+  document.head.appendChild(premiumLockStyle);
   console.log('🔒 [CHATBOT] Contenido oculto hasta verificar acceso premium');
 })();
 
@@ -180,7 +184,13 @@ function mostrarBloqueo(mensajeError = null) {
 function desbloquearContenido() {
   console.log('🔓 [CHATBOT] Desbloqueando contenido...');
 
-  // Mostrar el contenido del chatbot
+  // IMPORTANTE: Eliminar el <style> tag que oculta el contenido con !important
+  if (premiumLockStyle && premiumLockStyle.parentNode) {
+    premiumLockStyle.parentNode.removeChild(premiumLockStyle);
+    console.log('🗑️ [CHATBOT] Estilos de bloqueo eliminados');
+  }
+
+  // Mostrar el contenido del chatbot (por si acaso)
   const chatContainer = document.getElementById('chat-container');
   const inputArea = document.querySelector('.input-area');
   const quickActions = document.getElementById('quick-actions');

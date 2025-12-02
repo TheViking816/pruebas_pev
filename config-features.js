@@ -15,7 +15,7 @@ const FEATURES_CONFIG = {
      * IMPORTANTE: Aunque esté visible, el chatbot seguirá requiriendo premium
      * para ser usado. Esta opción solo controla la visibilidad del botón.
      */
-    mostrarBoton: true, // ⚠️ CAMBIAR A true CUANDO QUIERAS ACTIVAR EL CHATBOT
+    mostrarBoton: false, // ⚠️ CAMBIAR A true CUANDO QUIERAS ACTIVAR EL CHATBOT
 
     /**
      * Mensaje que se mostrará en consola cuando el botón esté oculto
@@ -40,5 +40,6 @@ if (typeof window !== 'undefined') {
   window.FEATURES_CONFIG = FEATURES_CONFIG;
 }
 
-// Exportar para módulos ES6
-export default FEATURES_CONFIG;
+// Nota: Si necesitas importar este archivo como módulo ES6,
+// descomenta la siguiente línea:
+// export default FEATURES_CONFIG;
