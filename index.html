@@ -952,6 +952,9 @@
   <!-- NOTA: Para volver a Google Sheets, reemplaza supabase.js con sheets.js -->
   <script src="supabase.js?v=22"></script>
 
+  <!-- Configuración de Features (CARGAR PRIMERO) -->
+  <script src="config-features.js?v=1"></script>
+
   <!-- Sistema Freemium: Premium y Stripe -->
   <script type="module" src="services/premium.js?v=1"></script>
   <script type="module" src="services/stripe.js?v=1"></script>
@@ -961,6 +964,73 @@
   <script src="protection.js?v=23"></script>
 
   <script src="app.js?v=22"></script>
+
+  <!-- Control de visibilidad del Chatbot -->
+  <script>
+    /**
+     * Control de Visibilidad del Botón Chatbot
+     * - Solo se muestra si está habilitado en config
+     * - Solo se muestra cuando el usuario está logueado
+     * - Se oculta en la página de login
+     */
+    function controlarVisibilidadChatbot() {
+      const chatbotFab = document.getElementById('chatbot-fab');
+      if (!chatbotFab) return;
+
+      // Verificar configuración
+      const config = window.FEATURES_CONFIG?.CHATBOT_IA;
+      if (!config || !config.mostrarBoton) {
+        chatbotFab.style.display = 'none';
+        console.log('🤖 Chatbot IA: Oculto (configuración: mostrarBoton = false)');
+        return;
+      }
+
+      // Verificar que el usuario esté logueado
+      const currentChapa = localStorage.getItem('currentChapa');
+      if (!currentChapa) {
+        chatbotFab.style.display = 'none';
+        console.log('🤖 Chatbot IA: Oculto (usuario no logueado)');
+        return;
+      }
+
+      // Verificar que NO estemos en la página de login
+      const loginPage = document.getElementById('page-login');
+      if (loginPage && loginPage.classList.contains('active')) {
+        chatbotFab.style.display = 'none';
+        console.log('🤖 Chatbot IA: Oculto (página de login)');
+        return;
+      }
+
+      // Si pasó todas las verificaciones, mostrar el botón
+      chatbotFab.style.display = 'flex'; // flex para que mantenga el centrado
+      console.log('🤖 Chatbot IA: Visible');
+    }
+
+    // Ejecutar al cargar la página
+    document.addEventListener('DOMContentLoaded', () => {
+      // Esperar un poco para asegurar que FEATURES_CONFIG esté cargado
+      setTimeout(controlarVisibilidadChatbot, 100);
+    });
+
+    // Observar cambios de página para ocultar/mostrar según sea necesario
+    if (typeof MutationObserver !== 'undefined') {
+      const observer = new MutationObserver(() => {
+        controlarVisibilidadChatbot();
+      });
+
+      // Observar cambios en las páginas
+      setTimeout(() => {
+        const mainContent = document.getElementById('main-content');
+        if (mainContent) {
+          observer.observe(mainContent, {
+            attributes: true,
+            subtree: true,
+            attributeFilter: ['class']
+          });
+        }
+      }, 500);
+    }
+  </script>
 
   <!-- PWA Service Worker Registration -->
   <script>

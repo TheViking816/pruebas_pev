@@ -8,7 +8,7 @@
  * También cachea recursos de Supabase y sus APIs.
  */
 
-const CACHE_NAME = 'estiba-vlc-v11';
+const CACHE_NAME = 'estiba-vlc-v13'; // Actualizado: Fix bloqueo chatbot y visibilidad
 
 // Recursos locales que SIEMPRE deben cachearse (fallarán la instalación si no existen)
 const localResources = [
@@ -18,6 +18,7 @@ const localResources = [
   './app.js',
   './manifest.json',
   './supabase.js',
+  './config-features.js',
   // Servicios Premium
   './services/premium.js',
   './services/stripe.js',
@@ -30,6 +31,7 @@ const localResources = [
   './chatbot/pwa-data-bridge.js',
   './chatbot/voice-handler.js',
   './chatbot/supabase.js',
+  './chatbot/premium-check.js',
   './chatbot/service-worker.js',
   './chatbot/manifest.json'
 ];

@@ -3,7 +3,7 @@
  * Cache de recursos estáticos para funcionamiento offline
  */
 
-const CACHE_NAME = 'chatbot-ia-v14';
+const CACHE_NAME = 'chatbot-ia-v16'; // Actualizado: Bloqueo premium mejorado
 const ASSETS_TO_CACHE = [
   './',
   './index.html',
@@ -12,6 +12,8 @@ const ASSETS_TO_CACHE = [
   './ai-engine.js',
   './voice-handler.js',
   './pwa-data-bridge.js',
+  './premium-check.js',
+  './supabase.js',
   './manifest.json',
   '../supabase.js'
 ];

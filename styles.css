@@ -3803,7 +3803,7 @@ body::before {
   height: 60px;
   background: linear-gradient(135deg, #14b8a6 0%, #0d9488 100%);
   border-radius: 50%;
-  display: flex;
+  display: none; /* OCULTO POR DEFECTO - Se muestra con JS si está configurado */
   align-items: center;
   justify-content: center;
   box-shadow: 0 4px 12px rgba(20, 184, 166, 0.4);
