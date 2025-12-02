@@ -15,7 +15,7 @@ const FEATURES_CONFIG = {
      * IMPORTANTE: Aunque esté visible, el chatbot seguirá requiriendo premium
      * para ser usado. Esta opción solo controla la visibilidad del botón.
      */
-    mostrarBoton: false, // ⚠️ CAMBIAR A true CUANDO QUIERAS ACTIVAR EL CHATBOT
+    mostrarBoton: true, // ⚠️ CAMBIAR A true CUANDO QUIERAS ACTIVAR EL CHATBOT
 
     /**
      * Mensaje que se mostrará en consola cuando el botón esté oculto
