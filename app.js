@@ -6771,6 +6771,16 @@ async function loadCalculadora() {
           var iteraciones = 0;
           var yaEsSegundaVuelta = false; // Para controlar cuando empezamos a aplicar el factor
 
+          // CASO ESPECIAL: Si el usuario esta justo en la puerta de inicio,
+          // debemos detectarlo ANTES de empezar el bucle
+          if (posActual === usuario) {
+            puertaPasoPorUsuario = true;
+            var pesoInicial = getPesoDisponibilidad(usuario);
+            if (pesoInicial > 0) {
+              usuarioAlcanzado = true;
+            }
+          }
+
           while (contratados < demanda && iteraciones < maxIteraciones) {
             posActual++;
             if (posActual > limiteFin) {
@@ -7004,6 +7014,9 @@ async function loadCalculadora() {
               posicionRestante = (limiteFin - puertaPrevista) + (posUsuarioCalc - limiteInicio) + 1;
             }
 
+            // IMPORTANTE: Calcular ratio de cobertura (cuánto de la distancia cubre la demanda)
+            var ratioCobertura = demandaEventuales / Math.max(1, distanciaNecesaria);
+
             // PROBABILIDAD SUAVE Y PROGRESIVA según distancia
             // Dentro del rango +-50 posiciones, probabilidades muy similares
             if (posicionRestante <= 10) {
@@ -7020,12 +7033,23 @@ async function loadCalculadora() {
               probBaseSalir = 0.10 + (100 - posicionRestante) * 0.002; // 10-20%
             } else if (posicionRestante <= 150) {
               // Lejos (101-150 posiciones), prob baja
-              var cobertura = demandaEventuales / Math.max(1, distanciaNecesaria);
-              probBaseSalir = Math.min(0.06, Math.max(0.015, cobertura * 0.12)); // 1.5-6%
+              probBaseSalir = Math.min(0.06, Math.max(0.015, ratioCobertura * 0.12)); // 1.5-6%
             } else {
               // Muy muy lejos (>150 posiciones), prob muy baja
-              var cobertura = demandaEventuales / Math.max(1, distanciaNecesaria);
-              probBaseSalir = Math.min(0.025, Math.max(0.008, cobertura * 0.06)); // 0.8-2.5%
+              probBaseSalir = Math.min(0.025, Math.max(0.008, ratioCobertura * 0.06)); // 0.8-2.5%
+            }
+
+            // PENALIZACIÓN por cobertura insuficiente
+            // Si la demanda NO cubre la distancia necesaria, reducir probabilidad
+            // Esto es especialmente importante para OC donde las diferencias son más claras
+            if (ratioCobertura < 1.0) {
+              // La demanda NO alcanza para llegar al usuario
+              // Penalizar fuertemente según qué tan lejos queda
+              // ratioCobertura = 0.5 → factor 0.35 (reducir a 35%)
+              // ratioCobertura = 0.75 → factor 0.55 (reducir a 55%)
+              // ratioCobertura = 0.9 → factor 0.75 (reducir a 75%)
+              var factorPenalizacion = Math.max(0.15, Math.min(0.85, ratioCobertura * 0.90));
+              probBaseSalir = probBaseSalir * factorPenalizacion;
             }
           }
 
@@ -7052,6 +7076,8 @@ async function loadCalculadora() {
             demandaEventuales: demandaEventuales,
             vuelta: vuelta,
             saleContratado: saleContratado,
+            puertaPasoPorUsuario: puertaPasoPorUsuario,
+            usarLogicaContratado: usarLogicaContratado,
             margen: margen,
             esSegundaVueltaDia: esSegundaVueltaDia
           });
@@ -7071,7 +7097,7 @@ async function loadCalculadora() {
               primeraJornadaConDatos = j;
             }
             // Detectar primera jornada que alcanza al usuario
-            if (primeraJornadaQueAlcanza === -1 && puntuacionesJornadas[j].saleContratado) {
+            if (primeraJornadaQueAlcanza === -1 && puntuacionesJornadas[j].usarLogicaContratado) {
               primeraJornadaQueAlcanza = j;
             }
           }
@@ -7115,7 +7141,7 @@ async function loadCalculadora() {
           var esUltimaJornada = (j === puntuacionesJornadas.length - 1) ||
                                 (j < puntuacionesJornadas.length - 1 && puntuacionesJornadas[j+1].sinDatos);
 
-          if (esUltimaJornada && !datos.saleContratado && coberturaTotalDia >= 1.0) {
+          if (esUltimaJornada && !datos.usarLogicaContratado && coberturaTotalDia >= 1.0) {
             // La puerta pasará al usuario al final del día, pero no en esta jornada específica
             // Aumentar la probabilidad proporcionalmente a la cobertura
             var boostUltimaJornada = Math.min(0.55, 0.20 + (coberturaTotalDia - 1.0) * 0.20);
@@ -7125,33 +7151,42 @@ async function loadCalculadora() {
           // Detectar si la jornada ANTERIOR se quedó relativamente cerca pero no llegó
           var jornadaAnteriorCerca = false;
           var distanciaFaltanteAnterior = 0;
-          if (j > 0 && !puntuacionesJornadas[j-1].sinDatos && !puntuacionesJornadas[j-1].saleContratado) {
+          if (j > 0 && !puntuacionesJornadas[j-1].sinDatos && !puntuacionesJornadas[j-1].usarLogicaContratado) {
             var anterior = puntuacionesJornadas[j-1];
             // La distancia que falta es la distanciaNecesaria de la jornada actual
             // (desde donde empieza esta jornada hasta el usuario)
             distanciaFaltanteAnterior = datos.distanciaNecesaria;
 
-            // Considerar "cerca" hasta 120 posiciones (más flexible)
-            if (distanciaFaltanteAnterior <= 120) {
+            // Considerar "cerca" solo hasta 35 posiciones efectivas (muy restrictivo)
+            // Este sistema de equilibrio solo debe aplicarse en casos EXTREMADAMENTE ajustados
+            if (distanciaFaltanteAnterior <= 35) {
               jornadaAnteriorCerca = true;
             }
           }
 
           // CASO 1: Esta jornada SÍ alcanza al usuario
-          if (datos.saleContratado) {
+          if (datos.usarLogicaContratado) {
             // Si la anterior se quedó cerca Y esta pasa por poco margen
-            if (jornadaAnteriorCerca && datos.margen <= 100) {
+            // Margen <= 8 significa que esta jornada pasa por MUY poco (extremadamente restrictivo)
+            if (jornadaAnteriorCerca && datos.margen <= 8) {
               // Ambas están en zona de transición → equilibrar probabilidades
               // Cuanto más cerca se quedó la anterior y menos margen tiene esta, más reducir
               var ratioEquilibrio = distanciaFaltanteAnterior / Math.max(1, datos.margen);
 
-              // Reducir proporcionalmente al ratio
-              // Ratio alto (anterior muy cerca, esta con poco margen) = reducir más
-              // Si ratio ≈ 1: factor 0.85 (reducir 15%)
-              // Si ratio alto (5-6): factor 0.65 (reducir 35%)
-              // Si ratio bajo (< 1): factor 0.92 (reducir 8%)
-              var factorReduccion = Math.max(0.65, Math.min(0.95, 0.88 - (ratioEquilibrio - 1) * 0.10));
-              probBaseSalirAjustada = datos.probBaseSalir * factorReduccion;
+              // IMPORTANTE: Solo equilibrar si el ratio indica transición MUY real
+              // Este sistema fue diseñado para casos EXTREMADAMENTE ajustados
+              // Si ratio < 0.75: esta jornada tiene bastante margen, NO reducir
+              // Si ratio > 1.35: la anterior falló por suficiente diferencia, NO reducir
+              // Solo equilibrar si ratio está entre 0.75 y 1.35 (zona crítica)
+              if (ratioEquilibrio >= 0.75 && ratioEquilibrio <= 1.35) {
+                // Reducir proporcionalmente al ratio
+                // Ratio alto (anterior muy cerca, esta con poco margen) = reducir más
+                // Si ratio ≈ 1: factor 0.85 (reducir 15%)
+                // Si ratio ≈ 1.3: factor 0.75 (reducir 25%)
+                // Si ratio < 1: factor 0.92 (reducir 8%)
+                var factorReduccion = Math.max(0.70, Math.min(0.95, 0.88 - (ratioEquilibrio - 1) * 0.12));
+                probBaseSalirAjustada = datos.probBaseSalir * factorReduccion;
+              }
             }
           }
           // CASO 2: Esta jornada NO alcanza
@@ -7162,15 +7197,24 @@ async function loadCalculadora() {
               var distanciaFaltante = datos.distanciaNecesaria;
 
               // Si la siguiente SÍ alcanza con poco margen Y nosotros nos quedamos cerca
-              if (siguiente.saleContratado && siguiente.margen <= 100 && distanciaFaltante <= 120) {
-                // Aumentar probabilidad de esta jornada para equilibrar
+              // Considerar "cerca" solo hasta 35 posiciones efectivas (muy restrictivo)
+              // Margen <= 8 significa que la siguiente pasa por MUY poco (extremadamente restrictivo)
+              if (siguiente.usarLogicaContratado && siguiente.margen <= 8 && distanciaFaltante <= 35) {
+                // Calcular ratio para verificar si realmente están en zona de transición
                 var ratioEquilibrio = distanciaFaltante / Math.max(1, siguiente.margen);
 
-                // Aumentar más cuando estamos muy cerca y la siguiente tiene poco margen
-                // Si distanciaFaltante ≈ margen siguiente: aumentar bastante
-                // Si distanciaFaltante << margen siguiente: aumentar mucho
-                var factorAumento = Math.max(1.20, Math.min(1.80, 1.45 + (1 - ratioEquilibrio) * 0.30));
-                probBaseSalirAjustada = Math.min(0.62, datos.probBaseSalir * factorAumento);
+                // IMPORTANTE: Solo equilibrar si el ratio indica transición MUY real
+                // Este sistema fue diseñado para casos EXTREMADAMENTE ajustados
+                // Si ratio > 1.25: esta jornada falló por suficiente diferencia, NO aumentar
+                // Si ratio < 0.75: la siguiente tiene mucho margen, NO aumentar
+                // Solo equilibrar si ratio está entre 0.75 y 1.25 (zona crítica)
+                if (ratioEquilibrio >= 0.75 && ratioEquilibrio <= 1.25) {
+                  // Aumentar probabilidad de esta jornada para equilibrar
+                  // Aumentar más cuando estamos muy cerca y la siguiente tiene poco margen
+                  // Si distanciaFaltante ≈ margen siguiente: aumentar moderadamente
+                  var factorAumento = Math.max(1.15, Math.min(1.50, 1.30 + (1 - ratioEquilibrio) * 0.25));
+                  probBaseSalirAjustada = Math.min(0.58, datos.probBaseSalir * factorAumento);
+                }
               }
             }
           }
