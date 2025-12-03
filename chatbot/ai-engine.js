@@ -374,6 +374,100 @@ class AIEngine {
         ],
         response: 'confirmar_accion',
         confidence: 0.95
+      },
+
+      // FESTIVOS NO LABORABLES
+      'festivos': {
+        patterns: [
+          /(qué|que) (días|dia) (son )?festivos?/i,
+          /(cuándo|cuando) (son|es|hay) festivos?/i,
+          /(días|dia) festivos? (del )?puerto/i,
+          /(días|dia) no laborables?/i,
+          /festivos? no laborables?/i,
+          /(cuáles|cuales) (son )?festivos?/i
+        ],
+        response: 'consultar_festivos',
+        confidence: 0.9
+      },
+
+      // CONSULTAS DE TARIFAS/JORNALES
+      'consulta_tarifa': {
+        patterns: [
+          /(cuánto|cuanto) (es|está|vale|cuesta|pagan|paga) (el |la )?jornal/i,
+          /(cuánto|cuanto) (es|está|vale|cuesta|pagan|paga).*(14.*20|08.*14|02.*08|20.*02)/i,
+          /jornal de.*(domingo|lunes|martes|miércoles|jueves|viernes|sábado|laborable|festivo)/i,
+          /(tarifa|precio).*(trinca|destrinca)/i,
+          /(cuánto|cuanto).*(barra|barras).*(trinca|destrinca)/i,
+          /a cuánto está.*(trinca|destrinca)/i
+        ],
+        response: 'consultar_tarifa',
+        confidence: 0.9
+      },
+
+      // CHAPAS DISPONIBLES
+      'chapas_disponibles': {
+        patterns: [
+          /(cuántas|cuantas) chapas? disponibles?/i,
+          /chapas? (en )?verde/i,
+          /(cuántos|cuantos) (trabajadores?|estibadores?) disponibles?/i,
+          /(cuánta|cuanta) gente disponible/i,
+          /disponibilidad (del )?censo/i
+        ],
+        response: 'consultar_chapas_disponibles',
+        confidence: 0.9
+      },
+
+      // CONVENIO COLECTIVO
+      'convenio': {
+        patterns: [
+          /(qué|que) (dice|pone|establece).*(convenio|colectivo)/i,
+          /(según|segun) (el )?convenio/i,
+          /convenio (dice|establece|menciona)/i,
+          /(artículo|articulo|art).*(convenio|colectivo)/i,
+          /(derecho|derechos|obligación|obligaciones).*(convenio|trabajador|empresa)/i,
+          /vacaciones? (cuántos|cuantos|días|dia)/i,
+          /permisos? retribuid/i,
+          /jornada laboral/i,
+          /período|periodo.*(prueba|vacaciones)/i,
+          /plus|pluses|complemento/i,
+          /descanso|descansos/i
+        ],
+        response: 'consultar_convenio',
+        confidence: 0.85
+      },
+
+      // V ACUERDO MARCO
+      'acuerdo_marco': {
+        patterns: [
+          /(qué|que|que es|cuál|cual).*(acuerdo marco|v acuerdo)/i,
+          /(qué|que) (dice|pone|establece).*(acuerdo marco|v acuerdo)/i,
+          /(según|segun) (el )?acuerdo marco/i,
+          /acuerdo marco (dice|establece|menciona|es)/i,
+          /BOE.*8165/i,
+          /(normativa|regulación|regulacion).*(estiba|portuaria)/i,
+          /marco (regulatorio|normativo)/i,
+          /v acuerdo/i
+        ],
+        response: 'consultar_acuerdo_marco',
+        confidence: 0.85
+      },
+
+      // GUÍA DE CONTRATACIÓN
+      'guia_contratacion': {
+        patterns: [
+          /(cuándo|cuando).*(se contrata|contratan).*(jornada|02.*08|08.*14|14.*20|20.*02)/i,
+          /(cómo|como).*(se contrata|contratan).*(jornada|festivo|laborable)/i,
+          /(guía|guia).*(contratación|contratacion)/i,
+          /procedimiento.*(contratación|contratacion)/i,
+          /(orden|turno).*(contratación|contratacion)/i,
+          /(segundo|tercer).*(festivo|laborable).*(contrat)/i,
+          /(cuándo|cuando).*(segundo|tercer).*(festivo)/i,
+          /festivos? seguidos?.*(contrat)/i,
+          /(criterios|normas|reglas).*(contratación|contratacion)/i,
+          /(prioridad|preferencia).*(contratación|contratacion)/i
+        ],
+        response: 'consultar_guia_contratacion',
+        confidence: 0.85
       }
     };
 
@@ -386,15 +480,50 @@ class AIEngine {
       ],
       ayuda: `Puedo ayudarte con:
 
-📊 Jornales: "¿Cuántos jornales llevo?"
-💰 Salario: "¿Cuánto llevo ganado?"
-🎯 Posición: "¿A cuántas posiciones estoy?"
-🔮 Predicción: "¿Cuándo voy a trabajar?"
-🚪 Puertas: "¿Cuáles son las puertas de hoy?"
-📋 Contratación: "¿Dónde trabajo hoy?"
-📝 Acciones: "Quiero ponerme no disponible"
+📊 **Jornales:**
+  • "¿Cuántos jornales llevo esta quincena?"
+  • "¿Cuántos jornales he hecho en el mes pasado?"
+  • "¿Cuántos jornales de 20-02 llevo?"
 
-¿Qué necesitas?`,
+💰 **Salario:**
+  • "¿Cuánto llevo ganado esta quincena?"
+  • "¿Cuál fue mi jornal más alto?"
+  • "¿Cuál fue mi prima más alta?"
+
+🎯 **Posición:**
+  • "¿A cuántas posiciones estoy?"
+  • "¿En qué empresa trabajo más?"
+
+🔮 **Predicción:**
+  • "¿Cuándo voy a trabajar?"
+  • "¿Cuáles son las puertas de hoy?"
+
+📅 **Festivos:**
+  • "¿Qué días son festivos?"
+
+💵 **Tarifas:**
+  • "¿Cuánto es el jornal de 14-20 el domingo?"
+  • "¿A cuánto está la barra de trinca 20-02 laborable?"
+  • "¿Cuánto pagan de destrinca en 08-14 festivo?"
+
+🟢 **Censo:**
+  • "¿Cuántas chapas disponibles hay?"
+
+📜 **Convenio:**
+  • "¿Cuántos días de vacaciones tengo?"
+  • "¿Qué dice el convenio sobre permisos?"
+
+📋 **V Acuerdo Marco:**
+  • "¿Qué es el V Acuerdo Marco?"
+
+📝 **Guía de Contratación:**
+  • "¿Cuándo se contrata la jornada de 02-08?"
+  • "¿Cuándo se contrata el segundo festivo si hay 2 seguidos?"
+
+🔧 **Acciones:**
+  • "Quiero ponerme no disponible"
+
+Escribe tu pregunta abajo ⬇️`,
       no_entiendo: "No entendí tu pregunta. Prueba preguntarme sobre jornales, salario, posición o cuándo trabajas.",
       error_datos: "No pude obtener esos datos. Intenta de nuevo.",
       sin_datos: "No encontré datos para esa consulta."
@@ -656,6 +785,31 @@ class AIEngine {
 
     if (intent.action === 'consultar_dia_mayor_prima') {
       return await this.handleDiaMayorPrimaQuery(userMessage);
+    }
+
+    // NUEVOS HANDLERS
+    if (intent.action === 'consultar_festivos') {
+      return await this.handleFestivosQuery();
+    }
+
+    if (intent.action === 'consultar_tarifa') {
+      return await this.handleTarifaQuery(userMessage);
+    }
+
+    if (intent.action === 'consultar_chapas_disponibles') {
+      return await this.handleChapasDisponiblesQuery();
+    }
+
+    if (intent.action === 'consultar_convenio') {
+      return await this.handleConvenioQuery(userMessage);
+    }
+
+    if (intent.action === 'consultar_acuerdo_marco') {
+      return await this.handleAcuerdoMarcoQuery(userMessage);
+    }
+
+    if (intent.action === 'consultar_guia_contratacion') {
+      return await this.handleGuiaContratacionQuery(userMessage);
     }
 
     // Acciones
@@ -1634,6 +1788,464 @@ class AIEngine {
         text: this.responses.error_datos,
         intent: 'dia_mayor_prima',
         confidence: 0.9
+      };
+    }
+  }
+
+  /**
+   * Handler para consultar festivos no laborables del puerto
+   */
+  async handleFestivosQuery() {
+    try {
+      let respuesta = `📅 **Festivos no laborables en el Puerto de Valencia 2025:**\n\n`;
+      respuesta += `🎉 **1 de enero** (Año Nuevo)\n`;
+      respuesta += `👑 **6 de enero** - SOLO jornadas 02-08 y 20-02\n`;
+      respuesta += `🌸 **19 de marzo** (San José)\n`;
+      respuesta += `⚒️ **1 de mayo** (Día del Trabajo)\n`;
+      respuesta += `🎊 **9 de octubre** (Día de la Comunidad Valenciana)\n`;
+      respuesta += `🎄 **25 de diciembre** (Navidad)\n`;
+      respuesta += `🎉 **16 de julio** - SOLO jornadas 08-14 y 14-20\n\n`;
+      respuesta += `_Estos festivos no se trabaja en ninguna de las empresas del puerto._`;
+
+      return {
+        text: respuesta,
+        intent: 'festivos',
+        confidence: 0.9
+      };
+
+    } catch (error) {
+      console.error('Error en handleFestivosQuery:', error);
+      return {
+        text: this.responses.error_datos,
+        intent: 'festivos',
+        confidence: 0.9
+      };
+    }
+  }
+
+  /**
+   * Handler para consultar tarifas/jornales
+   */
+  async handleTarifaQuery(userMessage) {
+    try {
+      // Detectar horario en el mensaje y normalizarlo a formato "XX a YY"
+      let horario = null;
+      const horarioMatch = userMessage.match(/(02|08|14|20).*?(08|14|20|02)/i);
+      if (horarioMatch) {
+        const inicio = horarioMatch[1].padStart(2, '0');
+        const fin = horarioMatch[2].padStart(2, '0');
+        horario = `${inicio} a ${fin}`; // Formato: "20 a 02"
+      }
+
+      // Detectar tipo de día y mapear a códigos de la tabla
+      // LAB = laborable, SAB = sábado, FES = festivo
+      let codigoJornada = 'LAB';
+      if (/domingo|festivo/i.test(userMessage)) {
+        codigoJornada = 'FES';
+      } else if (/sábado|sabado/i.test(userMessage)) {
+        codigoJornada = 'SAB';
+      }
+
+      // Si pregunta por trinca/destrinca
+      if (/trinca|destrinca/i.test(userMessage)) {
+        const tarifas = await window.SheetsAPI.getTarifasTrincaDestrinca();
+
+        if (!tarifas || tarifas.length === 0) {
+          return {
+            text: "No pude cargar las tarifas de trinca/destrinca.",
+            intent: 'consulta_tarifa',
+            confidence: 0.9
+          };
+        }
+
+        // Detectar si es trinca o destrinca
+        const esDestrinca = /destrinca/i.test(userMessage);
+
+        // Detectar horario si lo especifica
+        let respuesta = '';
+        if (horario) {
+          // Buscar tarifa específica
+          // Normalizar horario en la tabla (puede tener espacios extra)
+          const tarifa = tarifas.find(t => {
+            const horarioTabla = t.horario.trim();
+            const jornadaTabla = t.jornada.trim();
+
+            // Coincide el horario Y la jornada contiene el código
+            return horarioTabla === horario && jornadaTabla.includes(codigoJornada);
+          });
+
+          if (tarifa) {
+            const precio = esDestrinca ? tarifa.tarifa_destrinca : tarifa.tarifa_trinca;
+            const nombreJornada = codigoJornada === 'LAB' ? 'laborable' :
+                                  codigoJornada === 'SAB' ? 'sábado' : 'festivo';
+
+            respuesta = `💰 **${esDestrinca ? 'Destrinca' : 'Trinca'} de ${horario} ${nombreJornada}**: **${precio}€** por barra\n\n`;
+            respuesta += `_Fuente: Tabla de tarifas de trinca/destrinca del puerto_`;
+          } else {
+            respuesta = `No encontré la tarifa para ${horario} ${codigoJornada}.\n\n`;
+            respuesta += `_Asegúrate de especificar el horario (02 a 08, 08 a 14, 14 a 20, 20 a 02) y el tipo de día (laborable, sábado, festivo)_`;
+          }
+        } else {
+          // Mostrar todas las tarifas agrupadas por tipo de día
+          respuesta = `💰 **Tarifas de ${esDestrinca ? 'Destrinca' : 'Trinca'} (€/barra):**\n\n`;
+
+          // Agrupar por tipo de día
+          const grupos = {
+            'LAB': [],
+            'SAB': [],
+            'FES': []
+          };
+
+          for (const tarifa of tarifas) {
+            const jornadaTabla = tarifa.jornada.trim();
+            if (jornadaTabla.includes('LAB') && !jornadaTabla.includes('FES')) {
+              grupos['LAB'].push(tarifa);
+            } else if (jornadaTabla.includes('SAB')) {
+              grupos['SAB'].push(tarifa);
+            } else if (jornadaTabla.includes('FES')) {
+              grupos['FES'].push(tarifa);
+            }
+          }
+
+          // Mostrar cada grupo
+          const nombresGrupos = {
+            'LAB': 'LABORABLE',
+            'SAB': 'SÁBADO',
+            'FES': 'FESTIVO'
+          };
+
+          for (const [codigo, nombre] of Object.entries(nombresGrupos)) {
+            if (grupos[codigo].length > 0) {
+              respuesta += `**${nombre}:**\n`;
+              for (const tarifa of grupos[codigo]) {
+                const precio = esDestrinca ? tarifa.tarifa_destrinca : tarifa.tarifa_trinca;
+                respuesta += `  • ${tarifa.horario}: ${precio}€\n`;
+              }
+              respuesta += `\n`;
+            }
+          }
+        }
+
+        return {
+          text: respuesta,
+          intent: 'consulta_tarifa',
+          confidence: 0.9
+        };
+      }
+
+      // Si pregunta por jornal (no trinca/destrinca)
+      if (!horario) {
+        return {
+          text: "Por favor, especifica la jornada que te interesa. Por ejemplo: '¿Cuánto es el jornal de 14-20 el domingo?'",
+          intent: 'consulta_tarifa',
+          confidence: 0.9
+        };
+      }
+
+      // Obtener tabla salarial
+      const tablaSalarial = await window.SheetsAPI.getTablaSalarial();
+
+      if (!tablaSalarial || tablaSalarial.length === 0) {
+        return {
+          text: "No pude cargar la tabla salarial.",
+          intent: 'consulta_tarifa',
+          confidence: 0.9
+        };
+      }
+
+      // Convertir horario a formato con guión para tabla salarial
+      const jornadaParaTabla = horario.replace(' a ', '-'); // "20 a 02" -> "20-02"
+
+      // Mapear código de jornada a tipo de día para tabla salarial
+      // Tabla salarial usa: LABORABLE, SABADO, FESTIVO
+      const tipoDiaTabla = codigoJornada === 'LAB' ? 'LABORABLE' :
+                           codigoJornada === 'SAB' ? 'SABADO' : 'FESTIVO';
+
+      // Buscar en tabla salarial
+      const claveJornada = `${jornadaParaTabla}_${tipoDiaTabla}`;
+      const salarioRow = tablaSalarial.find(s => s.clave_jornada === claveJornada);
+
+      if (!salarioRow) {
+        return {
+          text: `No encontré información salarial para ${jornadaParaTabla} ${tipoDiaTabla.toLowerCase()}. Prueba con otra jornada o día.`,
+          intent: 'consulta_tarifa',
+          confidence: 0.9
+        };
+      }
+
+      let respuesta = `💰 **Jornal de ${jornadaParaTabla} ${tipoDiaTabla.toLowerCase()}:**\n\n`;
+      respuesta += `**Grupo 1:**\n`;
+      respuesta += `  • Jornal base: ${salarioRow.jornal_base_g1}€\n`;
+      respuesta += `  • Prima mínima coches: ${salarioRow.prima_minima_coches}€\n`;
+      respuesta += `  • Coef. prima <120: ${salarioRow.coef_prima_menor120}\n`;
+      respuesta += `  • Coef. prima >120: ${salarioRow.coef_prima_mayor120}\n\n`;
+
+      respuesta += `**Grupo 2:**\n`;
+      respuesta += `  • Jornal base: ${salarioRow.jornal_base_g2}€\n`;
+      respuesta += `  • Prima mínima coches: ${salarioRow.prima_minima_coches}€\n`;
+      respuesta += `  • Coef. prima <120: ${salarioRow.coef_prima_menor120}\n`;
+      respuesta += `  • Coef. prima >120: ${salarioRow.coef_prima_mayor120}\n\n`;
+
+      respuesta += `_Nota: Los trincadores tienen un complemento adicional de +46,94€_`;
+
+      return {
+        text: respuesta,
+        intent: 'consulta_tarifa',
+        confidence: 0.9
+      };
+
+    } catch (error) {
+      console.error('Error en handleTarifaQuery:', error);
+      return {
+        text: this.responses.error_datos,
+        intent: 'consulta_tarifa',
+        confidence: 0.9
+      };
+    }
+  }
+
+  /**
+   * Handler para consultar cuántas chapas están disponibles (color verde)
+   */
+  async handleChapasDisponiblesQuery() {
+    try {
+      const censo = await window.SheetsAPI.getCenso();
+
+      if (!censo || censo.length === 0) {
+        return {
+          text: "No pude obtener el censo actual.",
+          intent: 'chapas_disponibles',
+          confidence: 0.9
+        };
+      }
+
+      // Contar chapas por color
+      // color puede ser: 'red' (0), 'orange' (1), 'yellow' (2), 'blue' (3), 'green' (4)
+      const colorCounts = {
+        'green': 0,   // Disponible
+        'blue': 0,    // 3 jornadas
+        'yellow': 0,  // 2 jornadas
+        'orange': 0,  // 1 jornada
+        'red': 0      // No disponible
+      };
+
+      for (const trabajador of censo) {
+        const color = trabajador.color;
+        if (colorCounts.hasOwnProperty(color)) {
+          colorCounts[color]++;
+        }
+      }
+
+      const totalCenso = censo.length;
+      const disponibles = colorCounts['green'];
+      const porcentajeDisponibles = ((disponibles / totalCenso) * 100).toFixed(1);
+
+      let respuesta = `📊 **Estado del censo hoy:**\n\n`;
+      respuesta += `✅ **${disponibles} chapas disponibles** (color verde) - ${porcentajeDisponibles}%\n\n`;
+      respuesta += `**Desglose completo:**\n`;
+      respuesta += `🟢 Verde (disponible): ${colorCounts['green']}\n`;
+      respuesta += `🔵 Azul (3 jornadas): ${colorCounts['blue']}\n`;
+      respuesta += `🟡 Amarillo (2 jornadas): ${colorCounts['yellow']}\n`;
+      respuesta += `🟠 Naranja (1 jornada): ${colorCounts['orange']}\n`;
+      respuesta += `🔴 Rojo (no disponible): ${colorCounts['red']}\n\n`;
+      respuesta += `📌 **Total en censo**: ${totalCenso} trabajadores`;
+
+      return {
+        text: respuesta,
+        intent: 'chapas_disponibles',
+        confidence: 0.9,
+        data: {
+          type: 'chapas_disponibles',
+          disponibles: disponibles,
+          total: totalCenso,
+          porcentaje: porcentajeDisponibles,
+          desglose: colorCounts
+        }
+      };
+
+    } catch (error) {
+      console.error('Error en handleChapasDisponiblesQuery:', error);
+      return {
+        text: this.responses.error_datos,
+        intent: 'chapas_disponibles',
+        confidence: 0.9
+      };
+    }
+  }
+
+  /**
+   * Handler para consultar el Convenio Colectivo usando OpenAI Assistant
+   */
+  async handleConvenioQuery(userMessage) {
+    try {
+      // Verificar que el sistema de assistants esté disponible
+      if (!window.OpenAIAssistants) {
+        return {
+          text: "❌ El sistema de consultas de documentos no está disponible. Por favor, recarga la página.",
+          intent: 'convenio',
+          confidence: 0.85
+        };
+      }
+
+      // Verificar que haya API key configurada
+      if (!window.OpenAIAssistants.isConfigured()) {
+        return {
+          text: "❌ No hay API key de OpenAI configurada. Por favor, configúrala para poder consultar el convenio colectivo.",
+          intent: 'convenio',
+          confidence: 0.85
+        };
+      }
+
+      // Obtener la chapa del usuario para mantener contexto
+      const userId = this.dataBridge?.currentChapa || 'default';
+
+      // Consultar el assistant
+      const respuesta = await window.OpenAIAssistants.consultarAssistant(
+        'convenio',
+        userMessage,
+        userId
+      );
+
+      return {
+        text: `📋 **Convenio Colectivo de la Estiba:**\n\n${respuesta}\n\n_Fuente: Convenio Colectivo del Puerto de Valencia_`,
+        intent: 'convenio',
+        confidence: 0.85,
+        data: {
+          type: 'convenio',
+          fuente: 'assistant'
+        }
+      };
+
+    } catch (error) {
+      console.error('Error en handleConvenioQuery:', error);
+      return {
+        text: "❌ Error al consultar el convenio colectivo. Por favor, intenta de nuevo.",
+        intent: 'convenio',
+        confidence: 0.85
+      };
+    }
+  }
+
+  /**
+   * Handler para consultar el V Acuerdo Marco usando OpenAI Assistant
+   */
+  async handleAcuerdoMarcoQuery(userMessage) {
+    try {
+      // Verificar que el sistema de assistants esté disponible
+      if (!window.OpenAIAssistants) {
+        return {
+          text: "❌ El sistema de consultas de documentos no está disponible. Por favor, recarga la página.",
+          intent: 'acuerdo_marco',
+          confidence: 0.85
+        };
+      }
+
+      // Verificar que haya API key configurada
+      if (!window.OpenAIAssistants.isConfigured()) {
+        return {
+          text: "❌ No hay API key de OpenAI configurada. Por favor, configúrala para poder consultar el V Acuerdo Marco.",
+          intent: 'acuerdo_marco',
+          confidence: 0.85
+        };
+      }
+
+      // Verificar que el assistant del acuerdo marco esté configurado
+      if (!window.OpenAIAssistants.assistants.acuerdo_marco) {
+        return {
+          text: "❌ El assistant del V Acuerdo Marco aún no está configurado. Por favor, créalo primero usando el archivo crear_asistente.js con el PDF BOE-A-2022-8165.pdf",
+          intent: 'acuerdo_marco',
+          confidence: 0.85
+        };
+      }
+
+      // Obtener la chapa del usuario para mantener contexto
+      const userId = this.dataBridge?.currentChapa || 'default';
+
+      // Consultar el assistant
+      const respuesta = await window.OpenAIAssistants.consultarAssistant(
+        'acuerdo_marco',
+        userMessage,
+        userId
+      );
+
+      return {
+        text: `📜 **V Acuerdo Marco Estatal del Sector de la Estiba Portuaria:**\n\n${respuesta}\n\n_Fuente: BOE-A-2022-8165_`,
+        intent: 'acuerdo_marco',
+        confidence: 0.85,
+        data: {
+          type: 'acuerdo_marco',
+          fuente: 'assistant'
+        }
+      };
+
+    } catch (error) {
+      console.error('Error en handleAcuerdoMarcoQuery:', error);
+      return {
+        text: "❌ Error al consultar el V Acuerdo Marco. Por favor, intenta de nuevo.",
+        intent: 'acuerdo_marco',
+        confidence: 0.85
+      };
+    }
+  }
+
+  /**
+   * Handler para consultar la Guía de Contratación usando OpenAI Assistant
+   */
+  async handleGuiaContratacionQuery(userMessage) {
+    try {
+      // Verificar que el sistema de assistants esté disponible
+      if (!window.OpenAIAssistants) {
+        return {
+          text: "❌ El sistema de consultas de documentos no está disponible. Por favor, recarga la página.",
+          intent: 'guia_contratacion',
+          confidence: 0.85
+        };
+      }
+
+      // Verificar que haya API key configurada
+      if (!window.OpenAIAssistants.isConfigured()) {
+        return {
+          text: "❌ No hay API key de OpenAI configurada. Por favor, configúrala para poder consultar la Guía de Contratación.",
+          intent: 'guia_contratacion',
+          confidence: 0.85
+        };
+      }
+
+      // Verificar que el assistant de la guía esté configurado
+      if (!window.OpenAIAssistants.assistants.guia_contratacion) {
+        return {
+          text: "❌ El assistant de la Guía de Contratación aún no está configurado.",
+          intent: 'guia_contratacion',
+          confidence: 0.85
+        };
+      }
+
+      // Obtener la chapa del usuario para mantener contexto
+      const userId = this.dataBridge?.currentChapa || 'default';
+
+      // Consultar el assistant
+      const respuesta = await window.OpenAIAssistants.consultarAssistant(
+        'guia_contratacion',
+        userMessage,
+        userId
+      );
+
+      return {
+        text: `📝 **Guía de Contratación - Puerto de Valencia:**\n\n${respuesta}\n\n_Fuente: Guía de Contratación del Puerto_`,
+        intent: 'guia_contratacion',
+        confidence: 0.85,
+        data: {
+          type: 'guia_contratacion',
+          fuente: 'assistant'
+        }
+      };
+
+    } catch (error) {
+      console.error('Error en handleGuiaContratacionQuery:', error);
+      return {
+        text: "❌ Error al consultar la Guía de Contratación. Por favor, intenta de nuevo.",
+        intent: 'guia_contratacion',
+        confidence: 0.85
       };
     }
   }
