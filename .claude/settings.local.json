@@ -28,7 +28,9 @@
       "Bash(git ls-remote:*)",
       "Bash(git ls-tree:*)",
       "Bash(mkdir:*)",
-      "Bash(git clone:*)"
+      "Bash(git clone:*)",
+      "Bash(npm install:*)",
+      "Bash(node:*)"
     ],
     "deny": [],
     "ask": []
