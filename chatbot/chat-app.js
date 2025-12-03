@@ -121,19 +121,9 @@ class ChatApp {
     // Inicializar motor de IA
     await this.aiEngine.initialize(this.dataBridge);
 
-    // Configurar Groq API para mejorar las respuestas
-    const groqApiKey = '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';
-
-    // TEMPORALMENTE DESACTIVADO - Groq inventa datos (CSP, sueldómetro, etc)
-    // Usar modo LOCAL hasta que el prompt esté perfecto
-    if (false && groqApiKey) {
-      this.aiEngine.setApiKey(groqApiKey);
-      this.aiEngine.setMode('groq');
-      console.log('✅ Modo GROQ habilitado (mejora respuestas con datos reales)');
-    } else {
-      this.aiEngine.setMode('local');
-      console.log('✅ Modo LOCAL - Respuestas 100% con datos reales de Supabase');
-    }
+    // Modo LOCAL - 100% gratis, offline y privado
+    this.aiEngine.setMode('local');
+    console.log('✅ Modo LOCAL - 100% gratis, offline y privado');
 
     // Cargar configuración
     this.voiceHandler.loadSettings();
@@ -537,18 +527,16 @@ class ChatApp {
               </div>
             </div>
             <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem; margin-top: 0.5rem;">
-              <div style="display: flex; align-items: center; gap: 0.5rem; background: white; padding: 0.5rem; border-radius: 6px; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
-                <span style="font-size: 1rem;">📍</span>
-                <div style="flex: 1;">
-                  <div style="font-size: 0.7rem; color: #64748b; font-weight: 500;">SP</div>
-                  <div style="font-size: 1.1rem; font-weight: 700; color: ${colorAccent};">${p.sp || '-'}</div>
+              <div style="display: flex; align-items: center; gap: 0.5rem; background: linear-gradient(135deg, #10b98108 0%, #10b98120 100%); padding: 0.5rem; border-radius: 6px; border: 2px solid #10b981; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
+                <div style="background: #10b981; color: white; padding: 0.25rem 0.5rem; border-radius: 4px; font-size: 0.75rem; font-weight: 700;">SP</div>
+                <div style="flex: 1; text-align: right;">
+                  <div style="font-size: 1.1rem; font-weight: 700; color: #10b981;">${p.sp || '-'}</div>
                 </div>
               </div>
-              <div style="display: flex; align-items: center; gap: 0.5rem; background: white; padding: 0.5rem; border-radius: 6px; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
-                <span style="font-size: 1rem;">⚓</span>
-                <div style="flex: 1;">
-                  <div style="font-size: 0.7rem; color: #64748b; font-weight: 500;">OC</div>
-                  <div style="font-size: 1.1rem; font-weight: 700; color: ${colorAccent};">${p.oc || '-'}</div>
+              <div style="display: flex; align-items: center; gap: 0.5rem; background: linear-gradient(135deg, #3b82f608 0%, #3b82f620 100%); padding: 0.5rem; border-radius: 6px; border: 2px solid #3b82f6; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
+                <div style="background: #3b82f6; color: white; padding: 0.25rem 0.5rem; border-radius: 4px; font-size: 0.75rem; font-weight: 700;">OC</div>
+                <div style="flex: 1; text-align: right;">
+                  <div style="font-size: 1.1rem; font-weight: 700; color: #3b82f6;">${p.oc || '-'}</div>
                 </div>
               </div>
             </div>

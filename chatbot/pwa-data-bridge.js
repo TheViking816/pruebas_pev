@@ -140,6 +140,7 @@ class PWADataBridge {
 
   /**
    * Obtiene la posición del usuario en el censo
+   * COPIA EXACTA DEL DASHBOARD: usa los mismos métodos y valores
    */
   async getPosicionUsuario() {
     try {
@@ -154,15 +155,31 @@ class PWADataBridge {
 
       console.log('📍 Obteniendo posición para chapa:', this.currentChapa);
 
-      const posicion = await window.SheetsAPI.getPosicionChapa(this.currentChapa);
-      const posicionesHasta = await window.SheetsAPI.getPosicionesHastaContratacion(this.currentChapa);
+      // Usar Promise.all igual que el dashboard (app.js línea 729-733)
+      const [posicionesHasta, posicionesTrinca, censo] = await Promise.all([
+        window.SheetsAPI.getPosicionesHastaContratacion(this.currentChapa),
+        window.SheetsAPI.getPosicionesTrinca(this.currentChapa),
+        window.SheetsAPI.getCenso()
+      ]);
 
-      console.log('✅ Posición obtenida:', { posicion, posicionesHasta });
+      const posicion = await window.SheetsAPI.getPosicionChapa(this.currentChapa);
+
+      // Verificar si el usuario es trincador (igual que app.js línea 753)
+      let esTrincador = false;
+      if (censo && Array.isArray(censo)) {
+        const usuarioCenso = censo.find(c => c.chapa === this.currentChapa);
+        esTrincador = usuarioCenso && (usuarioCenso.trincador === true || usuarioCenso.trincador === 'true');
+      }
+
+      console.log('✅ Posición obtenida:', { posicion, posicionesHasta, posicionesTrinca, esTrincador });
 
       return {
         posicion: posicion,
         posicionesLaborable: posicionesHasta?.laborable || null,
-        posicionesFestiva: posicionesHasta?.festiva || null
+        posicionesFestiva: posicionesHasta?.festiva || null,
+        posicionesTrincaLaborable: esTrincador ? (posicionesTrinca?.laborable || null) : null,
+        posicionesTrincaFestiva: esTrincador ? (posicionesTrinca?.festiva || null) : null,
+        esTrincador: esTrincador
       };
 
     } catch (error) {

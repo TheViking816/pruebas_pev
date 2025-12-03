@@ -380,22 +380,23 @@ class AIEngine {
     // Respuestas predefinidas
     this.responses = {
       saludo: [
-        "¡Hola! 👋 ¿En qué puedo ayudarte hoy?",
-        "¡Buenas! ¿Qué necesitas saber?",
-        "¡Hola! Estoy aquí para ayudarte con tus consultas del puerto."
+        "Hola 👋 ¿En qué puedo ayudarte?",
+        "Buenas, ¿qué necesitas saber?",
+        "Hola, estoy aquí para ayudarte."
       ],
       ayuda: `Puedo ayudarte con:
 
-📅 **Consultar cuándo trabajas**: "¿Cuándo voy a trabajar?"
-📊 **Ver tus jornales**: "¿Cuántos jornales llevo esta quincena?"
-💰 **Consultar tu salario**: "¿Cuánto llevo ganado?"
-🎯 **Tu posición**: "¿A cuántas posiciones estoy?"
-🚢 **Dónde trabajas hoy**: "¿En qué empresa trabajo?"
-🔗 **Abrir formularios**: "Ábreme el formulario de no disponibilidad"
+📊 Jornales: "¿Cuántos jornales llevo?"
+💰 Salario: "¿Cuánto llevo ganado?"
+🎯 Posición: "¿A cuántas posiciones estoy?"
+🔮 Predicción: "¿Cuándo voy a trabajar?"
+🚪 Puertas: "¿Cuáles son las puertas de hoy?"
+📋 Contratación: "¿Dónde trabajo hoy?"
+📝 Acciones: "Quiero ponerme no disponible"
 
-¿Qué quieres saber?`,
-      no_entiendo: "Lo siento, no entendí tu pregunta. Intenta preguntarme sobre tus jornales, salario, posición o cuándo trabajas.",
-      error_datos: "No pude obtener esos datos en este momento. Por favor, intenta de nuevo.",
+¿Qué necesitas?`,
+      no_entiendo: "No entendí tu pregunta. Prueba preguntarme sobre jornales, salario, posición o cuándo trabajas.",
+      error_datos: "No pude obtener esos datos. Intenta de nuevo.",
       sin_datos: "No encontré datos para esa consulta."
     };
   }
@@ -571,14 +572,14 @@ class AIEngine {
         localStorage.removeItem('pending_action'); // Limpiar
 
         return {
-          text: "¡Perfecto! Abriendo...",
+          text: "Perfecto, abriendo...",
           intent: intent.name,
           confidence: intent.confidence,
           action: action
         };
       } else {
         return {
-          text: "¡Vale! ¿En qué más puedo ayudarte?",
+          text: "Vale. ¿En qué más puedo ayudarte?",
           intent: intent.name,
           confidence: intent.confidence
         };
@@ -660,7 +661,7 @@ class AIEngine {
     // Acciones
     if (intent.action === 'abrir_no_disponible') {
       return {
-        text: "Claro, te abro el formulario de no disponibilidad.",
+        text: "Te abro el formulario de no disponibilidad.",
         intent: intent.name,
         confidence: intent.confidence,
         action: {
@@ -721,7 +722,7 @@ class AIEngine {
     // NAVEGAR AL ORÁCULO (navegación directa sin preguntar)
     if (intent.action === 'navegar_oraculo') {
       return {
-        text: "🔮 Te abro el **Oráculo** para ver la predicción completa...",
+        text: "Te abro el Oráculo 🔮",
         intent: intent.name,
         confidence: intent.confidence,
         action: {
@@ -750,7 +751,7 @@ class AIEngine {
       if (/dinero|euro|cobr|pag|ganado|sueldo|nómina|nomina/i.test(mensaje)) {
         const salario = await this.dataBridge.calcularSueldoQuincena();
         if (salario && salario.salarioNeto > 0) {
-          sugerencia = `💰 **Sobre tu salario:**\nEsta quincena llevas estimados **${salario.salarioNeto.toFixed(2)}€** netos con ${salario.jornales} jornales.\n\n`;
+          sugerencia = `💰 Esta quincena llevas estimados **${salario.salarioNeto.toFixed(2)}€** netos con ${salario.jornales} jornales.\n\n`;
           datosExtra = { type: 'salario', neto: salario.salarioNeto.toFixed(2), bruto: salario.salarioBruto.toFixed(2) };
         }
       }
@@ -760,7 +761,7 @@ class AIEngine {
         const prediccion = await this.dataBridge.calcularProbabilidadTrabajar();
         if (prediccion && prediccion.jornadas && prediccion.jornadas.length > 0) {
           const mejor = prediccion.jornadas.reduce((a, b) => a.probabilidad > b.probabilidad ? a : b);
-          sugerencia += `🔮 **Predicción de hoy:**\nTu mejor opción es **${mejor.jornada}** con ${mejor.probabilidad}% de probabilidad. ${mejor.mensaje}\n\n`;
+          sugerencia += `Tu mejor opción es **${mejor.jornada}** con ${mejor.probabilidad}% de probabilidad.\n\n`;
         }
       }
 
@@ -768,7 +769,7 @@ class AIEngine {
       if (/posición|posicion|censo|puerta|contratación|contratacion/i.test(mensaje)) {
         const posicion = await this.dataBridge.getPosicionUsuario();
         if (posicion) {
-          sugerencia += `🎯 **Tu posición:**\nEstás en el puesto **${posicion.posicion}** del censo.\n\n`;
+          sugerencia += `Estás en el puesto **${posicion.posicion}** del censo.\n\n`;
         }
       }
 
@@ -779,19 +780,19 @@ class AIEngine {
           this.dataBridge.getPosicionUsuario()
         ]);
 
-        sugerencia = `🤔 No estoy seguro de qué buscas, pero aquí tienes un resumen:\n\n`;
+        sugerencia = `No estoy seguro de qué buscas. Aquí tienes un resumen:\n\n`;
 
         if (jornales && jornales.total > 0) {
-          sugerencia += `📊 **Jornales esta quincena:** ${jornales.total}\n`;
+          sugerencia += `📊 Jornales esta quincena: ${jornales.total}\n`;
         }
         if (posicion) {
-          sugerencia += `🎯 **Tu posición en censo:** ${posicion.posicion}\n`;
+          sugerencia += `📍 Tu posición: ${posicion.posicion}\n`;
         }
 
-        sugerencia += `\n💡 **Prueba preguntar:**\n`;
-        sugerencia += `• "¿Cuándo voy a trabajar?" - predicción del oráculo\n`;
-        sugerencia += `• "¿Cuánto llevo ganado?" - salario estimado\n`;
-        sugerencia += `• "¿Cuál fue mi mejor prima?" - récords\n`;
+        sugerencia += `\nPrueba preguntar:\n`;
+        sugerencia += `• "¿Cuándo voy a trabajar?"\n`;
+        sugerencia += `• "¿Cuánto llevo ganado?"\n`;
+        sugerencia += `• "¿Cuál fue mi mejor prima?"\n`;
       }
 
       return {
@@ -804,7 +805,7 @@ class AIEngine {
     } catch (error) {
       console.error('Error en handleUnknownQuery:', error);
       return {
-        text: `🤔 No entendí tu pregunta, pero puedo ayudarte con:\n\n• Predicción de trabajo (oráculo)\n• Jornales y salario\n• Posición en censo\n• Récords de primas\n\n💡 Prueba: "¿Cuándo voy a trabajar?"`,
+        text: `No entendí tu pregunta. Puedo ayudarte con:\n\n• Predicción de trabajo\n• Jornales y salario\n• Posición en censo\n• Récords de primas\n\nPrueba: "¿Cuándo voy a trabajar?"`,
         intent: 'unknown',
         confidence: 0
       };
@@ -822,7 +823,7 @@ class AIEngine {
 
       if (!chapa) {
         return {
-          text: "Para consultar el Oráculo necesito que inicies sesión primero.",
+          text: "Para consultar el Oráculo necesitas iniciar sesión primero.",
           intent: 'consultar_oraculo',
           confidence: 0.9
         };
@@ -840,18 +841,30 @@ class AIEngine {
         };
       }
 
-      // Crear respuesta con datos básicos (sin duplicar puertas, se muestran en la tarjeta)
-      let respuesta = `🔮 **TU SITUACIÓN ACTUAL**\n\n`;
-      respuesta += `🎯 Posición en censo: **${posicion.posicion}**\n`;
+      // Crear respuesta con distancia a puerta (COPIA EXACTA DEL DASHBOARD)
+      let respuesta = `📍 **Distancia a puerta**\n\n`;
 
+      // Mostrar distancia laborable
       if (posicion.posicionesLaborable !== null) {
-        respuesta += `📍 A **${posicion.posicionesLaborable}** posiciones de puerta laborable\n`;
-      }
-      if (posicion.posicionesFestiva !== null) {
-        respuesta += `🎪 A **${posicion.posicionesFestiva}** posiciones de puerta festiva\n`;
+        respuesta += `Estás a **${posicion.posicionesLaborable} posiciones** de puerta laborable\n`;
+
+        // Si es trincador, mostrar también trincadores (igual que app.js línea 772)
+        if (posicion.esTrincador && posicion.posicionesTrincaLaborable !== null) {
+          respuesta += `⚡ ${posicion.posicionesTrincaLaborable} trincadores hasta la puerta laborable\n`;
+        }
       }
 
-      respuesta += `\n💡 Para ver la **predicción completa** con probabilidades, te abro el Oráculo. ¿Lo abro?`;
+      // Mostrar distancia festiva
+      if (posicion.posicionesFestiva !== null) {
+        respuesta += `Estás a **${posicion.posicionesFestiva} posiciones** de puerta festiva\n`;
+
+        // Si es trincador, mostrar también trincadores (igual que app.js línea 803)
+        if (posicion.esTrincador && posicion.posicionesTrincaFestiva !== null) {
+          respuesta += `⚡ ${posicion.posicionesTrincaFestiva} trincadores hasta la puerta festiva\n`;
+        }
+      }
+
+      respuesta += `\n¿Quieres que abra el Oráculo para ver la predicción completa?`;
 
       // Guardar acción pendiente para cuando diga "sí"
       localStorage.setItem('pending_action', JSON.stringify({
@@ -931,7 +944,7 @@ class AIEngine {
       // Mostrar los primeros 5 jornales como resumen
       const jornalesParaMostrar = jornales.jornales.slice(0, 5);
 
-      respuesta += `**Últimos jornales:**\n`;
+      respuesta += `Últimos jornales:\n`;
       for (const jornal of jornalesParaMostrar) {
         // Formatear fecha correctamente - puede venir como DD/MM/YYYY o YYYY-MM-DD
         let fecha = '-';
@@ -998,13 +1011,13 @@ class AIEngine {
       }
 
       let respuesta = `💰 **${calculo.quincena}**: llevas **${calculo.jornales} jornales**\n\n`;
-      respuesta += `**Salario bruto:** ${calculo.salarioBruto}€\n`;
-      respuesta += `**IRPF (${calculo.irpfPorcentaje}%):** -${calculo.irpf}€\n`;
-      respuesta += `**Salario neto:** **${calculo.salarioNeto}€**\n\n`;
+      respuesta += `Salario bruto: ${calculo.salarioBruto}€\n`;
+      respuesta += `IRPF (${calculo.irpfPorcentaje}%): -${calculo.irpf}€\n`;
+      respuesta += `**Salario neto: ${calculo.salarioNeto}€**\n\n`;
 
       // Mostrar desglose de los últimos 3 jornales
       if (calculo.detalleJornales && calculo.detalleJornales.length > 0) {
-        respuesta += `**Últimos jornales:**\n`;
+        respuesta += `Últimos jornales:\n`;
         const ultimosJornales = calculo.detalleJornales.slice(0, 3);
         for (const jornal of ultimosJornales) {
           let fecha = '-';
@@ -1132,9 +1145,9 @@ class AIEngine {
       }
 
       let respuesta = `📊 **Este año 2025**: llevas **${calculo.jornales} jornales** trabajados\n\n`;
-      respuesta += `**Salario bruto:** ${calculo.salarioBruto}€\n`;
-      respuesta += `**IRPF (${calculo.irpfPorcentaje}%):** -${calculo.irpf}€\n`;
-      respuesta += `**Salario neto:** **${calculo.salarioNeto}€**\n\n`;
+      respuesta += `Salario bruto: ${calculo.salarioBruto}€\n`;
+      respuesta += `IRPF (${calculo.irpfPorcentaje}%): -${calculo.irpf}€\n`;
+      respuesta += `**Salario neto: ${calculo.salarioNeto}€**\n\n`;
       respuesta += `_Cálculo con valores reales de la tabla salarial_`;
 
       return {
@@ -1230,9 +1243,9 @@ class AIEngine {
       const salarioNeto = salarioBrutoTotal - irpfImporte;
 
       let respuesta = `💰 **${jornalesData.mes}**: trabajaste **${jornalesData.total} jornales**\n\n`;
-      respuesta += `**Salario bruto:** ${salarioBrutoTotal.toFixed(2)}€\n`;
-      respuesta += `**IRPF (${irpfPorcentaje}%):** -${irpfImporte.toFixed(2)}€\n`;
-      respuesta += `**Salario neto:** **${salarioNeto.toFixed(2)}€**\n`;
+      respuesta += `Salario bruto: ${salarioBrutoTotal.toFixed(2)}€\n`;
+      respuesta += `IRPF (${irpfPorcentaje}%): -${irpfImporte.toFixed(2)}€\n`;
+      respuesta += `**Salario neto: ${salarioNeto.toFixed(2)}€**\n`;
 
       return {
         text: respuesta,

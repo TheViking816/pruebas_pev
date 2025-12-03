@@ -610,30 +610,59 @@ const SheetsAPI = {
       const esUsuarioSP = posicionUsuario <= LIMITE_SP;
 
       // --- ¡MODIFICACIÓN 2! ---
-      // Función auxiliar para contar trabajadores en rojo entre dos posiciones
-      const contarRojosEntre = (posicionInicio, posicionFin, esCircular, limite) => {
-        let rojos = 0;
-        const censoFiltrado = censo.filter(trabajador => {
-          const pos = trabajador.posicion;
-          const color = trabajador.color; // 'red', 'green', etc.
-          const esRojo = (color === 'red');
+      // Función para obtener el peso de disponibilidad según el color
+      // Exactamente igual que en app.js (dashboard)
+      const getPesoDisponibilidad = (posicion) => {
+        const item = censo.find(c => c.posicion === posicion);
+        if (!item) return 0;
 
-          if (!esRojo) return false;
+        // Pesos según disponibilidad:
+        // red (0 jornadas): 0
+        // orange (1 jornada): 1/4 = 0.25
+        // yellow (2 jornadas): 2/4 = 0.50
+        // blue (3 jornadas): 3/4 = 0.75
+        // green (todas las jornadas): 1.00
+        switch(item.color) {
+          case 'red': return 0;
+          case 'orange': return 0.25;
+          case 'yellow': return 0.50;
+          case 'blue': return 0.75;
+          case 'green': return 1.00;
+          default: return 0;
+        }
+      };
 
-          if (!esCircular) {
-            // Rango normal: (inicio < pos <= fin)
-            return pos > posicionInicio && pos <= posicionFin;
+      // Función para contar disponibles entre dos posiciones (en posiciones absolutas)
+      // Ahora tiene en cuenta fracciones según el color de disponibilidad
+      // Exactamente igual que en app.js (dashboard)
+      const contarDisponiblesEntre = (desde, hasta) => {
+        let disponibles = 0;
+
+        if (desde <= hasta) {
+          // Rango directo
+          for (let pos = desde + 1; pos <= hasta; pos++) {
+            disponibles += getPesoDisponibilidad(pos);
+          }
+        } else {
+          // Rango con vuelta: desde -> fin + inicio -> hasta
+          if (esUsuarioSP) {
+            for (let pos = desde + 1; pos <= LIMITE_SP; pos++) {
+              disponibles += getPesoDisponibilidad(pos);
+            }
+            for (let pos = 1; pos <= hasta; pos++) {
+              disponibles += getPesoDisponibilidad(pos);
+            }
           } else {
-            // Rango circular: (inicio < pos <= LIMITE) O (INICIO_CENSO <= pos <= fin)
-            if (esUsuarioSP) {
-              return (pos > posicionInicio && pos <= LIMITE_SP) || (pos >= 1 && pos <= posicionFin);
-            } else {
-              return (pos > posicionInicio && pos <= FIN_OC) || (pos >= INICIO_OC && pos <= posicionFin);
+            for (let pos = desde + 1; pos <= FIN_OC; pos++) {
+              disponibles += getPesoDisponibilidad(pos);
+            }
+            for (let pos = INICIO_OC; pos <= hasta; pos++) {
+              disponibles += getPesoDisponibilidad(pos);
             }
           }
-        });
-        rojos = censoFiltrado.length;
-        return rojos;
+        }
+
+        return disponibles;
       };
       // --- FIN MODIFICACIÓN 2 ---
 
@@ -647,44 +676,29 @@ const SheetsAPI = {
       const ultimaPuertaLaborable = this.detectarUltimaJornadaContratada(puertasLaborables, esUsuarioSP);
 
       if (ultimaPuertaLaborable !== null) {
-        // Cálculo de distancia bruta
-        if (esUsuarioSP) {
-          if (posicionUsuario > ultimaPuertaLaborable) {
-            posicionesLaborable = posicionUsuario - ultimaPuertaLaborable;
-          } else {
-            posicionesLaborable = (LIMITE_SP - ultimaPuertaLaborable) + posicionUsuario;
-          }
-        } else {
-          if (posicionUsuario > ultimaPuertaLaborable) {
-            posicionesLaborable = posicionUsuario - ultimaPuertaLaborable;
-          } else {
-            posicionesLaborable = (FIN_OC - ultimaPuertaLaborable) + (posicionUsuario - INICIO_OC + 1);
-          }
-        }
-
         // --- ¡MODIFICACIÓN 3! ---
-        // Calcular y restar los rojos
-        let rojosLaborable = 0;
-        if (esUsuarioSP) {
-          if (posicionUsuario > ultimaPuertaLaborable) {
-            rojosLaborable = contarRojosEntre(ultimaPuertaLaborable, posicionUsuario, false);
+        // COPIA EXACTA de calcularDistanciaEfectiva de app.js línea 6723-6738
+        let distancia;
+        if (posicionUsuario > ultimaPuertaLaborable) {
+          // Usuario esta delante
+          distancia = contarDisponiblesEntre(ultimaPuertaLaborable, posicionUsuario);
+        } else if (posicionUsuario < ultimaPuertaLaborable) {
+          // Usuario esta detras, hay que dar la vuelta
+          if (esUsuarioSP) {
+            distancia = contarDisponiblesEntre(ultimaPuertaLaborable, LIMITE_SP) + contarDisponiblesEntre(0, posicionUsuario);
           } else {
-            rojosLaborable = contarRojosEntre(ultimaPuertaLaborable, posicionUsuario, true, LIMITE_SP);
+            distancia = contarDisponiblesEntre(ultimaPuertaLaborable, FIN_OC) + contarDisponiblesEntre(INICIO_OC - 1, posicionUsuario);
           }
         } else {
-          if (posicionUsuario > ultimaPuertaLaborable) {
-            rojosLaborable = contarRojosEntre(ultimaPuertaLaborable, posicionUsuario, false);
-          } else {
-            rojosLaborable = contarRojosEntre(ultimaPuertaLaborable, posicionUsuario, true, FIN_OC);
-          }
+          // Misma posicion
+          distancia = 0;
         }
-        // Restar trabajadores en rojo
-        posicionesLaborable = Math.max(0, posicionesLaborable - rojosLaborable);
+        posicionesLaborable = Math.round(distancia * 100) / 100;
         // --- FIN MODIFICACIÓN 3 ---
       }
 
-      // --- 4. CÁLCULO PARA PUERTAS FESTIVAS (SIN MODIFICACIÓN) ---
-      // (El usuario pidió explícitamente no contar rojos aquí)
+      // --- 4. CÁLCULO PARA PUERTAS FESTIVAS (SIN PESOS - DIRECTO) ---
+      // IMPORTANTE: Para festivas NO se aplican pesos, se cuentan todas las posiciones
       const puertasFestivas = puertas.filter(p => p.jornada === 'Festivo');
       let posicionesFestiva = null;
 
@@ -696,6 +710,7 @@ const SheetsAPI = {
         if (puertasFest.length > 0) {
           const ultimaPuertaFest = Math.max(...puertasFest);
 
+          // Cálculo directo SIN PESOS (igual que antes de la modificación)
           if (esUsuarioSP) {
             if (posicionUsuario > ultimaPuertaFest) {
               posicionesFestiva = posicionUsuario - ultimaPuertaFest;

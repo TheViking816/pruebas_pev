@@ -1919,7 +1919,7 @@ const SheetsAPI = {
 
   /**
    * Calcula posiciones hasta contratación (Laborable y Festiva)
-   * Ahora descuenta trabajadores en rojo (no disponibles) del cálculo
+   * COPIA EXACTA DEL SUPABASE.JS PRINCIPAL
    */
   getPosicionesHastaContratacion: async function(chapa) {
     try {
@@ -1935,75 +1935,99 @@ const SheetsAPI = {
 
       const esUsuarioSP = posicionUsuario <= LIMITE_SP;
 
-      // 2. Obtener censo completo para contar trabajadores en rojo
+      // 2. Obtener censo completo para contar trabajadores según disponibilidad
       const censo = await getCenso();
 
-      // 3. Función auxiliar para contar trabajadores en rojo entre dos posiciones
-      const contarRojosEntre = (posicionInicio, posicionFin, esCircular, limite) => {
-        let rojos = 0;
+      // 3. Función auxiliar para obtener el peso NO disponible según el color
+      const getPesoNoDisponible = (color) => {
+        // Calculamos cuánto NO está disponible (inverso del peso de disponibilidad)
+        // red (0 jornadas): 1.00 (totalmente no disponible)
+        // orange (1 jornada): 0.75 (3/4 no disponible)
+        // yellow (2 jornadas): 0.50 (2/4 no disponible)
+        // blue (3 jornadas): 0.25 (1/4 no disponible)
+        // green (todas): 0.00 (totalmente disponible)
+        switch(color) {
+          case 'red': return 1.00;
+          case 'orange': return 0.75;
+          case 'yellow': return 0.50;
+          case 'blue': return 0.25;
+          case 'green': return 0.00;
+          default: return 1.00;
+        }
+      };
+
+      // 4. Función auxiliar para contar trabajadores no disponibles entre dos posiciones
+      // Ahora suma fracciones según la disponibilidad de cada trabajador
+      const contarNoDisponiblesEntre = (posicionInicio, posicionFin, esCircular, limite) => {
+        let noDisponibles = 0;
 
         if (!esCircular) {
           // Rango normal: de inicio a fin
-          rojos = censo.filter(trabajador => {
+          censo.forEach(trabajador => {
             const pos = trabajador.posicion;
             const color = trabajador.color;
-            return (color === 0 || color === '0' || color === 'Red' || color === 'red') &&
-                   pos > posicionInicio && pos <= posicionFin;
-          }).length;
+            if (pos > posicionInicio && pos <= posicionFin) {
+              noDisponibles += getPesoNoDisponible(color);
+            }
+          });
         } else {
           // Rango circular: de inicio hasta límite, luego de 1 hasta fin
-          rojos = censo.filter(trabajador => {
+          censo.forEach(trabajador => {
             const pos = trabajador.posicion;
             const color = trabajador.color;
-            const esRojo = (color === 0 || color === '0' || color === 'Red' || color === 'red');
 
             if (esUsuarioSP) {
-              return esRojo && ((pos > posicionInicio && pos <= LIMITE_SP) || (pos >= 1 && pos <= posicionFin));
+              if ((pos > posicionInicio && pos <= LIMITE_SP) || (pos >= 1 && pos <= posicionFin)) {
+                noDisponibles += getPesoNoDisponible(color);
+              }
             } else {
-              return esRojo && ((pos > posicionInicio && pos <= FIN_OC) || (pos >= INICIO_OC && pos <= posicionFin));
+              if ((pos > posicionInicio && pos <= FIN_OC) || (pos >= INICIO_OC && pos <= posicionFin)) {
+                noDisponibles += getPesoNoDisponible(color);
+              }
             }
-          }).length;
+          });
         }
 
-        return rojos;
+        return Math.round(noDisponibles);
       };
 
-      // 4. Obtener puertas
+      // 5. Obtener puertas
       const puertasResult = await this.getPuertas();
       const puertas = puertasResult.puertas;
 
-      // 5. CÁLCULO PARA PUERTAS LABORABLES
+      // 6. CÁLCULO PARA PUERTAS LABORABLES
       const puertasLaborables = puertas.filter(p => p.jornada !== 'Festivo');
       let posicionesLaborable = null;
 
       const ultimaPuertaLaborable = this.detectarUltimaJornadaContratada(puertasLaborables, esUsuarioSP);
 
       if (ultimaPuertaLaborable !== null) {
-        let rojosLaborable = 0;
+        let noDisponiblesLaborable = 0;
 
         if (esUsuarioSP) {
           if (posicionUsuario > ultimaPuertaLaborable) {
             posicionesLaborable = posicionUsuario - ultimaPuertaLaborable;
-            rojosLaborable = contarRojosEntre(ultimaPuertaLaborable, posicionUsuario, false);
+            noDisponiblesLaborable = contarNoDisponiblesEntre(ultimaPuertaLaborable, posicionUsuario, false);
           } else {
             posicionesLaborable = (LIMITE_SP - ultimaPuertaLaborable) + posicionUsuario;
-            rojosLaborable = contarRojosEntre(ultimaPuertaLaborable, posicionUsuario, true, LIMITE_SP);
+            noDisponiblesLaborable = contarNoDisponiblesEntre(ultimaPuertaLaborable, posicionUsuario, true, LIMITE_SP);
           }
         } else {
           if (posicionUsuario > ultimaPuertaLaborable) {
             posicionesLaborable = posicionUsuario - ultimaPuertaLaborable;
-            rojosLaborable = contarRojosEntre(ultimaPuertaLaborable, posicionUsuario, false);
+            noDisponiblesLaborable = contarNoDisponiblesEntre(ultimaPuertaLaborable, posicionUsuario, false);
           } else {
             posicionesLaborable = (FIN_OC - ultimaPuertaLaborable) + (posicionUsuario - INICIO_OC + 1);
-            rojosLaborable = contarRojosEntre(ultimaPuertaLaborable, posicionUsuario, true, FIN_OC);
+            noDisponiblesLaborable = contarNoDisponiblesEntre(ultimaPuertaLaborable, posicionUsuario, true, FIN_OC);
           }
         }
 
-        // Restar trabajadores en rojo del cálculo
-        posicionesLaborable = Math.max(0, posicionesLaborable - rojosLaborable);
+        // Restar trabajadores no disponibles del cálculo (usando pesos)
+        posicionesLaborable = Math.max(0, posicionesLaborable - noDisponiblesLaborable);
       }
 
-      // 6. CÁLCULO PARA PUERTAS FESTIVAS
+      // 7. CÁLCULO PARA PUERTAS FESTIVAS
+      // IMPORTANTE: Para festivas NO se aplican pesos, se cuentan todas las posiciones
       const puertasFestivas = puertas.filter(p => p.jornada === 'Festivo');
       let posicionesFestiva = null;
 
@@ -2014,32 +2038,27 @@ const SheetsAPI = {
 
         if (puertasFest.length > 0) {
           const ultimaPuertaFest = Math.max(...puertasFest);
-          let rojosFestiva = 0;
 
           if (esUsuarioSP) {
             if (posicionUsuario > ultimaPuertaFest) {
               posicionesFestiva = posicionUsuario - ultimaPuertaFest;
-              rojosFestiva = contarRojosEntre(ultimaPuertaFest, posicionUsuario, false);
             } else {
               posicionesFestiva = (LIMITE_SP - ultimaPuertaFest) + posicionUsuario;
-              rojosFestiva = contarRojosEntre(ultimaPuertaFest, posicionUsuario, true, LIMITE_SP);
             }
           } else {
             if (posicionUsuario > ultimaPuertaFest) {
               posicionesFestiva = posicionUsuario - ultimaPuertaFest;
-              rojosFestiva = contarRojosEntre(ultimaPuertaFest, posicionUsuario, false);
             } else {
               posicionesFestiva = (FIN_OC - ultimaPuertaFest) + (posicionUsuario - INICIO_OC + 1);
-              rojosFestiva = contarRojosEntre(ultimaPuertaFest, posicionUsuario, true, FIN_OC);
             }
           }
 
-          // Restar trabajadores en rojo del cálculo
-          posicionesFestiva = Math.max(0, posicionesFestiva - rojosFestiva);
+          // Para festivas NO restamos nada, se cuentan todas las posiciones
+          posicionesFestiva = Math.max(0, posicionesFestiva);
         }
       }
 
-      // 7. Devolver ambos resultados
+      // 8. Devolver ambos resultados
       return {
         laborable: posicionesLaborable,
         festiva: posicionesFestiva
