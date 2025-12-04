@@ -3,6 +3,11 @@
 .env.local
 .env.*
 
+# Configuración local con API keys (NO SUBIR A GIT)
+chatbot/config.local.js
+config.local.js
+**/config.local.js
+
 # Node modules
 node_modules/
 

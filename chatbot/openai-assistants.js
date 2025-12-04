@@ -13,10 +13,11 @@ class OpenAIAssistantsManager {
     };
 
     // Obtener API key de OpenAI
-    // PRODUCCIÓN: API key hardcodeada (los usuarios NO configuran nada)
-    // ⚠️ IMPORTANTE: Cambiar esta key por una dedicada para producción con límites
+    // PRODUCCIÓN: La API key se debe configurar en localStorage o variable de entorno
+    // NO hardcodear aquí por seguridad
     this.apiKey = localStorage.getItem('openai_api_key') ||
-                  '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';
+                  process.env.OPENAI_API_KEY ||
+                  null;
 
     // Caché de threads activos por usuario (para mantener contexto)
     this.activeThreads = new Map();
