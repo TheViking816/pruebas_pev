@@ -499,12 +499,12 @@ class AIEngine {
   • "¿Cuáles son las puertas de hoy?"
 
 📅 **Festivos:**
-  • "¿Qué días son festivos?"
+  • "¿Qué días son festivos no laborables en el puerto?"
 
 💵 **Tarifas:**
   • "¿Cuánto es el jornal de 14-20 el domingo?"
   • "¿A cuánto está la barra de trinca 20-02 laborable?"
-  • "¿Cuánto pagan de destrinca en 08-14 festivo?"
+  • "¿Cuánto se paga la barra de destrinca en 08-14 festivo?"
 
 🟢 **Censo:**
   • "¿Cuántas chapas disponibles hay?"
