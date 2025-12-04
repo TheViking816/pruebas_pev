@@ -6348,6 +6348,145 @@ window.cargarDatosNoray = async function() {
   }
 };
 
+// ============================================================================
+// NUEVAS FUNCIONES PARA CARGAR DATOS POR SEPARADO (EVITAR BLOQUEO CLOUDFLARE)
+// ============================================================================
+
+// Función para cargar solo la previsión (demandas de grúas y coches)
+window.cargarPrevisionNoray = async function() {
+  var btnPrevision = document.getElementById('btn-cargar-prevision');
+  var statusDiv = document.getElementById('noray-status-prevision');
+
+  if (btnPrevision) {
+    btnPrevision.disabled = true;
+    btnPrevision.innerHTML = '<span class="loading-spinner"></span> Cargando...';
+  }
+
+  try {
+    console.log('📊 Cargando previsión desde scraper de Render...');
+    var renderUrl = 'https://noray-scraper.onrender.com/api/prevision';
+    var response = await fetch(renderUrl);
+    var data = await response.json();
+
+    if (data.success && data.demandas) {
+      console.log('✅ Previsión obtenida:', data.demandas);
+
+      // Rellenar gruas y coches por jornada
+      // Jornada 1: 08-14
+      var gruas1 = document.getElementById('calc-gruas-1');
+      var coches1 = document.getElementById('calc-coches-1');
+      if (gruas1 && data.demandas['08-14']) {
+        gruas1.value = data.demandas['08-14'].gruas || 0;
+      }
+      if (coches1 && data.demandas['08-14']) {
+        coches1.value = data.demandas['08-14'].coches || 0;
+      }
+
+      // Jornada 2: 14-20
+      var gruas2 = document.getElementById('calc-gruas-2');
+      var coches2 = document.getElementById('calc-coches-2');
+      if (gruas2 && data.demandas['14-20']) {
+        gruas2.value = data.demandas['14-20'].gruas || 0;
+      }
+      if (coches2 && data.demandas['14-20']) {
+        coches2.value = data.demandas['14-20'].coches || 0;
+      }
+
+      // Jornada 3: 20-02
+      var gruas3 = document.getElementById('calc-gruas-3');
+      var coches3 = document.getElementById('calc-coches-3');
+      if (gruas3 && data.demandas['20-02']) {
+        gruas3.value = data.demandas['20-02'].gruas || 0;
+      }
+      if (coches3 && data.demandas['20-02']) {
+        coches3.value = data.demandas['20-02'].coches || 0;
+      }
+
+      // Mostrar estado exitoso
+      if (statusDiv) {
+        var fecha = new Date(data.timestamp || Date.now());
+        var horaStr = fecha.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' });
+        statusDiv.innerHTML = '✅ Previsión cargada ' + horaStr;
+        statusDiv.style.display = 'block';
+      }
+
+      console.log('✅ Previsión aplicada correctamente');
+
+    } else {
+      throw new Error(data.error || 'No se encontraron demandas');
+    }
+
+  } catch (error) {
+    console.error('❌ Error cargando previsión:', error);
+    if (statusDiv) {
+      statusDiv.innerHTML = '❌ Error al cargar previsión';
+      statusDiv.style.display = 'block';
+    }
+  } finally {
+    if (btnPrevision) {
+      btnPrevision.disabled = false;
+      btnPrevision.innerHTML = '📊 Cargar Previsión';
+    }
+  }
+};
+
+// Función para cargar solo los fijos (chapero)
+window.cargarFijosNoray = async function() {
+  var btnFijos = document.getElementById('btn-cargar-fijos');
+  var statusDiv = document.getElementById('noray-status-fijos');
+
+  if (btnFijos) {
+    btnFijos.disabled = true;
+    btnFijos.innerHTML = '<span class="loading-spinner"></span> Cargando...';
+  }
+
+  try {
+    console.log('👥 Cargando fijos desde scraper de Render...');
+    var renderUrl = 'https://noray-scraper.onrender.com/api/chapero';
+    var response = await fetch(renderUrl);
+    var data = await response.json();
+
+    if (data.success && data.fijos !== undefined) {
+      console.log('✅ Fijos obtenidos:', data.fijos);
+
+      // Rellenar fijos
+      var fijosInput = document.getElementById('calc-fijos');
+      if (fijosInput) {
+        fijosInput.value = data.fijos;
+      }
+
+      // Mostrar estado exitoso
+      if (statusDiv) {
+        var fecha = new Date(data.timestamp || Date.now());
+        var horaStr = fecha.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' });
+        statusDiv.innerHTML = '✅ Fijos cargados ' + horaStr;
+        statusDiv.style.display = 'block';
+      }
+
+      console.log('✅ Fijos aplicados correctamente');
+
+    } else {
+      throw new Error(data.error || 'No se encontraron fijos');
+    }
+
+  } catch (error) {
+    console.error('❌ Error cargando fijos:', error);
+    if (statusDiv) {
+      statusDiv.innerHTML = '❌ Error al cargar fijos';
+      statusDiv.style.display = 'block';
+    }
+  } finally {
+    if (btnFijos) {
+      btnFijos.disabled = false;
+      btnFijos.innerHTML = '👥 Cargar Fijos';
+    }
+  }
+};
+
+// ============================================================================
+// FIN NUEVAS FUNCIONES
+// ============================================================================
+
 function calcularResultadoJornada(posicionRestante) {
   // posicionRestante: cuantas posiciones faltan para llegar al usuario
   // Si es <= 0, el usuario ya esta dentro (sale contratado)
@@ -6422,10 +6561,12 @@ async function loadCalculadora() {
   // ============================================================================
 
   // ============================================================================
-  // AUTO-CARGA DE DATOS DE NORAY AL ABRIR EL ORÁCULO
+  // AUTO-CARGA DE DATOS DE NORAY AL ABRIR EL ORÁCULO (DESHABILITADO)
   // ============================================================================
-  // Intentar cargar automáticamente los datos del scraper de Render
-  // Esto ahorra al usuario tener que hacer clic manual en "Cargar desde Noray"
+  // NOTA: Auto-carga deshabilitada para evitar bloqueos de Cloudflare
+  // Los usuarios ahora deben usar los botones separados "Cargar Previsión" y "Cargar Fijos"
+  // Esto evita que Cloudflare bloquee la segunda navegación en el scraper
+  /*
   try {
     console.log('🔄 Auto-cargando datos de Noray desde scraper...');
     var autoLoadUrl = 'https://noray-scraper.onrender.com/api/all';
@@ -6472,6 +6613,8 @@ async function loadCalculadora() {
     // No mostrar error al usuario, solo continuar normalmente
     // El usuario aún puede usar el botón "Cargar desde Noray" manualmente
   }
+  */
+  console.log('ℹ️ Auto-carga deshabilitada. Usa los botones "📊 Cargar Previsión" y "👥 Cargar Fijos" por separado.');
   // ============================================================================
 
   // Constantes del censo

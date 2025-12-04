@@ -500,12 +500,21 @@
         <div class="calculator-card">
           <h3 class="section-title">Introduce los datos de cada jornada</h3>
 
-          <!-- Boton para cargar datos automaticamente -->
+          <!-- Botones para cargar datos por separado (evita bloqueo de Cloudflare) -->
           <div class="calc-form-group" style="margin-bottom: 1.5rem;">
-            <button id="btn-cargar-noray" onclick="cargarDatosNoray()" class="btn-secondary" style="width: 100%;">
-              Cargar datos Noray
-            </button>
-            <div id="noray-status" style="display: none; font-size: 0.75rem; text-align: center; margin-top: 0.5rem;"></div>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem;">
+              <button id="btn-cargar-prevision" onclick="cargarPrevisionNoray()" class="btn-secondary">
+                📊 Cargar Previsión
+              </button>
+              <button id="btn-cargar-fijos" onclick="cargarFijosNoray()" class="btn-secondary">
+                👥 Cargar Fijos
+              </button>
+            </div>
+            <div id="noray-status-prevision" style="display: none; font-size: 0.75rem; text-align: center; margin-top: 0.5rem; color: #4ade80;"></div>
+            <div id="noray-status-fijos" style="display: none; font-size: 0.75rem; text-align: center; margin-top: 0.5rem; color: #4ade80;"></div>
+            <p class="help-text" style="margin-top: 0.5rem; font-size: 0.7rem; text-align: center;">
+              ℹ️ Usa los botones por separado para evitar bloqueos de Cloudflare
+            </p>
           </div>
 
           <!-- Fijos disponibles (comun para todas) -->
