@@ -6352,14 +6352,49 @@ window.cargarDatosNoray = async function() {
 // NUEVAS FUNCIONES PARA CARGAR DATOS POR SEPARADO (EVITAR BLOQUEO CLOUDFLARE)
 // ============================================================================
 
+// Función auxiliar para bloquear/desbloquear botones mutuamente
+function setLoadingState(activeButton, inactiveButton, isLoading) {
+  var loadingInfo = document.getElementById('noray-loading-info');
+
+  if (isLoading) {
+    // Deshabilitar ambos botones
+    activeButton.disabled = true;
+    inactiveButton.disabled = true;
+
+    // Aplicar estilo visual de "bloqueado" al botón inactivo
+    inactiveButton.style.opacity = '0.5';
+    inactiveButton.style.cursor = 'not-allowed';
+
+    // Mostrar mensaje informativo
+    if (loadingInfo) {
+      loadingInfo.style.display = 'block';
+    }
+  } else {
+    // Rehabilitar solo el botón activo (el inactivo se rehabilitará cuando termine)
+    activeButton.disabled = false;
+    inactiveButton.disabled = false;
+
+    // Restaurar estilo del botón inactivo
+    inactiveButton.style.opacity = '1';
+    inactiveButton.style.cursor = 'pointer';
+
+    // Ocultar mensaje informativo
+    if (loadingInfo) {
+      loadingInfo.style.display = 'none';
+    }
+  }
+}
+
 // Función para cargar solo la previsión (demandas de grúas y coches)
 window.cargarPrevisionNoray = async function() {
   var btnPrevision = document.getElementById('btn-cargar-prevision');
+  var btnFijos = document.getElementById('btn-cargar-fijos');
   var statusDiv = document.getElementById('noray-status-prevision');
 
   if (btnPrevision) {
-    btnPrevision.disabled = true;
     btnPrevision.innerHTML = '<span class="loading-spinner"></span> Cargando...';
+    // Bloquear ambos botones mientras carga
+    setLoadingState(btnPrevision, btnFijos, true);
   }
 
   try {
@@ -6423,9 +6458,10 @@ window.cargarPrevisionNoray = async function() {
       statusDiv.style.display = 'block';
     }
   } finally {
-    if (btnPrevision) {
-      btnPrevision.disabled = false;
+    if (btnPrevision && btnFijos) {
       btnPrevision.innerHTML = '📊 Cargar Previsión';
+      // Desbloquear ambos botones
+      setLoadingState(btnPrevision, btnFijos, false);
     }
   }
 };
@@ -6433,11 +6469,13 @@ window.cargarPrevisionNoray = async function() {
 // Función para cargar solo los fijos (chapero)
 window.cargarFijosNoray = async function() {
   var btnFijos = document.getElementById('btn-cargar-fijos');
+  var btnPrevision = document.getElementById('btn-cargar-prevision');
   var statusDiv = document.getElementById('noray-status-fijos');
 
   if (btnFijos) {
-    btnFijos.disabled = true;
     btnFijos.innerHTML = '<span class="loading-spinner"></span> Cargando...';
+    // Bloquear ambos botones mientras carga
+    setLoadingState(btnFijos, btnPrevision, true);
   }
 
   try {
@@ -6476,9 +6514,10 @@ window.cargarFijosNoray = async function() {
       statusDiv.style.display = 'block';
     }
   } finally {
-    if (btnFijos) {
-      btnFijos.disabled = false;
+    if (btnFijos && btnPrevision) {
       btnFijos.innerHTML = '👥 Cargar Fijos';
+      // Desbloquear ambos botones
+      setLoadingState(btnFijos, btnPrevision, false);
     }
   }
 };
