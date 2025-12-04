@@ -13,11 +13,9 @@ class OpenAIAssistantsManager {
     };
 
     // Obtener API key de OpenAI
-    // PRODUCCIÓN: La API key se debe configurar en localStorage o variable de entorno
-    // NO hardcodear aquí por seguridad
-    this.apiKey = localStorage.getItem('openai_api_key') ||
-                  process.env.OPENAI_API_KEY ||
-                  null;
+    // PRODUCCIÓN: La API key se configura automáticamente desde config.local.js
+    // que carga antes de este script y guarda la key en localStorage
+    this.apiKey = localStorage.getItem('openai_api_key') || null;
 
     // Caché de threads activos por usuario (para mantener contexto)
     this.activeThreads = new Map();
