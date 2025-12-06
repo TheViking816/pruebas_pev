@@ -110,6 +110,12 @@
         </svg>
         Censo
       </button>
+      <button class="nav-link" data-page="tablon">
+        <svg xmlns="http://www.w3.org/2000/svg" class="nav-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" />
+        </svg>
+        Tablón
+      </button>
       <button class="nav-link" data-page="enlaces">
         <svg xmlns="http://www.w3.org/2000/svg" class="nav-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" />
@@ -409,6 +415,73 @@
           <p>Cargando censo...</p>
         </div>
         <div id="censo-content"></div>
+      </div>
+    </section>
+
+    <!-- PÁGINA TABLÓN DE CONTRATACIÓN -->
+    <section id="page-tablon" class="page">
+      <div class="page-hero small">
+        <img src="https://i.imgur.com/guKCoFy.jpeg" alt="Tablón de Contratación">
+        <div class="page-hero-content">
+          <h2 id="tablon-titulo">Tablón de Contratación</h2>
+          <p id="tablon-fecha">Última jornada con contratación</p>
+        </div>
+      </div>
+      <div class="container">
+        <!-- Selector de jornadas (tabs) -->
+        <div id="tablon-jornadas-tabs" style="margin-bottom: 2rem;"></div>
+
+        <!-- Filtros y búsqueda -->
+        <div style="background: white; border: 1px solid var(--border-color); border-radius: 12px; padding: 1.5rem; margin-bottom: 2rem; box-shadow: 0 2px 8px rgba(0,0,0,0.05);">
+          <div style="display: grid; grid-template-columns: 1fr auto; gap: 1rem; align-items: center;">
+            <div style="position: relative;">
+              <input
+                type="text"
+                id="tablon-search"
+                placeholder="Buscar por chapa, empresa o barco..."
+                style="width: 100%; padding: 0.75rem 2.5rem 0.75rem 1rem; border: 1px solid var(--border-color); border-radius: 8px; font-size: 1rem;"
+              />
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                style="position: absolute; right: 0.75rem; top: 50%; transform: translateY(-50%); width: 20px; height: 20px; color: var(--text-secondary); pointer-events: none;"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+              </svg>
+            </div>
+            <button
+              id="tablon-expand-all"
+              style="padding: 0.75rem 1.5rem; background: var(--puerto-blue); color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: 600; white-space: nowrap;"
+            >
+              Expandir Todo
+            </button>
+          </div>
+        </div>
+
+        <!-- Estadísticas -->
+        <div id="tablon-stats" style="margin-bottom: 2rem;"></div>
+
+        <!-- Loading -->
+        <div id="tablon-loading" class="loading-state">
+          <div class="spinner"></div>
+          <p>Cargando tablón de contratación...</p>
+        </div>
+
+        <!-- Contenido -->
+        <div id="tablon-content"></div>
+
+        <!-- Modal para mostrar detalles de chapa -->
+        <div id="tablon-chapa-modal" style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 9999; align-items: center; justify-content: center; padding: 1rem;">
+          <div style="background: white; border-radius: 12px; max-width: 600px; width: 100%; max-height: 90vh; overflow-y: auto; box-shadow: 0 20px 50px rgba(0,0,0,0.3);">
+            <div style="position: sticky; top: 0; background: linear-gradient(135deg, var(--puerto-blue), #1e40af); color: white; padding: 1.5rem; display: flex; justify-content: space-between; align-items: center; z-index: 10;">
+              <h3 id="modal-chapa-titulo" style="margin: 0; font-size: 1.5rem; font-weight: 700;">Chapa XXX</h3>
+              <button id="modal-close-btn" style="background: rgba(255,255,255,0.2); border: none; color: white; width: 36px; height: 36px; border-radius: 50%; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; line-height: 1;">×</button>
+            </div>
+            <div id="modal-chapa-content" style="padding: 1.5rem;"></div>
+          </div>
+        </div>
       </div>
     </section>
 

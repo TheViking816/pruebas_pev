@@ -637,6 +637,33 @@ class PWADataBridge {
   }
 
   /**
+   * Obtiene las fechas de pago del calendario
+   */
+  async getProximoPago(anio, mes, quincena) {
+    try {
+      // Usar window.supabaseClient en lugar de window.supabase
+      const { data, error} = await window.supabaseClient
+        .from('calendario_pago')
+        .select('*')
+        .eq('anio', anio)
+        .eq('mes', mes)
+        .eq('quincena', quincena)
+        .single();
+
+      if (error) {
+        console.error('❌ Error obteniendo calendario de pago:', error);
+        return null;
+      }
+
+      return data;
+
+    } catch (error) {
+      console.error('❌ Error obteniendo calendario de pago:', error);
+      return null;
+    }
+  }
+
+  /**
    * Obtiene el nombre del usuario
    */
   async getNombreUsuario() {

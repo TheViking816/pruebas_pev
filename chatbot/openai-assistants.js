@@ -15,10 +15,26 @@ class OpenAIAssistantsManager {
     // Obtener API key de OpenAI
     // PRODUCCIÓN: La API key se configura automáticamente desde config.local.js
     // que carga antes de este script y guarda la key en localStorage
-    this.apiKey = localStorage.getItem('openai_api_key') || null;
+    // También puede venir de window.OPENAI_CONFIG si config.local.js acabó de cargar
+    this.apiKey = localStorage.getItem('openai_api_key') ||
+                  (window.OPENAI_CONFIG && window.OPENAI_CONFIG.apiKey) ||
+                  null;
+
+    // Si se obtuvo de window.OPENAI_CONFIG, guardar en localStorage también
+    if (!localStorage.getItem('openai_api_key') && window.OPENAI_CONFIG && window.OPENAI_CONFIG.apiKey) {
+      localStorage.setItem('openai_api_key', window.OPENAI_CONFIG.apiKey);
+      console.log('✅ OpenAI API Key guardada en localStorage desde OPENAI_CONFIG');
+    }
 
     // Caché de threads activos por usuario (para mantener contexto)
     this.activeThreads = new Map();
+
+    // Log de verificación
+    if (this.apiKey) {
+      console.log('✅ OpenAI API Key cargada correctamente (primeros 10 caracteres):', this.apiKey.substring(0, 10) + '...');
+    } else {
+      console.warn('⚠️ No se encontró OpenAI API Key');
+    }
   }
 
   /**
@@ -210,10 +226,13 @@ class OpenAIAssistantsManager {
       }
 
       // Extraer el texto de la respuesta
-      const respuestaTexto = lastMessage.content
+      let respuestaTexto = lastMessage.content
         .filter(c => c.type === 'text')
         .map(c => c.text.value)
         .join('\n\n');
+
+      // Limpiar referencias de source que vienen del assistant (ej: 【4:2†source】)
+      respuestaTexto = respuestaTexto.replace(/【\d+:\d+†source】/g, '');
 
       console.log('✅ Respuesta obtenida del assistant');
 

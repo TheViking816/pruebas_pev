@@ -200,6 +200,24 @@ class AIEngine {
         confidence: 0.9
       },
 
+      // CALENDARIO DE PAGO
+      'calendario_pago': {
+        patterns: [
+          /cuándo (voy a )?cobr(o|ar|aré)/i,
+          /cuándo (me )?pag(an|arán)/i,
+          /cuándo (es|será) (el )?pago/i,
+          /cuándo (me )?dan (el )?dinero/i,
+          /fecha (de )?pago/i,
+          /cuándo (me )?ingresan/i,
+          /cuándo (recibo|recibiré) (el )?(sueldo|salario|nómina)/i,
+          /día de pago/i,
+          /cobro.*quincena/i,
+          /pago.*quincena/i
+        ],
+        response: 'consultar_calendario_pago',
+        confidence: 0.9
+      },
+
       // ACCIONES - NO DISPONIBLE
       'no_disponible': {
         patterns: [
@@ -430,7 +448,25 @@ class AIEngine {
           /jornada laboral/i,
           /período|periodo.*(prueba|vacaciones)/i,
           /plus|pluses|complemento/i,
-          /descanso|descansos/i
+          /descanso|descansos/i,
+          // Nuevos patrones específicos
+          /límite.*contratación.*(temporal|indefinida)/i,
+          /contratación.*temporal.*indefinida/i,
+          /empresa.*separa.*CPE/i,
+          /jornada.*(12 horas|doble turno)/i,
+          /tiempo.*trabajo.*efectivo/i,
+          /pluses? salariales?.*(jornada|nocturna|festiva)/i,
+          /positivo.*(alcohol|drogas)/i,
+          /controles?.*(alcohol|drogas)/i,
+          /faltas? (muy )?graves?.*(despido)/i,
+          /funciones?.*(grupo profesional|capataz|oficial)/i,
+          /grupo profesional/i,
+          /permiso.*(matrimonio|traslado)/i,
+          /diferencia.*(grupo|capataz|oficial)/i,
+          /dietas?.*(desplazamiento|otros puertos)/i,
+          /permiso.*no retribuido/i,
+          /horas extraordinarias/i,
+          /máximo.*horas/i
         ],
         response: 'consultar_convenio',
         confidence: 0.85
@@ -464,7 +500,39 @@ class AIEngine {
           /(cuándo|cuando).*(segundo|tercer).*(festivo)/i,
           /festivos? seguidos?.*(contrat)/i,
           /(criterios|normas|reglas).*(contratación|contratacion)/i,
-          /(prioridad|preferencia).*(contratación|contratacion)/i
+          /(prioridad|preferencia).*(contratación|contratacion)/i,
+          // Nuevos patrones específicos para la guía
+          /doble puerta/i,
+          /(súper|super).*diurno/i,
+          /hora.*límite.*localizable/i,
+          /localizable/i,
+          /prioridad.*doble/i,
+          /doble.*polivalencia/i,
+          /orden.*especialidades/i,
+          /asignan.*especialidades/i,
+          /hora.*publica.*asignación/i,
+          /hora.*publica.*nombramiento/i,
+          /festivos consecutivos/i,
+          /puentes/i,
+          /falto.*reservado/i,
+          /falto.*anticipado/i,
+          /controles.*(aleatorios|alcohol|drogas)/i,
+          /positivo inicial.*contraste/i,
+          /margen.*positivo/i,
+          /lista.*después.*llamamiento/i,
+          /personal extra/i,
+          /reservado.*obligaciones/i,
+          /estar reservado/i,
+          /orden.*sustitución/i,
+          /cubrir.*sustitución/i,
+          /órdenes anticipadas/i,
+          /turno.*apoyo/i,
+          /posición.*listas/i,
+          /polivalencia.*especialidad/i,
+          /nombran.*dos jornadas/i,
+          /jornadas solapadas/i,
+          /algoritmo.*nombramiento/i,
+          /rotación/i
         ],
         response: 'consultar_guia_contratacion',
         confidence: 0.85
@@ -773,6 +841,10 @@ Escribe tu pregunta abajo ⬇️`,
 
     if (intent.action === 'consultar_puertas') {
       return await this.handlePuertasQuery();
+    }
+
+    if (intent.action === 'consultar_calendario_pago') {
+      return await this.handleCalendarioPagoQuery();
     }
 
     if (intent.action === 'consultar_empresa_mas_trabajada') {
@@ -1281,6 +1353,83 @@ Escribe tu pregunta abajo ⬇️`,
       return {
         text: this.responses.error_datos,
         intent: 'puertas',
+        confidence: 0.9
+      };
+    }
+  }
+
+  async handleCalendarioPagoQuery() {
+    try {
+      // Determinar la quincena actual
+      const hoy = new Date();
+      const dia = hoy.getDate();
+      const mes = hoy.getMonth() + 1; // getMonth() retorna 0-11
+      const anio = hoy.getFullYear();
+
+      // Primera quincena: días 1-15
+      // Segunda quincena: días 16-31
+      let quincenaTrabajada, mesTrabajado, anioTrabajado;
+
+      if (dia <= 15) {
+        // Estamos en la primera quincena, cobramos la segunda del mes pasado
+        quincenaTrabajada = 2;
+        if (mes === 1) {
+          mesTrabajado = 12;
+          anioTrabajado = anio - 1;
+        } else {
+          mesTrabajado = mes - 1;
+          anioTrabajado = anio;
+        }
+      } else {
+        // Estamos en la segunda quincena, cobramos la primera de este mes
+        quincenaTrabajada = 1;
+        mesTrabajado = mes;
+        anioTrabajado = anio;
+      }
+
+      // Consultar el calendario de pago
+      const fechasPago = await this.dataBridge.getProximoPago(anioTrabajado, mesTrabajado, quincenaTrabajada);
+
+      if (!fechasPago) {
+        return {
+          text: "Lo siento, no tengo información sobre las fechas de pago para esta quincena. Por favor, consulta con la oficina.",
+          intent: 'calendario_pago',
+          confidence: 0.9
+        };
+      }
+
+      // Formatear las fechas
+      const formatearFecha = (fecha) => {
+        const f = new Date(fecha);
+        const opciones = { day: 'numeric', month: 'long' };
+        return f.toLocaleDateString('es-ES', opciones);
+      };
+
+      const fechaInicio = formatearFecha(fechasPago.fecha_pago_inicio);
+      const fechaFin = formatearFecha(fechasPago.fecha_pago_fin);
+
+      let texto = `💰 **Calendario de Pago**\n\n`;
+      texto += `**${fechasPago.periodo_descripcion}**\n\n`;
+
+      if (fechasPago.fecha_pago_inicio === fechasPago.fecha_pago_fin) {
+        texto += `Cobrarás el **${fechaInicio}**`;
+      } else {
+        texto += `Cobrarás entre el **${fechaInicio}** y el **${fechaFin}**`;
+      }
+
+      texto += `\n\nSe cobra quincenalmente. Los días de pago varían ligeramente según el mes.`;
+
+      return {
+        text: texto,
+        intent: 'calendario_pago',
+        confidence: 0.9
+      };
+
+    } catch (error) {
+      console.error('Error en handleCalendarioPagoQuery:', error);
+      return {
+        text: "Lo siento, no pude obtener la información del calendario de pago. Por favor, intenta de nuevo.",
+        intent: 'calendario_pago',
         confidence: 0.9
       };
     }

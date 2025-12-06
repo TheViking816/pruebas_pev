@@ -3868,3 +3868,556 @@ body::before {
     height: 24px;
   }
 }
+
+/* ============================================
+   TABLÓN DE CONTRATACIÓN - ESTILOS
+   ============================================ */
+
+/* Tabs de jornadas */
+.tablon-jornadas-tabs {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  background: white;
+  padding: 1rem;
+  border-radius: 12px;
+  border: 1px solid var(--border-color);
+  box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+}
+
+.tablon-jornada-tab {
+  flex: 1;
+  min-width: 120px;
+  padding: 0.875rem 1.5rem;
+  background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+  border: 2px solid var(--border-color);
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 0.95rem;
+  color: var(--text-secondary);
+  text-align: center;
+  transition: all 0.2s ease;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.tablon-jornada-tab:hover {
+  border-color: var(--puerto-blue);
+  background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(59, 130, 246, 0.2);
+}
+
+.tablon-jornada-tab.active {
+  background: linear-gradient(135deg, var(--puerto-blue), #1e40af);
+  color: white;
+  border-color: var(--puerto-blue);
+  box-shadow: 0 4px 12px rgba(10, 46, 92, 0.3);
+}
+
+.tablon-jornada-count {
+  font-size: 0.75rem;
+  opacity: 0.8;
+}
+
+/* Buque panel especial */
+.tablon-buque-panel {
+  background: white;
+  border-radius: 12px;
+  padding: 1.5rem;
+  margin-top: 1rem;
+  border: 2px solid var(--puerto-blue);
+  box-shadow: 0 4px 16px rgba(10, 46, 92, 0.15);
+}
+
+.tablon-buque-header-panel {
+  display: flex;
+  gap: 1.5rem;
+  margin-bottom: 1.5rem;
+  align-items: center;
+}
+
+.tablon-buque-image {
+  width: 120px;
+  height: 120px;
+  border-radius: 12px;
+  overflow: hidden;
+  flex-shrink: 0;
+  box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+}
+
+.tablon-buque-image img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.tablon-buque-info-panel {
+  flex: 1;
+}
+
+.tablon-buque-nombre-panel {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--puerto-blue);
+  margin-bottom: 0.5rem;
+}
+
+.tablon-buque-stats-panel {
+  display: flex;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.tablon-buque-stat {
+  background: linear-gradient(135deg, #f1f5f9 0%, #e2e8f0 100%);
+  padding: 0.5rem 1rem;
+  border-radius: 8px;
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+  font-weight: 600;
+}
+
+/* Especialidades (puestos) */
+.tablon-especialidades-container {
+  display: grid;
+  gap: 1.5rem;
+}
+
+.tablon-especialidad-group {
+  background: linear-gradient(135deg, #f8fafc 0%, #ffffff 100%);
+  border: 1px solid var(--border-color);
+  border-radius: 10px;
+  padding: 1rem;
+}
+
+.tablon-especialidad-header {
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: var(--puerto-blue);
+  margin-bottom: 1rem;
+  padding-bottom: 0.75rem;
+  border-bottom: 2px solid var(--border-color);
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.tablon-especialidad-icon {
+  width: 20px;
+  height: 20px;
+  color: var(--puerto-orange);
+}
+
+.tablon-chapas-compact-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
+  gap: 0.75rem;
+}
+
+.tablon-chapa-compact {
+  background: white;
+  border: 2px solid var(--border-color);
+  border-radius: 8px;
+  padding: 0.75rem;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  position: relative;
+}
+
+.tablon-chapa-compact:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+  border-color: var(--puerto-blue);
+  background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%);
+}
+
+.tablon-chapa-compact-numero {
+  font-size: 1.3rem;
+  font-weight: 700;
+  color: var(--puerto-blue);
+  margin-bottom: 0.25rem;
+}
+
+.tablon-chapa-compact-jornada {
+  font-size: 0.7rem;
+  color: var(--text-secondary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.25rem;
+}
+
+.tablon-chapa-compact-jornada svg {
+  width: 12px;
+  height: 12px;
+}
+
+/* Modal */
+.tablon-modal-parte-info {
+  background: linear-gradient(135deg, #f8fafc 0%, #ffffff 100%);
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  padding: 1rem;
+  margin-bottom: 1rem;
+}
+
+.tablon-modal-info-row {
+  display: flex;
+  justify-content: space-between;
+  padding: 0.75rem 0;
+  border-bottom: 1px dashed var(--border-color);
+}
+
+.tablon-modal-info-row:last-child {
+  border-bottom: none;
+}
+
+.tablon-modal-info-label {
+  font-weight: 600;
+  color: var(--text-secondary);
+  font-size: 0.9rem;
+}
+
+.tablon-modal-info-value {
+  font-weight: 700;
+  color: var(--text-primary);
+  font-size: 1rem;
+}
+
+.tablon-empresa-card {
+  background: white;
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
+  margin-bottom: 1rem;
+  overflow: hidden;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+  transition: all 0.3s ease;
+}
+
+.tablon-empresa-card:hover {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.tablon-empresa-header {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 1.25rem;
+  cursor: pointer;
+  background: linear-gradient(135deg, #f8fafc 0%, #ffffff 100%);
+  border-bottom: 1px solid var(--border-color);
+  transition: background 0.2s ease;
+}
+
+.tablon-empresa-header:hover {
+  background: linear-gradient(135deg, #f1f5f9 0%, #f8fafc 100%);
+}
+
+.tablon-empresa-logo {
+  width: 60px;
+  height: 60px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  overflow: hidden;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.tablon-empresa-logo img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  background: white;
+  padding: 0.25rem;
+}
+
+.tablon-empresa-logo-fallback {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, var(--puerto-blue), #1e40af);
+  color: white;
+  font-weight: 700;
+  font-size: 0.9rem;
+  text-align: center;
+  padding: 0.5rem;
+}
+
+.tablon-empresa-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.tablon-empresa-nombre {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin-bottom: 0.25rem;
+}
+
+.tablon-empresa-stats {
+  font-size: 0.875rem;
+  color: var(--text-secondary);
+}
+
+.tablon-empresa-toggle {
+  width: 24px;
+  height: 24px;
+  color: var(--puerto-blue);
+  transition: transform 0.3s ease;
+  flex-shrink: 0;
+}
+
+.tablon-empresa-card.expanded .tablon-empresa-toggle {
+  transform: rotate(180deg);
+}
+
+.tablon-empresa-content {
+  max-height: 0;
+  overflow: hidden;
+  transition: max-height 0.3s ease;
+}
+
+.tablon-empresa-card.expanded .tablon-empresa-content {
+  max-height: 5000px;
+}
+
+.tablon-buque-card {
+  border-top: 1px solid var(--border-color);
+  background: #fafbfc;
+}
+
+.tablon-buque-header {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 1rem 1.25rem;
+  cursor: pointer;
+  transition: background 0.2s ease;
+}
+
+.tablon-buque-header:hover {
+  background: #f1f5f9;
+}
+
+.tablon-buque-icon {
+  width: 20px;
+  height: 20px;
+  color: var(--puerto-blue);
+  flex-shrink: 0;
+}
+
+.tablon-buque-nombre {
+  font-size: 1.05rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  flex: 1;
+}
+
+.tablon-buque-toggle {
+  width: 20px;
+  height: 20px;
+  color: var(--text-secondary);
+  transition: transform 0.3s ease;
+  flex-shrink: 0;
+}
+
+.tablon-buque-card.expanded .tablon-buque-toggle {
+  transform: rotate(180deg);
+}
+
+.tablon-buque-content {
+  max-height: 0;
+  overflow: hidden;
+  transition: max-height 0.3s ease;
+}
+
+.tablon-buque-card.expanded .tablon-buque-content {
+  max-height: 3000px;
+}
+
+.tablon-parte-card {
+  padding: 0.75rem 1.25rem 0.75rem 3rem;
+  background: white;
+  border-top: 1px dashed var(--border-color);
+}
+
+.tablon-parte-header {
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--puerto-blue);
+  margin-bottom: 0.75rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.tablon-parte-badge {
+  background: linear-gradient(135deg, var(--puerto-blue), #1e40af);
+  color: white;
+  padding: 0.25rem 0.75rem;
+  border-radius: 6px;
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
+.tablon-chapas-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 0.75rem;
+}
+
+.tablon-chapa-card {
+  background: linear-gradient(135deg, #f8fafc 0%, #ffffff 100%);
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  padding: 0.875rem;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  transition: all 0.2s ease;
+}
+
+.tablon-chapa-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  border-color: var(--puerto-blue);
+}
+
+.tablon-chapa-numero {
+  background: linear-gradient(135deg, var(--puerto-blue), #1e40af);
+  color: white;
+  font-weight: 700;
+  font-size: 1.1rem;
+  padding: 0.5rem 0.75rem;
+  border-radius: 6px;
+  min-width: 60px;
+  text-align: center;
+  flex-shrink: 0;
+  box-shadow: 0 2px 4px rgba(10, 46, 92, 0.3);
+}
+
+.tablon-chapa-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.tablon-chapa-puesto {
+  font-weight: 600;
+  color: var(--text-primary);
+  font-size: 0.9rem;
+  margin-bottom: 0.25rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.tablon-chapa-jornada {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+}
+
+.tablon-chapa-jornada svg {
+  width: 14px;
+  height: 14px;
+  flex-shrink: 0;
+}
+
+/* Censo - Añadir posiciones */
+.censo-item-with-position {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.25rem;
+}
+
+.censo-position-badge {
+  font-size: 0.7rem;
+  font-weight: 600;
+  color: #64748b;
+  background: linear-gradient(135deg, #f1f5f9 0%, #e2e8f0 100%);
+  padding: 0.125rem 0.5rem;
+  border-radius: 12px;
+  border: 1px solid #cbd5e1;
+  white-space: nowrap;
+}
+
+.censo-position-badge.top {
+  background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+  color: #92400e;
+  border-color: #fbbf24;
+}
+
+.censo-position-badge.middle {
+  background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%);
+  color: #1e40af;
+  border-color: #60a5fa;
+}
+
+.censo-position-badge.bottom {
+  background: linear-gradient(135deg, #f3f4f6 0%, #e5e7eb 100%);
+  color: #6b7280;
+  border-color: #d1d5db;
+}
+
+/* Responsive para tablón */
+@media (max-width: 768px) {
+  .tablon-chapas-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .tablon-chapas-compact-grid {
+    grid-template-columns: repeat(auto-fill, minmax(90px, 1fr));
+  }
+
+  .tablon-empresa-logo {
+    width: 50px;
+    height: 50px;
+  }
+
+  .tablon-empresa-nombre {
+    font-size: 1.1rem;
+  }
+
+  .tablon-parte-card {
+    padding: 0.75rem 1rem;
+  }
+
+  .tablon-buque-header-panel {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .tablon-buque-image {
+    width: 100%;
+    height: 180px;
+  }
+
+  .tablon-jornada-tab {
+    min-width: 100px;
+    padding: 0.75rem 1rem;
+    font-size: 0.85rem;
+  }
+
+  #tablon-search {
+    font-size: 0.9rem !important;
+  }
+
+  #tablon-expand-all {
+    padding: 0.5rem 1rem !important;
+    font-size: 0.85rem !important;
+  }
+}

@@ -121,10 +121,6 @@ class ChatApp {
     // Inicializar motor de IA
     await this.aiEngine.initialize(this.dataBridge);
 
-    // Modo LOCAL - 100% gratis, offline y privado
-    this.aiEngine.setMode('local');
-    console.log('✅ Modo LOCAL - 100% gratis, offline y privado');
-
     // Cargar configuración
     this.voiceHandler.loadSettings();
     this.loadSettings();
@@ -242,25 +238,6 @@ class ChatApp {
     document.getElementById('quick-actions-toggle').addEventListener('change', (e) => {
       this.elements.quickActions.style.display = e.target.checked ? 'flex' : 'none';
       localStorage.setItem('quick_actions_enabled', e.target.checked ? '1' : '0');
-    });
-
-    // AI mode select
-    document.getElementById('ai-mode-select').addEventListener('change', (e) => {
-      const mode = e.target.value;
-      this.aiEngine.setMode(mode);
-
-      // Mostrar/ocultar sección de API key
-      const apiKeySection = document.getElementById('api-key-section');
-      apiKeySection.style.display = (mode === 'groq' || mode === 'openai') ? 'block' : 'none';
-    });
-
-    // Save API key
-    document.getElementById('save-api-key').addEventListener('click', () => {
-      const apiKey = document.getElementById('api-key-input').value;
-      if (apiKey) {
-        this.aiEngine.setApiKey(apiKey);
-        alert('API Key guardada correctamente');
-      }
     });
 
     // Back button
@@ -689,22 +666,6 @@ class ChatApp {
       const enabled = (quickActionsEnabled === '1');
       document.getElementById('quick-actions-toggle').checked = enabled;
       this.elements.quickActions.style.display = enabled ? 'flex' : 'none';
-    }
-
-    // AI mode
-    const aiMode = localStorage.getItem('ai_mode');
-    if (aiMode) {
-      document.getElementById('ai-mode-select').value = aiMode;
-
-      // Mostrar/ocultar sección de API key según el modo
-      const apiKeySection = document.getElementById('api-key-section');
-      apiKeySection.style.display = (aiMode === 'groq' || aiMode === 'openai') ? 'block' : 'none';
-    }
-
-    // API key
-    const apiKey = localStorage.getItem('ai_api_key');
-    if (apiKey) {
-      document.getElementById('api-key-input').value = apiKey;
     }
   }
 

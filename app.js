@@ -1140,6 +1140,9 @@ function navigateTo(pageName) {
     case 'censo':
       loadCenso();
       break;
+    case 'tablon':
+      loadTablon();
+      break;
     case 'foro':
       loadForo();
       break;
@@ -2543,12 +2546,47 @@ async function loadCenso() {
     chapasWrapper.className = 'censo-grid';
     chapasWrapper.style.marginTop = '2rem';
 
+    // Función para obtener la clase de posición según el percentil
+    function getPosicionClass(posicion, totalChapas) {
+      const porcentaje = (posicion / totalChapas) * 100;
+
+      if (porcentaje <= 20) {
+        return 'top'; // Top 20% (primeras posiciones)
+      } else if (porcentaje <= 60) {
+        return 'middle'; // 60% medio
+      } else {
+        return 'bottom'; // 40% últimas posiciones
+      }
+    }
+
     // Crear grid de chapas dentro del wrapper
-    data.forEach(item => {
+    data.forEach((item, index) => {
       const div = document.createElement('div');
       div.className = `censo-item ${item.color}`;
-      div.textContent = item.chapa;
-      div.title = `Chapa ${item.chapa}`;
+
+      // Verificar si existe el campo posicion
+      const posicion = item.posicion || (index + 1);
+      const posicionClass = getPosicionClass(posicion, data.length);
+
+      // Crear estructura con posición
+      const wrapper = document.createElement('div');
+      wrapper.className = 'censo-item-with-position';
+
+      const posicionBadge = document.createElement('div');
+      posicionBadge.className = `censo-position-badge ${posicionClass}`;
+      posicionBadge.textContent = posicion;
+
+      const chapaNumber = document.createElement('div');
+      chapaNumber.textContent = item.chapa;
+      chapaNumber.style.fontWeight = '700';
+      chapaNumber.style.fontSize = '1rem';
+
+      wrapper.appendChild(posicionBadge);
+      wrapper.appendChild(chapaNumber);
+
+      div.appendChild(wrapper);
+      div.title = `Chapa ${item.chapa} - Posición ${posicion}`;
+
       chapasWrapper.appendChild(div);
     });
 
@@ -2564,6 +2602,510 @@ async function loadCenso() {
     `;
   }
 }
+
+/**
+ * Carga el tablón de contratación con división por jornadas
+ */
+async function loadTablon() {
+  const container = document.getElementById('tablon-content');
+  const loading = document.getElementById('tablon-loading');
+  const statsContainer = document.getElementById('tablon-stats');
+  const fechaTitulo = document.getElementById('tablon-fecha');
+  const searchInput = document.getElementById('tablon-search');
+  const expandAllBtn = document.getElementById('tablon-expand-all');
+  const jornadasTabsContainer = document.getElementById('tablon-jornadas-tabs');
+  const modal = document.getElementById('tablon-chapa-modal');
+  const modalTitle = document.getElementById('modal-chapa-titulo');
+  const modalContent = document.getElementById('modal-chapa-content');
+  const modalCloseBtn = document.getElementById('modal-close-btn');
+
+  if (!container) return;
+
+  loading.classList.remove('hidden');
+  container.innerHTML = '';
+  if (statsContainer) statsContainer.innerHTML = '';
+  if (jornadasTabsContainer) jornadasTabsContainer.innerHTML = '';
+
+  // Configurar modal
+  if (modal && modalCloseBtn) {
+    modalCloseBtn.onclick = () => {
+      modal.style.display = 'none';
+    };
+    modal.onclick = (e) => {
+      if (e.target === modal) {
+        modal.style.display = 'none';
+      }
+    };
+  }
+
+  try {
+    // Logos de empresas
+    const empresaLogos = {
+      'APM': 'https://i.imgur.com/HgQ95qc.jpeg',
+      'CSP': 'https://i.imgur.com/8Tjx3KP.jpeg',
+      'VTEU': 'https://i.imgur.com/3nNCkw5.jpeg',
+      'MSC': 'https://i.imgur.com/kX4Ujxf.jpeg',
+      'ERH': 'https://i.imgur.com/OHDp62K.png'
+    };
+
+    // Imagen genérica de buque
+    const buqueImage = 'https://i.imgur.com/guKCoFy.jpeg';
+
+    // 1. Obtener la última jornada con contratación
+    const { data: ultimaFecha, error: errorFecha } = await window.supabaseClient
+      .from('jornales')
+      .select('fecha')
+      .not('empresa', 'is', null)
+      .order('fecha', { ascending: false })
+      .limit(1)
+      .single();
+
+    if (errorFecha) throw errorFecha;
+
+    const fecha = ultimaFecha.fecha;
+
+    // 2. Obtener todas las contrataciones de esa fecha
+    const { data: contrataciones, error: errorContrataciones } = await window.supabaseClient
+      .from('jornales')
+      .select('chapa, empresa, buque, parte, puesto, jornada')
+      .eq('fecha', fecha)
+      .not('empresa', 'is', null)
+      .order('jornada')
+      .order('empresa')
+      .order('buque')
+      .order('puesto')
+      .order('chapa');
+
+    if (errorContrataciones) throw errorContrataciones;
+
+    loading.classList.add('hidden');
+
+    // Actualizar título con la fecha
+    if (fechaTitulo) {
+      const fechaObj = new Date(fecha + 'T12:00:00');
+      const fechaFormateada = fechaObj.toLocaleDateString('es-ES', {
+        weekday: 'long',
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric'
+      });
+      fechaTitulo.textContent = `Última contratación: ${fechaFormateada}`;
+    }
+
+    // 3. Agrupar por jornada → empresa → buque → especialidad
+    const jornadasMap = {};
+
+    contrataciones.forEach(item => {
+      const jornada = item.jornada || 'Sin jornada';
+      const empresa = item.empresa || 'Sin empresa';
+      const buque = item.buque || 'Sin barco';
+      const especialidad = item.puesto || 'Sin especialidad';
+
+      if (!jornadasMap[jornada]) {
+        jornadasMap[jornada] = {};
+      }
+      if (!jornadasMap[jornada][empresa]) {
+        jornadasMap[jornada][empresa] = {};
+      }
+      if (!jornadasMap[jornada][empresa][buque]) {
+        jornadasMap[jornada][empresa][buque] = {};
+      }
+      if (!jornadasMap[jornada][empresa][buque][especialidad]) {
+        jornadasMap[jornada][empresa][buque][especialidad] = [];
+      }
+
+      jornadasMap[jornada][empresa][buque][especialidad].push(item);
+    });
+
+    // 4. Calcular estadísticas
+    const totalChapas = contrataciones.length;
+    const totalJornadas = Object.keys(jornadasMap).length;
+    const totalBarcos = new Set(contrataciones.map(c => c.buque)).size;
+    const totalEspecialidades = new Set(contrataciones.map(c => c.puesto)).size;
+
+    // 5. Crear tabs de jornadas
+    let jornadaActual = Object.keys(jornadasMap).sort()[0]; // Primera jornada por defecto
+
+    const renderJornadasTabs = () => {
+      if (!jornadasTabsContainer) return;
+
+      jornadasTabsContainer.className = 'tablon-jornadas-tabs';
+      jornadasTabsContainer.innerHTML = '';
+
+      Object.keys(jornadasMap).sort().forEach(jornada => {
+        const chapasEnJornada = Object.values(jornadasMap[jornada]).reduce((sum, empresas) => {
+          return sum + Object.values(empresas).reduce((s, buques) => {
+            return s + Object.values(buques).reduce((ss, especialidades) => {
+              return ss + especialidades.length;
+            }, 0);
+          }, 0);
+        }, 0);
+
+        const tab = document.createElement('div');
+        tab.className = `tablon-jornada-tab ${jornada === jornadaActual ? 'active' : ''}`;
+        tab.innerHTML = `
+          <div>${jornada}</div>
+          <div class="tablon-jornada-count">${chapasEnJornada} chapas</div>
+        `;
+        tab.onclick = () => {
+          jornadaActual = jornada;
+          renderJornadasTabs();
+          renderTablonParaJornada(jornada);
+        };
+        jornadasTabsContainer.appendChild(tab);
+      });
+    };
+
+    // Función para mostrar modal de chapa
+    const mostrarModalChapa = (chapaData) => {
+      if (!modal || !modalTitle || !modalContent) return;
+
+      modalTitle.textContent = `Chapa ${chapaData.chapa}`;
+      modalContent.innerHTML = `
+        <div class="tablon-modal-parte-info">
+          <h4 style="font-size: 1.1rem; font-weight: 700; color: var(--puerto-blue); margin-bottom: 1rem;">Información del Parte</h4>
+          <div class="tablon-modal-info-row">
+            <span class="tablon-modal-info-label">Empresa:</span>
+            <span class="tablon-modal-info-value">${chapaData.empresa || '—'}</span>
+          </div>
+          <div class="tablon-modal-info-row">
+            <span class="tablon-modal-info-label">Buque:</span>
+            <span class="tablon-modal-info-value">${chapaData.buque || '—'}</span>
+          </div>
+          <div class="tablon-modal-info-row">
+            <span class="tablon-modal-info-label">Parte:</span>
+            <span class="tablon-modal-info-value">${chapaData.parte || '—'}</span>
+          </div>
+          <div class="tablon-modal-info-row">
+            <span class="tablon-modal-info-label">Puesto:</span>
+            <span class="tablon-modal-info-value">${chapaData.puesto || '—'}</span>
+          </div>
+          <div class="tablon-modal-info-row">
+            <span class="tablon-modal-info-label">Jornada:</span>
+            <span class="tablon-modal-info-value">${chapaData.jornada || '—'}</span>
+          </div>
+        </div>
+      `;
+
+      modal.style.display = 'flex';
+    };
+
+    // 6. Función para renderizar tablón para una jornada específica
+    const renderTablonParaJornada = (jornada) => {
+      container.innerHTML = '';
+
+      const empresasEnJornada = jornadasMap[jornada];
+      if (!empresasEnJornada) return;
+
+      // Actualizar estadísticas para esta jornada
+      const chapasJornada = Object.values(empresasEnJornada).reduce((sum, empresas) => {
+        return sum + Object.values(empresas).reduce((s, buques) => {
+          return s + Object.values(buques).reduce((ss, especialidades) => {
+            return ss + especialidades.length;
+          }, 0);
+        }, 0);
+      }, 0);
+
+      const empresasJornada = Object.keys(empresasEnJornada).length;
+      const barcosJornada = new Set();
+      const especialidadesJornada = new Set();
+
+      Object.values(empresasEnJornada).forEach(empresas => {
+        Object.keys(empresas).forEach(buque => barcosJornada.add(buque));
+        Object.values(empresas).forEach(buques => {
+          Object.keys(buques).forEach(especialidad => especialidadesJornada.add(especialidad));
+        });
+      });
+
+      if (statsContainer) {
+        statsContainer.innerHTML = `
+          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 1rem;">
+            <div style="background: linear-gradient(135deg, #3b82f6, #2563eb); color: white; padding: 1.25rem; border-radius: 12px; text-align: center; box-shadow: 0 4px 8px rgba(59, 130, 246, 0.3);">
+              <div style="font-size: 2rem; font-weight: 700; margin-bottom: 0.25rem;">${chapasJornada}</div>
+              <div style="font-size: 0.85rem; opacity: 0.95;">Chapas</div>
+            </div>
+            <div style="background: linear-gradient(135deg, #10b981, #059669); color: white; padding: 1.25rem; border-radius: 12px; text-align: center; box-shadow: 0 4px 8px rgba(16, 185, 129, 0.3);">
+              <div style="font-size: 2rem; font-weight: 700; margin-bottom: 0.25rem;">${empresasJornada}</div>
+              <div style="font-size: 0.85rem; opacity: 0.95;">Empresas</div>
+            </div>
+            <div style="background: linear-gradient(135deg, #f59e0b, #d97706); color: white; padding: 1.25rem; border-radius: 12px; text-align: center; box-shadow: 0 4px 8px rgba(245, 158, 11, 0.3);">
+              <div style="font-size: 2rem; font-weight: 700; margin-bottom: 0.25rem;">${barcosJornada.size}</div>
+              <div style="font-size: 0.85rem; opacity: 0.95;">Barcos</div>
+            </div>
+            <div style="background: linear-gradient(135deg, #8b5cf6, #7c3aed); color: white; padding: 1.25rem; border-radius: 12px; text-align: center; box-shadow: 0 4px 8px rgba(139, 92, 246, 0.3);">
+              <div style="font-size: 2rem; font-weight: 700; margin-bottom: 0.25rem;">${especialidadesJornada.size}</div>
+              <div style="font-size: 0.85rem; opacity: 0.95;">Especialidades</div>
+            </div>
+          </div>
+        `;
+      }
+
+      // Renderizar empresas
+      let allExpanded = false;
+
+      Object.keys(empresasEnJornada).sort().forEach(empresa => {
+        const buquesEmpresa = empresasEnJornada[empresa];
+        const totalChapasEmpresa = Object.values(buquesEmpresa).reduce((sum, especialidades) => {
+          return sum + Object.values(especialidades).reduce((s, chapas) => s + chapas.length, 0);
+        }, 0);
+
+      // Card de empresa
+      const empresaCard = document.createElement('div');
+      empresaCard.className = 'tablon-empresa-card';
+      empresaCard.dataset.empresa = empresa.toLowerCase();
+
+      // Header de empresa
+      const empresaHeader = document.createElement('div');
+      empresaHeader.className = 'tablon-empresa-header';
+
+      // Logo
+      const logoDiv = document.createElement('div');
+      logoDiv.className = 'tablon-empresa-logo';
+
+      const empresaUpper = empresa.toUpperCase().trim();
+      const logoUrl = empresaLogos[empresaUpper];
+
+      if (logoUrl) {
+        const img = document.createElement('img');
+        img.src = logoUrl;
+        img.alt = empresa;
+        img.onerror = () => {
+          logoDiv.innerHTML = `<div class="tablon-empresa-logo-fallback">${empresa}</div>`;
+        };
+        logoDiv.appendChild(img);
+      } else {
+        logoDiv.innerHTML = `<div class="tablon-empresa-logo-fallback">${empresa}</div>`;
+      }
+
+      empresaHeader.appendChild(logoDiv);
+
+      // Info de empresa
+      const empresaInfo = document.createElement('div');
+      empresaInfo.className = 'tablon-empresa-info';
+      empresaInfo.innerHTML = `
+          <div class="tablon-empresa-nombre">${empresa}</div>
+          <div class="tablon-empresa-stats">${totalChapasEmpresa} chapas en ${Object.keys(buquesEmpresa).length} barcos</div>
+        `;
+        empresaHeader.appendChild(empresaInfo);
+
+      // Toggle icon
+      const toggleIcon = document.createElement('svg');
+      toggleIcon.className = 'tablon-empresa-toggle';
+      toggleIcon.setAttribute('xmlns', 'http://www.w3.org/2000/svg');
+      toggleIcon.setAttribute('fill', 'none');
+      toggleIcon.setAttribute('viewBox', '0 0 24 24');
+      toggleIcon.setAttribute('stroke', 'currentColor');
+      toggleIcon.innerHTML = '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />';
+      empresaHeader.appendChild(toggleIcon);
+
+      empresaHeader.addEventListener('click', () => {
+        empresaCard.classList.toggle('expanded');
+      });
+
+      empresaCard.appendChild(empresaHeader);
+
+      // Contenido de empresa (barcos)
+      const empresaContent = document.createElement('div');
+      empresaContent.className = 'tablon-empresa-content';
+
+        Object.keys(buquesEmpresa).sort().forEach(buque => {
+          const especialidadesBuque = buquesEmpresa[buque];
+
+          // Card de barco (simple, clickeable para mostrar panel)
+          const buqueCard = document.createElement('div');
+          buqueCard.className = 'tablon-buque-card';
+          buqueCard.dataset.buque = buque.toLowerCase();
+
+          // Header de barco
+          const buqueHeader = document.createElement('div');
+          buqueHeader.className = 'tablon-buque-header';
+          buqueHeader.innerHTML = `
+            <svg class="tablon-buque-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 21v-4m0 0V5a2 2 0 012-2h6.5l1 1H21l-3 6 3 6h-8.5l-1-1H5a2 2 0 00-2 2zm9-13.5V9" />
+            </svg>
+            <div class="tablon-buque-nombre">${buque}</div>
+            <svg class="tablon-buque-toggle" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+            </svg>
+          `;
+
+          buqueHeader.addEventListener('click', () => {
+            buqueCard.classList.toggle('expanded');
+          });
+
+          buqueCard.appendChild(buqueHeader);
+
+          // Panel especial del buque (se muestra al expandir)
+          const buquePanel = document.createElement('div');
+          buquePanel.className = 'tablon-buque-panel';
+
+          // Header del panel con imagen
+          const panelHeader = document.createElement('div');
+          panelHeader.className = 'tablon-buque-header-panel';
+
+          const totalChapasBuque = Object.values(especialidadesBuque).reduce((sum, chapas) => sum + chapas.length, 0);
+
+          panelHeader.innerHTML = `
+            <div class="tablon-buque-image">
+              <img src="${buqueImage}" alt="${buque}">
+            </div>
+            <div class="tablon-buque-info-panel">
+              <div class="tablon-buque-nombre-panel">${buque}</div>
+              <div class="tablon-buque-stats-panel">
+                <div class="tablon-buque-stat">${totalChapasBuque} chapas</div>
+                <div class="tablon-buque-stat">${Object.keys(especialidadesBuque).length} especialidades</div>
+                <div class="tablon-buque-stat">Jornada: ${jornada}</div>
+              </div>
+            </div>
+          `;
+
+          buquePanel.appendChild(panelHeader);
+
+          // Contenedor de especialidades
+          const especialidadesContainer = document.createElement('div');
+          especialidadesContainer.className = 'tablon-especialidades-container';
+
+          Object.keys(especialidadesBuque).sort().forEach(especialidad => {
+            const chapasEspecialidad = especialidadesBuque[especialidad];
+
+            // Grupo de especialidad
+            const especialidadGroup = document.createElement('div');
+            especialidadGroup.className = 'tablon-especialidad-group';
+
+            const especialidadHeader = document.createElement('div');
+            especialidadHeader.className = 'tablon-especialidad-header';
+            especialidadHeader.innerHTML = `
+              <svg class="tablon-especialidad-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+              </svg>
+              ${especialidad} <span style="font-weight: normal; color: var(--text-secondary); font-size: 0.9rem;">(${chapasEspecialidad.length} chapas)</span>
+            `;
+
+            especialidadGroup.appendChild(especialidadHeader);
+
+            // Grid de chapas compacto
+            const chapasGrid = document.createElement('div');
+            chapasGrid.className = 'tablon-chapas-compact-grid';
+
+            chapasEspecialidad.forEach(chapaData => {
+              const chapaCompact = document.createElement('div');
+              chapaCompact.className = 'tablon-chapa-compact';
+              chapaCompact.dataset.chapa = chapaData.chapa;
+              chapaCompact.dataset.empresa = empresa.toLowerCase();
+              chapaCompact.dataset.buque = buque.toLowerCase();
+              chapaCompact.dataset.especialidad = especialidad.toLowerCase();
+
+              chapaCompact.innerHTML = `
+                <div class="tablon-chapa-compact-numero">${chapaData.chapa}</div>
+                <div class="tablon-chapa-compact-jornada">
+                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                  ${chapaData.jornada || jornada}
+                </div>
+              `;
+
+              chapaCompact.onclick = () => {
+                mostrarModalChapa(chapaData);
+              };
+
+              chapasGrid.appendChild(chapaCompact);
+            });
+
+            especialidadGroup.appendChild(chapasGrid);
+            especialidadesContainer.appendChild(especialidadGroup);
+          });
+
+          buquePanel.appendChild(especialidadesContainer);
+
+          // Envolver panel en el contenido del buque
+          const buqueContent = document.createElement('div');
+          buqueContent.className = 'tablon-buque-content';
+          buqueContent.appendChild(buquePanel);
+
+          buqueCard.appendChild(buqueContent);
+          empresaContent.appendChild(buqueCard);
+        });
+
+      empresaCard.appendChild(empresaContent);
+      container.appendChild(empresaCard);
+    });
+
+      // Botón expandir/colapsar
+      if (expandAllBtn) {
+        expandAllBtn.onclick = () => {
+          allExpanded = !allExpanded;
+          const empresaCards = container.querySelectorAll('.tablon-empresa-card');
+          const buqueCards = container.querySelectorAll('.tablon-buque-card');
+
+          if (allExpanded) {
+            empresaCards.forEach(card => card.classList.add('expanded'));
+            buqueCards.forEach(card => card.classList.add('expanded'));
+            expandAllBtn.textContent = 'Colapsar Todo';
+          } else {
+            empresaCards.forEach(card => card.classList.remove('expanded'));
+            buqueCards.forEach(card => card.classList.remove('expanded'));
+            expandAllBtn.textContent = 'Expandir Todo';
+          }
+        };
+      }
+
+      // Búsqueda
+      if (searchInput) {
+        searchInput.oninput = (e) => {
+          const searchTerm = e.target.value.toLowerCase().trim();
+
+          const empresaCards = container.querySelectorAll('.tablon-empresa-card');
+
+          empresaCards.forEach(empresaCard => {
+            let empresaHasMatch = false;
+
+            const buqueCards = empresaCard.querySelectorAll('.tablon-buque-card');
+            buqueCards.forEach(buqueCard => {
+              let buqueHasMatch = false;
+
+              const chapaCards = buqueCard.querySelectorAll('.tablon-chapa-compact');
+              chapaCards.forEach(chapaCard => {
+                const chapa = chapaCard.dataset.chapa || '';
+                const empresa = chapaCard.dataset.empresa || '';
+                const buque = chapaCard.dataset.buque || '';
+                const especialidad = chapaCard.dataset.especialidad || '';
+
+                const matches = chapa.includes(searchTerm) ||
+                  empresa.includes(searchTerm) ||
+                  buque.includes(searchTerm) ||
+                  especialidad.includes(searchTerm);
+
+                chapaCard.style.display = matches ? '' : 'none';
+                if (matches) buqueHasMatch = true;
+              });
+
+              buqueCard.style.display = buqueHasMatch ? '' : 'none';
+              if (buqueHasMatch) empresaHasMatch = true;
+            });
+
+            empresaCard.style.display = empresaHasMatch ? '' : 'none';
+          });
+        };
+      }
+    };
+
+    // Inicializar
+    renderJornadasTabs();
+    renderTablonParaJornada(jornadaActual);
+
+  } catch (error) {
+    console.error('Error cargando tablón:', error);
+    loading.classList.add('hidden');
+    container.innerHTML = `
+      <div class="empty-state">
+        <h3>Error al cargar datos</h3>
+        <p>No se pudo cargar el tablón de contratación. Por favor, intenta de nuevo más tarde.</p>
+      </div>
+    `;
+  }
+}
+
 /**
  * Renderiza los enlaces
  */

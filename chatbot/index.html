@@ -104,26 +104,80 @@
   <li>"¿Cuánto se paga la barra de destrinca en 08-14 festivo?"</li>
 </ul>
 
+<h4>💰 Calendario de Pago</h4>
+<ul class="examples-list">
+  <li>"¿Cuándo voy a cobrar?"</li>
+  <li>"¿Cuándo me pagan esta quincena?"</li>
+  <li>"¿Qué día es el pago?"</li>
+  <li>"¿Cuándo me ingresan el sueldo?"</li>
+</ul>
+
 <h4>🟢 Censo</h4>
 <ul class="examples-list">
   <li>"¿Cuántas chapas disponibles hay?"</li>
 </ul>
 
-<h4>📜 Convenio</h4>
-<ul class="examples-list">
-  <li>"¿Cuántos días de vacaciones tengo?"</li>
-  <li>"¿Qué dice el convenio sobre permisos?"</li>
-</ul>
-
-<h4>📋 V Acuerdo Marco</h4>
+<h4>📋 V Acuerdo Marco y📜 Convenio Colectivo</h4>
 <ul class="examples-list">
   <li>"¿Qué es el V Acuerdo Marco?"</li>
+  <li class="section-title"><strong>Contratación y Estabilidad</strong></li>
+  <li>"¿Cuál es el límite de contratación temporal frente a indefinida?"</li>
+  <li>"¿Qué pasa si una empresa se separa del CPE?"</li>
+
+  <li class="section-title"><strong>Operativa Diaria y Rotación</strong></li>
+  <li>"¿Cuáles son las reglas para hacer una jornada de 12 horas?"</li>
+  <li>"¿Qué se considera tiempo de trabajo efectivo?"</li>
+
+  <li class="section-title"><strong>Salario y Garantías</strong></li>
+  <li>"¿Cuáles son los pluses salariales según el tipo de jornada?"</li>
+
+  <li class="section-title"><strong>Régimen Disciplinario y Salud</strong></li>
+  <li>"¿Qué pasa si doy positivo en alcohol o drogas?"</li>
+  <li>"¿Cuáles son las faltas muy graves que llevan al despido?"</li>
+
+  <li class="section-title"><strong>Formación y Categorías</strong></li>
+  <li>"¿Cuáles son las funciones de cada Grupo Profesional?"</li>
+  <li>"¿Cuál es la diferencia entre Grupo I (Capataz) y Grupo II?"</li>
+
+  <li class="section-title"><strong>Permisos y Vacaciones</strong></li>
+  <li>"¿Cuántos días de vacaciones tengo?"</li>
+  <li>"¿Qué dice el convenio sobre permisos?"</li>
+  <li>"¿Cuántos días de permiso tengo por matrimonio o traslado?"</li>
+  <li>"¿Cómo solicito un permiso no retribuido de larga duración?"</li>
+
+  <li class="section-title"><strong>Horas y Jornadas</strong></li>
+  <li>"¿Cuál es el máximo de horas extraordinarias anuales?"</li>
 </ul>
 
 <h4>📝 Guía de Contratación</h4>
 <ul class="examples-list">
+  <li class="section-title"><strong>Horarios y Jornadas</strong></li>
   <li>"¿Cuándo se contrata la jornada de 02-08?"</li>
   <li>"¿Cuándo se contrata el segundo festivo si hay 2 seguidos?"</li>
+  <li>"¿Cómo funciona el sistema de Doble Puerta (Súper vs Diurno)?"</li>
+  <li>"¿A qué hora se publica la asignación para cada jornada?"</li>
+
+  <li class="section-title"><strong>Localización y Disponibilidad</strong></li>
+  <li>"¿Cuál es la hora límite para estar localizable?"</li>
+  <li>"¿Qué implica estar reservado y qué obligaciones tengo?"</li>
+  <li>"¿Qué ocurre si falto estando reservado o anticipado?"</li>
+  <li>"¿A qué hora se publican las órdenes anticipadas?"</li>
+
+  <li class="section-title"><strong>Prioridades y Asignación</strong></li>
+  <li>"¿Qué prioridad tengo para hacer un doble?"</li>
+  <li>"¿En qué orden se asignan las especialidades?"</li>
+  <li>"¿Cuándo se activa la polivalencia por delante de especialidad?"</li>
+  <li>"¿Cómo afecta el turno de apoyo a mi posición en listas?"</li>
+  <li>"¿Qué lista se usa si piden personal después del llamamiento?"</li>
+
+  <li class="section-title"><strong>Sustituciones y Festivos</strong></li>
+  <li>"¿Cómo se gestionan los nombramientos en festivos consecutivos?"</li>
+  <li>"¿Cuál es el orden para cubrir una sustitución durante turno?"</li>
+  <li>"¿Qué hago si me nombran para dos jornadas solapadas?"</li>
+
+  <li class="section-title"><strong>Controles y Normativa</strong></li>
+  <li>"¿Cómo se realizan los controles de alcohol y drogas?"</li>
+  <li>"¿Cuál es el margen entre positivo inicial y contraste?"</li>
 </ul>
 
 <h4>🔧 Acciones Rápidas</h4>
@@ -213,31 +267,6 @@
             <span>Mostrar acciones rápidas</span>
           </label>
         </div>
-        <div class="setting-item">
-          <label>
-            <span>Modo de IA</span>
-            <select id="ai-mode-select">
-              <option value="local" selected>Local (Gratuito)</option>
-              <option value="groq">Groq (Gratuito, online)</option>
-              <option value="openai">OpenAI GPT-4 (Premium, $5-20/mes)</option>
-            </select>
-          </label>
-          <p style="font-size: 0.85rem; color: var(--text-secondary); margin-top: 0.5rem;">
-            💡 <strong>Local</strong>: Pattern matching simple, 100% gratuito<br>
-            🤖 <strong>Groq</strong>: Gratuito pero puede inventar datos<br>
-            ✨ <strong>OpenAI GPT-4</strong>: Inteligencia avanzada, contextual, sin inventar datos
-          </p>
-        </div>
-        <div class="setting-item" id="api-key-section" style="display: none;">
-          <label>
-            <span>OpenAI API Key</span>
-            <input type="password" id="api-key-input" placeholder="sk-...">
-          </label>
-          <p style="font-size: 0.8rem; color: var(--text-secondary); margin-top: 0.25rem;">
-            Obtén tu API key en <a href="https://platform.openai.com/api-keys" target="_blank" style="color: var(--primary-color);">platform.openai.com</a>
-          </p>
-          <button id="save-api-key" class="btn-primary">Guardar</button>
-        </div>
       </div>
     </div>
   </div>
@@ -259,13 +288,13 @@
   <script src="./pwa-data-bridge.js?v=14"></script>
 
   <!-- Configuración Local de OpenAI (NO se sube a Git) -->
-  <script src="./config.local.js?v=1" onerror="console.warn('config.local.js no encontrado - Configurar API key manualmente')"></script>
+  <script src="./config.local.js?v=2" onerror="console.warn('config.local.js no encontrado - Configurar API key manualmente')"></script>
 
   <!-- OpenAI Assistants Manager (para consultas de PDFs) -->
-  <script src="./openai-assistants.js?v=6"></script>
+  <script src="./openai-assistants.js?v=7"></script>
 
   <!-- AI Engine -->
-  <script src="./ai-engine.js?v=19"></script>
+  <script src="./ai-engine.js?v=20"></script>
 
   <!-- Main Chat App (último, coordina todo) -->
   <script src="./chat-app.js?v=14"></script>
