@@ -2546,16 +2546,14 @@ async function loadCenso() {
     chapasWrapper.className = 'censo-grid';
     chapasWrapper.style.marginTop = '2rem';
 
-    // Función para obtener la clase de posición según el percentil
-    function getPosicionClass(posicion, totalChapas) {
-      const porcentaje = (posicion / totalChapas) * 100;
+    // Función para obtener la clase de posición según SP/OC
+    function getPosicionClass(posicion) {
+      const LIMITE_SP = 443;
 
-      if (porcentaje <= 20) {
-        return 'top'; // Top 20% (primeras posiciones)
-      } else if (porcentaje <= 60) {
-        return 'middle'; // 60% medio
+      if (posicion <= LIMITE_SP) {
+        return 'sp'; // Amarillo para SP (Servicio Permanente)
       } else {
-        return 'bottom'; // 40% últimas posiciones
+        return 'oc'; // Azul para OC (Operaciones Complementarias)
       }
     }
 
@@ -2566,7 +2564,7 @@ async function loadCenso() {
 
       // Verificar si existe el campo posicion
       const posicion = item.posicion || (index + 1);
-      const posicionClass = getPosicionClass(posicion, data.length);
+      const posicionClass = getPosicionClass(posicion);
 
       // Crear estructura con posición
       const wrapper = document.createElement('div');
@@ -2677,7 +2675,7 @@ async function loadTablon() {
 
     const fecha = ultimaFecha.fecha;
 
-    // 2. Obtener todas las contrataciones de esa fecha
+    // 2. Obtener todas las contrataciones de esa fecha (orden de contratación)
     const { data: contrataciones, error: errorContrataciones } = await window.supabaseClient
       .from('jornales')
       .select('chapa, empresa, buque, parte, puesto, jornada')
@@ -2686,8 +2684,8 @@ async function loadTablon() {
       .order('jornada')
       .order('empresa')
       .order('buque')
-      .order('puesto')
-      .order('chapa');
+      .order('puesto');
+      // NO ordenar por chapa - mantener orden de Supabase (orden de contratación)
 
     if (errorContrataciones) throw errorContrataciones;
 
@@ -2769,14 +2767,18 @@ async function loadTablon() {
       });
     };
 
-    // Función para mostrar modal de chapa
+    // Función para mostrar modal de asignación
     const mostrarModalChapa = (chapaData) => {
       if (!modal || !modalTitle || !modalContent) return;
 
-      modalTitle.textContent = `Chapa ${chapaData.chapa}`;
+      modalTitle.textContent = chapaData.chapa;
       modalContent.innerHTML = `
         <div class="tablon-modal-parte-info">
           <h4 style="font-size: 1.1rem; font-weight: 700; color: var(--puerto-blue); margin-bottom: 1rem;">Información del Parte</h4>
+          <div class="tablon-modal-info-row">
+            <span class="tablon-modal-info-label">Asignación:</span>
+            <span class="tablon-modal-info-value">${chapaData.chapa || '—'}</span>
+          </div>
           <div class="tablon-modal-info-row">
             <span class="tablon-modal-info-label">Empresa:</span>
             <span class="tablon-modal-info-value">${chapaData.empresa || '—'}</span>
@@ -2906,7 +2908,7 @@ async function loadTablon() {
       empresaInfo.className = 'tablon-empresa-info';
       empresaInfo.innerHTML = `
           <div class="tablon-empresa-nombre">${empresa}</div>
-          <div class="tablon-empresa-stats">${totalChapasEmpresa} chapas en ${Object.keys(buquesEmpresa).length} barcos</div>
+          <div class="tablon-empresa-stats">${totalChapasEmpresa} asignaciones en ${Object.keys(buquesEmpresa).length} barcos</div>
         `;
         empresaHeader.appendChild(empresaInfo);
 
@@ -2974,7 +2976,7 @@ async function loadTablon() {
             <div class="tablon-buque-info-panel">
               <div class="tablon-buque-nombre-panel">${buque}</div>
               <div class="tablon-buque-stats-panel">
-                <div class="tablon-buque-stat">${totalChapasBuque} chapas</div>
+                <div class="tablon-buque-stat">${totalChapasBuque} asignaciones</div>
                 <div class="tablon-buque-stat">${Object.keys(especialidadesBuque).length} especialidades</div>
                 <div class="tablon-buque-stat">Jornada: ${jornada}</div>
               </div>
@@ -2994,13 +2996,21 @@ async function loadTablon() {
             const especialidadGroup = document.createElement('div');
             especialidadGroup.className = 'tablon-especialidad-group';
 
+            // Función para obtener emoji de especialidad
+            const getEspecialidadEmoji = (esp) => {
+              const espLower = esp.toLowerCase();
+              if (espLower.includes('especialista')) return '👷';
+              if (espLower.includes('conductor de 1a') || espLower.includes('conductor de 1ª')) return '🚛';
+              if (espLower.includes('conductor de 2a') || espLower.includes('conductor de 2ª')) return '🚗';
+              if (espLower.includes('trincador')) return '👷';
+              return '👷'; // Default
+            };
+
             const especialidadHeader = document.createElement('div');
             especialidadHeader.className = 'tablon-especialidad-header';
             especialidadHeader.innerHTML = `
-              <svg class="tablon-especialidad-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
-              </svg>
-              ${especialidad} <span style="font-weight: normal; color: var(--text-secondary); font-size: 0.9rem;">(${chapasEspecialidad.length} chapas)</span>
+              <span style="font-size: 1.5rem; margin-right: 0.5rem;">${getEspecialidadEmoji(especialidad)}</span>
+              ${especialidad} <span style="font-weight: normal; color: var(--text-secondary); font-size: 0.9rem;">(${chapasEspecialidad.length} asignaciones)</span>
             `;
 
             especialidadGroup.appendChild(especialidadHeader);
