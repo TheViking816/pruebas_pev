@@ -2618,6 +2618,10 @@ async function loadTablon() {
   const modalTitle = document.getElementById('modal-chapa-titulo');
   const modalContent = document.getElementById('modal-chapa-content');
   const modalCloseBtn = document.getElementById('modal-close-btn');
+  const filterEmpresa = document.getElementById('tablon-filter-empresa');
+  const filterBuque = document.getElementById('tablon-filter-buque');
+  const filterEspecialidad = document.getElementById('tablon-filter-especialidad');
+  const clearFiltersBtn = document.getElementById('tablon-clear-filters');
 
   if (!container) return;
 
@@ -2639,6 +2643,15 @@ async function loadTablon() {
   }
 
   try {
+    // ============================================
+    // 🎨 CONFIGURACIÓN DE TAMAÑO DE ESTADÍSTICAS
+    // ============================================
+    // Cambia este valor para ajustar el tamaño de las tarjetas de estadísticas:
+    // - 1.0 = Tamaño completo (100%)
+    // - 0.5 = Mitad del tamaño (50%)
+    // - 0.25 = Un cuarto del tamaño (25%)
+    const STATS_SIZE_SCALE = 0.25; // ← AJUSTA ESTE VALOR (0.25, 0.5, 0.75, 1.0)
+
     // Logos de empresas
     const empresaLogos = {
       'APM': 'https://i.imgur.com/HgQ95qc.jpeg',
@@ -2745,7 +2758,7 @@ async function loadTablon() {
         tab.className = `tablon-jornada-tab ${jornada === jornadaActual ? 'active' : ''}`;
         tab.innerHTML = `
           <div>${jornada}</div>
-          <div class="tablon-jornada-count">${chapasEnJornada} chapas</div>
+          <div class="tablon-jornada-count">${chapasEnJornada} asignaciones</div>
         `;
         tab.onclick = () => {
           jornadaActual = jornada;
@@ -2818,23 +2831,32 @@ async function loadTablon() {
       });
 
       if (statsContainer) {
+        // Calcular tamaños dinámicos basados en STATS_SIZE_SCALE
+        const minWidth = Math.round(140 * STATS_SIZE_SCALE);
+        const padding = Math.max(0.5, 1.25 * STATS_SIZE_SCALE);
+        const borderRadius = Math.max(6, 12 * STATS_SIZE_SCALE);
+        const numberSize = Math.max(1.2, 2 * STATS_SIZE_SCALE);
+        const labelSize = Math.max(0.65, 0.85 * STATS_SIZE_SCALE);
+        const gap = Math.max(0.5, 1 * STATS_SIZE_SCALE);
+        const shadowSize = Math.max(2, 4 * STATS_SIZE_SCALE);
+
         statsContainer.innerHTML = `
-          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 1rem;">
-            <div style="background: linear-gradient(135deg, #3b82f6, #2563eb); color: white; padding: 1.25rem; border-radius: 12px; text-align: center; box-shadow: 0 4px 8px rgba(59, 130, 246, 0.3);">
-              <div style="font-size: 2rem; font-weight: 700; margin-bottom: 0.25rem;">${chapasJornada}</div>
-              <div style="font-size: 0.85rem; opacity: 0.95;">Chapas</div>
+          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(${minWidth}px, 1fr)); gap: ${gap}rem;">
+            <div style="background: linear-gradient(135deg, #3b82f6, #2563eb); color: white; padding: ${padding}rem; border-radius: ${borderRadius}px; text-align: center; box-shadow: 0 ${shadowSize}px ${shadowSize * 2}px rgba(59, 130, 246, 0.3);">
+              <div style="font-size: ${numberSize}rem; font-weight: 700; margin-bottom: 0.25rem;">${chapasJornada}</div>
+              <div style="font-size: ${labelSize}rem; opacity: 0.95;">Asignaciones</div>
             </div>
-            <div style="background: linear-gradient(135deg, #10b981, #059669); color: white; padding: 1.25rem; border-radius: 12px; text-align: center; box-shadow: 0 4px 8px rgba(16, 185, 129, 0.3);">
-              <div style="font-size: 2rem; font-weight: 700; margin-bottom: 0.25rem;">${empresasJornada}</div>
-              <div style="font-size: 0.85rem; opacity: 0.95;">Empresas</div>
+            <div style="background: linear-gradient(135deg, #10b981, #059669); color: white; padding: ${padding}rem; border-radius: ${borderRadius}px; text-align: center; box-shadow: 0 ${shadowSize}px ${shadowSize * 2}px rgba(16, 185, 129, 0.3);">
+              <div style="font-size: ${numberSize}rem; font-weight: 700; margin-bottom: 0.25rem;">${empresasJornada}</div>
+              <div style="font-size: ${labelSize}rem; opacity: 0.95;">Empresas</div>
             </div>
-            <div style="background: linear-gradient(135deg, #f59e0b, #d97706); color: white; padding: 1.25rem; border-radius: 12px; text-align: center; box-shadow: 0 4px 8px rgba(245, 158, 11, 0.3);">
-              <div style="font-size: 2rem; font-weight: 700; margin-bottom: 0.25rem;">${barcosJornada.size}</div>
-              <div style="font-size: 0.85rem; opacity: 0.95;">Barcos</div>
+            <div style="background: linear-gradient(135deg, #f59e0b, #d97706); color: white; padding: ${padding}rem; border-radius: ${borderRadius}px; text-align: center; box-shadow: 0 ${shadowSize}px ${shadowSize * 2}px rgba(245, 158, 11, 0.3);">
+              <div style="font-size: ${numberSize}rem; font-weight: 700; margin-bottom: 0.25rem;">${barcosJornada.size}</div>
+              <div style="font-size: ${labelSize}rem; opacity: 0.95;">Barcos</div>
             </div>
-            <div style="background: linear-gradient(135deg, #8b5cf6, #7c3aed); color: white; padding: 1.25rem; border-radius: 12px; text-align: center; box-shadow: 0 4px 8px rgba(139, 92, 246, 0.3);">
-              <div style="font-size: 2rem; font-weight: 700; margin-bottom: 0.25rem;">${especialidadesJornada.size}</div>
-              <div style="font-size: 0.85rem; opacity: 0.95;">Especialidades</div>
+            <div style="background: linear-gradient(135deg, #8b5cf6, #7c3aed); color: white; padding: ${padding}rem; border-radius: ${borderRadius}px; text-align: center; box-shadow: 0 ${shadowSize}px ${shadowSize * 2}px rgba(139, 92, 246, 0.3);">
+              <div style="font-size: ${numberSize}rem; font-weight: 700; margin-bottom: 0.25rem;">${especialidadesJornada.size}</div>
+              <div style="font-size: ${labelSize}rem; opacity: 0.95;">Especialidades</div>
             </div>
           </div>
         `;
@@ -3050,42 +3072,108 @@ async function loadTablon() {
         };
       }
 
-      // Búsqueda
-      if (searchInput) {
-        searchInput.oninput = (e) => {
-          const searchTerm = e.target.value.toLowerCase().trim();
+      // Poblar filtros con opciones únicas
+      const empresasSet = new Set();
+      const buquesSet = new Set();
+      const especialidadesSet = new Set();
 
-          const empresaCards = container.querySelectorAll('.tablon-empresa-card');
+      Object.keys(empresasEnJornada).forEach(empresa => {
+        empresasSet.add(empresa);
+        Object.keys(empresasEnJornada[empresa]).forEach(buque => {
+          buquesSet.add(buque);
+          Object.keys(empresasEnJornada[empresa][buque]).forEach(especialidad => {
+            especialidadesSet.add(especialidad);
+          });
+        });
+      });
 
-          empresaCards.forEach(empresaCard => {
-            let empresaHasMatch = false;
+      if (filterEmpresa) {
+        filterEmpresa.innerHTML = '<option value="">Todas las empresas</option>';
+        Array.from(empresasSet).sort().forEach(empresa => {
+          const option = document.createElement('option');
+          option.value = empresa.toLowerCase();
+          option.textContent = empresa;
+          filterEmpresa.appendChild(option);
+        });
+      }
 
-            const buqueCards = empresaCard.querySelectorAll('.tablon-buque-card');
-            buqueCards.forEach(buqueCard => {
-              let buqueHasMatch = false;
+      if (filterBuque) {
+        filterBuque.innerHTML = '<option value="">Todos los barcos</option>';
+        Array.from(buquesSet).sort().forEach(buque => {
+          const option = document.createElement('option');
+          option.value = buque.toLowerCase();
+          option.textContent = buque;
+          filterBuque.appendChild(option);
+        });
+      }
 
-              const chapaCards = buqueCard.querySelectorAll('.tablon-chapa-compact');
-              chapaCards.forEach(chapaCard => {
-                const chapa = chapaCard.dataset.chapa || '';
-                const empresa = chapaCard.dataset.empresa || '';
-                const buque = chapaCard.dataset.buque || '';
-                const especialidad = chapaCard.dataset.especialidad || '';
+      if (filterEspecialidad) {
+        filterEspecialidad.innerHTML = '<option value="">Todas las especialidades</option>';
+        Array.from(especialidadesSet).sort().forEach(especialidad => {
+          const option = document.createElement('option');
+          option.value = especialidad.toLowerCase();
+          option.textContent = especialidad;
+          filterEspecialidad.appendChild(option);
+        });
+      }
 
-                const matches = chapa.includes(searchTerm) ||
-                  empresa.includes(searchTerm) ||
-                  buque.includes(searchTerm) ||
-                  especialidad.includes(searchTerm);
+      // Función de filtrado combinado
+      const aplicarFiltros = () => {
+        const searchTerm = searchInput ? searchInput.value.toLowerCase().trim() : '';
+        const empresaFilter = filterEmpresa ? filterEmpresa.value : '';
+        const buqueFilter = filterBuque ? filterBuque.value : '';
+        const especialidadFilter = filterEspecialidad ? filterEspecialidad.value : '';
 
-                chapaCard.style.display = matches ? '' : 'none';
-                if (matches) buqueHasMatch = true;
-              });
+        const empresaCards = container.querySelectorAll('.tablon-empresa-card');
 
-              buqueCard.style.display = buqueHasMatch ? '' : 'none';
-              if (buqueHasMatch) empresaHasMatch = true;
+        empresaCards.forEach(empresaCard => {
+          let empresaHasMatch = false;
+
+          const buqueCards = empresaCard.querySelectorAll('.tablon-buque-card');
+          buqueCards.forEach(buqueCard => {
+            let buqueHasMatch = false;
+
+            const chapaCards = buqueCard.querySelectorAll('.tablon-chapa-compact');
+            chapaCards.forEach(chapaCard => {
+              const chapa = chapaCard.dataset.chapa || '';
+              const empresa = chapaCard.dataset.empresa || '';
+              const buque = chapaCard.dataset.buque || '';
+              const especialidad = chapaCard.dataset.especialidad || '';
+
+              // Aplicar todos los filtros
+              const matchChapa = !searchTerm || chapa.includes(searchTerm);
+              const matchEmpresa = !empresaFilter || empresa === empresaFilter;
+              const matchBuque = !buqueFilter || buque === buqueFilter;
+              const matchEspecialidad = !especialidadFilter || especialidad === especialidadFilter;
+
+              const matches = matchChapa && matchEmpresa && matchBuque && matchEspecialidad;
+
+              chapaCard.style.display = matches ? '' : 'none';
+              if (matches) buqueHasMatch = true;
             });
 
-            empresaCard.style.display = empresaHasMatch ? '' : 'none';
+            buqueCard.style.display = buqueHasMatch ? '' : 'none';
+            if (buqueHasMatch) empresaHasMatch = true;
           });
+
+          empresaCard.style.display = empresaHasMatch ? '' : 'none';
+        });
+      };
+
+      // Event listeners para filtros
+      if (searchInput) searchInput.oninput = aplicarFiltros;
+      if (filterEmpresa) filterEmpresa.onchange = aplicarFiltros;
+      if (filterBuque) filterBuque.onchange = aplicarFiltros;
+      if (filterEspecialidad) filterEspecialidad.onchange = aplicarFiltros;
+
+      // Botón limpiar filtros
+      if (clearFiltersBtn) {
+        clearFiltersBtn.onclick = () => {
+          if (searchInput) searchInput.value = '';
+          if (filterEmpresa) filterEmpresa.value = '';
+          if (filterBuque) filterBuque.value = '';
+          if (filterEspecialidad) filterEspecialidad.value = '';
+          aplicarFiltros();
         };
       }
     };

@@ -433,17 +433,52 @@
 
         <!-- Filtros y búsqueda -->
         <div style="background: white; border: 1px solid var(--border-color); border-radius: 12px; padding: 1.5rem; margin-bottom: 2rem; box-shadow: 0 2px 8px rgba(0,0,0,0.05);">
-          <div style="display: grid; grid-template-columns: 1fr auto; gap: 1rem; align-items: center;">
+          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; margin-bottom: 1rem;">
+            <!-- Filtro por Empresa -->
+            <div>
+              <label style="display: block; font-size: 0.875rem; font-weight: 600; color: var(--text-secondary); margin-bottom: 0.5rem;">Empresa</label>
+              <select
+                id="tablon-filter-empresa"
+                style="width: 100%; padding: 0.75rem; border: 1px solid var(--border-color); border-radius: 8px; font-size: 1rem; background: white; cursor: pointer;"
+              >
+                <option value="">Todas las empresas</option>
+              </select>
+            </div>
+
+            <!-- Filtro por Barco -->
+            <div>
+              <label style="display: block; font-size: 0.875rem; font-weight: 600; color: var(--text-secondary); margin-bottom: 0.5rem;">Barco</label>
+              <select
+                id="tablon-filter-buque"
+                style="width: 100%; padding: 0.75rem; border: 1px solid var(--border-color); border-radius: 8px; font-size: 1rem; background: white; cursor: pointer;"
+              >
+                <option value="">Todos los barcos</option>
+              </select>
+            </div>
+
+            <!-- Filtro por Especialidad -->
+            <div>
+              <label style="display: block; font-size: 0.875rem; font-weight: 600; color: var(--text-secondary); margin-bottom: 0.5rem;">Especialidad</label>
+              <select
+                id="tablon-filter-especialidad"
+                style="width: 100%; padding: 0.75rem; border: 1px solid var(--border-color); border-radius: 8px; font-size: 1rem; background: white; cursor: pointer;"
+              >
+                <option value="">Todas las especialidades</option>
+              </select>
+            </div>
+
+            <!-- Búsqueda por Chapa -->
             <div style="position: relative;">
+              <label style="display: block; font-size: 0.875rem; font-weight: 600; color: var(--text-secondary); margin-bottom: 0.5rem;">Chapa</label>
               <input
                 type="text"
                 id="tablon-search"
-                placeholder="Buscar por chapa, empresa o barco..."
+                placeholder="Buscar chapa..."
                 style="width: 100%; padding: 0.75rem 2.5rem 0.75rem 1rem; border: 1px solid var(--border-color); border-radius: 8px; font-size: 1rem;"
               />
               <svg
                 xmlns="http://www.w3.org/2000/svg"
-                style="position: absolute; right: 0.75rem; top: 50%; transform: translateY(-50%); width: 20px; height: 20px; color: var(--text-secondary); pointer-events: none;"
+                style="position: absolute; right: 0.75rem; bottom: 0.85rem; width: 20px; height: 20px; color: var(--text-secondary); pointer-events: none;"
                 fill="none"
                 viewBox="0 0 24 24"
                 stroke="currentColor"
@@ -451,9 +486,18 @@
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
               </svg>
             </div>
+          </div>
+
+          <div style="display: flex; gap: 0.75rem; justify-content: flex-end;">
+            <button
+              id="tablon-clear-filters"
+              style="padding: 0.5rem 1rem; background: #f1f5f9; color: var(--text-primary); border: 1px solid var(--border-color); border-radius: 8px; cursor: pointer; font-weight: 600; font-size: 0.875rem;"
+            >
+              Limpiar Filtros
+            </button>
             <button
               id="tablon-expand-all"
-              style="padding: 0.75rem 1.5rem; background: var(--puerto-blue); color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: 600; white-space: nowrap;"
+              style="padding: 0.5rem 1rem; background: var(--puerto-blue); color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: 600; font-size: 0.875rem;"
             >
               Expandir Todo
             </button>
