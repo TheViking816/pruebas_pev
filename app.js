@@ -4600,7 +4600,7 @@ async function loadSueldometro() {
       const importeRemateAcc = tarifaRemateAcc ? (horasRemateValue * tarifaRemateAcc) : 0;
 
       const brutoAcc = j.salario_base + primaValue + importeRelevoAcc + importeRemateAcc;
-      const netoAcc = brutoAcc * (1 - irpfPorcentaje / 100);
+      const netoAcc = brutoAcc * (1 - j.irpf_aplicado / 100);
 
       // Generar campos según tipo
       let camposHTML = '';
@@ -4704,7 +4704,10 @@ async function loadSueldometro() {
                 </div>
                 <div class="accordion-footer-item">
                   <div class="accordion-footer-label">Neto</div>
-                  <div class="accordion-footer-value neto acc-neto-value">${netoAcc.toFixed(2)}€</div>
+                  <div class="accordion-footer-value neto acc-neto-value">
+                    ${netoAcc.toFixed(2)}€
+                    ${j.irpf_aplicado && j.irpf_aplicado !== irpfPorcentaje ? `<span class="badge-irpf-diff" title="Este jornal tiene un IRPF del ${j.irpf_aplicado}% (diferente al actual: ${irpfPorcentaje}%)">${j.irpf_aplicado}%</span>` : ''}
+                  </div>
                 </div>
               </div>
             </div>
@@ -6249,6 +6252,8 @@ async function loadSueldometro() {
       // Actualizar badges de IRPF sin recalcular netos
       // Los netos ya están correctamente calculados con el IRPF específico de cada jornal
       // Solo necesitamos actualizar los badges para mostrar qué jornales tienen IRPF diferente
+
+      // VISTA TABLA (Escritorio)
       document.querySelectorAll('tr[data-lock-key]').forEach(row => {
         const netoCell = row.querySelector('.neto-value');
 
@@ -6276,6 +6281,41 @@ async function loadSueldometro() {
             badge.textContent = `${irpfJornal}%`;
             badge.title = `Este jornal tiene un IRPF del ${irpfJornal}% (diferente al actual: ${nuevoIRPF}%)`;
             netoCell.appendChild(badge);
+          }
+        }
+      });
+
+      // VISTA ACORDEÓN (Móvil)
+      document.querySelectorAll('.accordion-item[data-lock-key]').forEach(accordion => {
+        const netoValue = accordion.querySelector('.acc-neto-value');
+
+        if (netoValue) {
+          // Obtener el IRPF del jornal correspondiente desde la tabla
+          const lockKey = accordion.dataset.lockKey;
+          const rowCorrespondiente = document.querySelector(`tr[data-lock-key="${lockKey}"]`);
+
+          if (rowCorrespondiente) {
+            const irpfJornal = parseFloat(rowCorrespondiente.dataset.irpfAplicado);
+
+            if (!irpfJornal || isNaN(irpfJornal)) {
+              console.warn('⚠️ Jornal sin IRPF aplicado en acordeón:', lockKey);
+              return;
+            }
+
+            // Regenerar badge de IRPF diferente
+            const existingBadge = netoValue.querySelector('.badge-irpf-diff');
+            if (existingBadge) {
+              existingBadge.remove();
+            }
+
+            // Si el IRPF del jornal es diferente al nuevo IRPF global, mostrar badge
+            if (irpfJornal !== nuevoIRPF) {
+              const badge = document.createElement('span');
+              badge.className = 'badge-irpf-diff';
+              badge.textContent = `${irpfJornal}%`;
+              badge.title = `Este jornal tiene un IRPF del ${irpfJornal}% (diferente al actual: ${nuevoIRPF}%)`;
+              netoValue.appendChild(badge);
+            }
           }
         }
       });
