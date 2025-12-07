@@ -2211,8 +2211,8 @@ const SheetsAPI = {
         return null;
       }
 
-      const LIMITE_SP = 443;
-      const INICIO_OC = 444;
+      const LIMITE_SP = 455;
+      const INICIO_OC = 456;
       const FIN_OC = 519;
 
       const esUsuarioSP = posicionUsuario <= LIMITE_SP;
@@ -2220,57 +2220,59 @@ const SheetsAPI = {
       // 2. Obtener censo completo para contar trabajadores según disponibilidad
       const censo = await getCenso();
 
-      // 3. Función auxiliar para obtener el peso NO disponible según el color
-      const getPesoNoDisponible = (color) => {
-        // Calculamos cuánto NO está disponible (inverso del peso de disponibilidad)
-        // red (0 jornadas): 1.00 (totalmente no disponible)
-        // orange (1 jornada): 0.75 (3/4 no disponible)
-        // yellow (2 jornadas): 0.50 (2/4 no disponible)
-        // blue (3 jornadas): 0.25 (1/4 no disponible)
-        // green (todas): 0.00 (totalmente disponible)
-        switch(color) {
-          case 'red': return 1.00;
-          case 'orange': return 0.75;
+      // 3. Función para obtener el peso de disponibilidad según el color
+      // Exactamente igual que en sheets.js y el oráculo
+      const getPesoDisponibilidad = (posicion) => {
+        const item = censo.find(c => c.posicion === posicion);
+        if (!item) return 0;
+
+        // Pesos según disponibilidad:
+        // red (0 jornadas): 0
+        // orange (1 jornada): 1/4 = 0.25
+        // yellow (2 jornadas): 2/4 = 0.50
+        // blue (3 jornadas): 3/4 = 0.75
+        // green (todas las jornadas): 1.00
+        switch(item.color) {
+          case 'red': return 0;
+          case 'orange': return 0.25;
           case 'yellow': return 0.50;
-          case 'blue': return 0.25;
-          case 'green': return 0.00;
-          default: return 1.00;
+          case 'blue': return 0.75;
+          case 'green': return 1.00;
+          default: return 0;
         }
       };
 
-      // 4. Función auxiliar para contar trabajadores no disponibles entre dos posiciones
-      // Ahora suma fracciones según la disponibilidad de cada trabajador
-      const contarNoDisponiblesEntre = (posicionInicio, posicionFin, esCircular, limite) => {
-        let noDisponibles = 0;
+      // 4. Función para contar disponibles entre dos posiciones (en posiciones absolutas)
+      // Ahora tiene en cuenta fracciones según el color de disponibilidad
+      // Exactamente igual que en sheets.js y el oráculo
+      const contarDisponiblesEntre = (desde, hasta) => {
+        let disponibles = 0;
 
-        if (!esCircular) {
-          // Rango normal: de inicio a fin
-          censo.forEach(trabajador => {
-            const pos = trabajador.posicion;
-            const color = trabajador.color;
-            if (pos > posicionInicio && pos <= posicionFin) {
-              noDisponibles += getPesoNoDisponible(color);
-            }
-          });
+        if (desde <= hasta) {
+          // Rango directo
+          for (let pos = desde + 1; pos <= hasta; pos++) {
+            disponibles += getPesoDisponibilidad(pos);
+          }
         } else {
-          // Rango circular: de inicio hasta límite, luego de 1 hasta fin
-          censo.forEach(trabajador => {
-            const pos = trabajador.posicion;
-            const color = trabajador.color;
-
-            if (esUsuarioSP) {
-              if ((pos > posicionInicio && pos <= LIMITE_SP) || (pos >= 1 && pos <= posicionFin)) {
-                noDisponibles += getPesoNoDisponible(color);
-              }
-            } else {
-              if ((pos > posicionInicio && pos <= FIN_OC) || (pos >= INICIO_OC && pos <= posicionFin)) {
-                noDisponibles += getPesoNoDisponible(color);
-              }
+          // Rango con vuelta: desde -> fin + inicio -> hasta
+          if (esUsuarioSP) {
+            for (let pos = desde + 1; pos <= LIMITE_SP; pos++) {
+              disponibles += getPesoDisponibilidad(pos);
             }
-          });
+            for (let pos = 1; pos <= hasta; pos++) {
+              disponibles += getPesoDisponibilidad(pos);
+            }
+          } else {
+            for (let pos = desde + 1; pos <= FIN_OC; pos++) {
+              disponibles += getPesoDisponibilidad(pos);
+            }
+            for (let pos = INICIO_OC; pos <= hasta; pos++) {
+              disponibles += getPesoDisponibilidad(pos);
+            }
+          }
         }
 
-        return Math.round(noDisponibles);
+        return disponibles;
       };
 
       // 5. Obtener puertas
@@ -2284,28 +2286,55 @@ const SheetsAPI = {
       const ultimaPuertaLaborable = this.detectarUltimaJornadaContratada(puertasLaborables, esUsuarioSP);
 
       if (ultimaPuertaLaborable !== null) {
-        let noDisponiblesLaborable = 0;
+        console.log('🔍 DEBUG DISTANCIA A PUERTA LABORABLE');
+        console.log('Chapa:', chapa);
+        console.log('Posición usuario:', posicionUsuario);
+        console.log('Es usuario SP:', esUsuarioSP);
+        console.log('Puerta laborable:', ultimaPuertaLaborable);
+        console.log('LIMITE_SP:', LIMITE_SP);
+        console.log('INICIO_OC:', INICIO_OC);
+        console.log('FIN_OC:', FIN_OC);
 
-        if (esUsuarioSP) {
-          if (posicionUsuario > ultimaPuertaLaborable) {
-            posicionesLaborable = posicionUsuario - ultimaPuertaLaborable;
-            noDisponiblesLaborable = contarNoDisponiblesEntre(ultimaPuertaLaborable, posicionUsuario, false);
+        // Cálculo de distancia efectiva CON pesos de disponibilidad
+        // Exactamente como en el oráculo (app.js)
+        let distancia;
+        if (posicionUsuario > ultimaPuertaLaborable) {
+          // Usuario esta delante
+          console.log('Usuario DELANTE de puerta');
+          const d = contarDisponiblesEntre(ultimaPuertaLaborable, posicionUsuario - 1);
+          console.log(`contarDisponiblesEntre(${ultimaPuertaLaborable}, ${posicionUsuario - 1}) = ${d}`);
+          distancia = d;
+        } else if (posicionUsuario < ultimaPuertaLaborable) {
+          // Usuario esta detras, hay que dar la vuelta
+          console.log('Usuario DETRAS de puerta (vuelta)');
+          if (esUsuarioSP) {
+            const d1 = contarDisponiblesEntre(ultimaPuertaLaborable, LIMITE_SP);
+            const d2 = contarDisponiblesEntre(0, posicionUsuario - 1);
+            console.log(`contarDisponiblesEntre(${ultimaPuertaLaborable}, ${LIMITE_SP}) = ${d1}`);
+            console.log(`contarDisponiblesEntre(0, ${posicionUsuario - 1}) = ${d2}`);
+            distancia = d1 + d2;
           } else {
-            posicionesLaborable = (LIMITE_SP - ultimaPuertaLaborable) + posicionUsuario;
-            noDisponiblesLaborable = contarNoDisponiblesEntre(ultimaPuertaLaborable, posicionUsuario, true, LIMITE_SP);
+            const d1 = contarDisponiblesEntre(ultimaPuertaLaborable, FIN_OC);
+            const d2 = contarDisponiblesEntre(INICIO_OC - 1, posicionUsuario - 1);
+            console.log(`contarDisponiblesEntre(${ultimaPuertaLaborable}, ${FIN_OC}) = ${d1}`);
+            console.log(`contarDisponiblesEntre(${INICIO_OC - 1}, ${posicionUsuario - 1}) = ${d2}`);
+            distancia = d1 + d2;
           }
         } else {
-          if (posicionUsuario > ultimaPuertaLaborable) {
-            posicionesLaborable = posicionUsuario - ultimaPuertaLaborable;
-            noDisponiblesLaborable = contarNoDisponiblesEntre(ultimaPuertaLaborable, posicionUsuario, false);
-          } else {
-            posicionesLaborable = (FIN_OC - ultimaPuertaLaborable) + (posicionUsuario - INICIO_OC + 1);
-            noDisponiblesLaborable = contarNoDisponiblesEntre(ultimaPuertaLaborable, posicionUsuario, true, FIN_OC);
-          }
+          // Misma posicion
+          console.log('Usuario EN LA PUERTA');
+          distancia = 0;
         }
 
-        // Restar trabajadores no disponibles del cálculo (usando pesos)
-        posicionesLaborable = Math.max(0, posicionesLaborable - noDisponiblesLaborable);
+        // Sumar el peso de disponibilidad del propio usuario (como en el oráculo)
+        const pesoUsuario = getPesoDisponibilidad(posicionUsuario);
+        console.log('Peso del usuario:', pesoUsuario);
+        distancia += pesoUsuario;
+        console.log('Distancia total (con usuario):', distancia);
+
+        posicionesLaborable = Math.round(distancia);
+        console.log('Distancia redondeada:', posicionesLaborable);
+        console.log('🔍 FIN DEBUG DISTANCIA');
       }
 
       // 7. CÁLCULO PARA PUERTAS FESTIVAS
