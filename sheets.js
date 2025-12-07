@@ -678,17 +678,20 @@ const SheetsAPI = {
 
       if (ultimaPuertaLaborable !== null) {
         // --- ¡MODIFICACIÓN 3! ---
-        // COPIA EXACTA de calcularDistanciaEfectiva de app.js línea 6723-6738
+        // Cálculo de distancia efectiva CON pesos de disponibilidad
+        // IMPORTANTE: No contamos la posición del usuario (es el punto de referencia)
         let distancia;
         if (posicionUsuario > ultimaPuertaLaborable) {
-          // Usuario esta delante
-          distancia = contarDisponiblesEntre(ultimaPuertaLaborable, posicionUsuario);
+          // Usuario esta delante: contar de puerta+1 hasta usuario-1
+          distancia = contarDisponiblesEntre(ultimaPuertaLaborable, posicionUsuario - 1);
         } else if (posicionUsuario < ultimaPuertaLaborable) {
           // Usuario esta detras, hay que dar la vuelta
           if (esUsuarioSP) {
-            distancia = contarDisponiblesEntre(ultimaPuertaLaborable, LIMITE_SP) + contarDisponiblesEntre(0, posicionUsuario);
+            // De puerta hasta fin SP + de inicio hasta usuario-1
+            distancia = contarDisponiblesEntre(ultimaPuertaLaborable, LIMITE_SP) + contarDisponiblesEntre(0, posicionUsuario - 1);
           } else {
-            distancia = contarDisponiblesEntre(ultimaPuertaLaborable, FIN_OC) + contarDisponiblesEntre(INICIO_OC - 1, posicionUsuario);
+            // De puerta hasta fin OC + de inicio OC hasta usuario-1
+            distancia = contarDisponiblesEntre(ultimaPuertaLaborable, FIN_OC) + contarDisponiblesEntre(INICIO_OC - 1, posicionUsuario - 1);
           }
         } else {
           // Misma posicion
