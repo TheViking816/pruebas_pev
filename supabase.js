@@ -569,6 +569,203 @@ async function syncJornalesFromCSV() {
   }
 }
 
+/**
+ * Sincroniza la tabla tablon_actual desde CSV (SOBRESCRIBE, no acumula)
+ * Esta función elimina todos los datos existentes y los reemplaza con los del CSV actual
+ */
+async function syncTablonActualFromCSV() {
+  try {
+    const tablonURL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vSTtbkA94xqjf81lsR7bLKKtyES2YBDKs8J2T4UrSEan7e5Z_eaptShCA78R1wqUyYyASJxmHj3gDnY/pub?output=csv&gid=1388412839';
+
+    console.log('📥 Sincronizando tablón actual desde CSV (sobrescribiendo)...');
+
+    // Fetch del CSV con reintentos
+    let response;
+    const maxRetries = 3;
+    for (let intento = 1; intento <= maxRetries; intento++) {
+      try {
+        response = await fetch(tablonURL, {
+          headers: {
+            'Accept-Charset': 'utf-8'
+          },
+          cache: 'no-store'
+        });
+
+        if (response.ok) {
+          break;
+        }
+
+        if (intento < maxRetries) {
+          const waitTime = Math.pow(2, intento) * 1000;
+          console.warn(`⚠️ Intento ${intento} falló (status: ${response.status}), reintentando en ${waitTime/1000}s...`);
+          await new Promise(resolve => setTimeout(resolve, waitTime));
+        } else {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+      } catch (fetchError) {
+        if (intento < maxRetries) {
+          const waitTime = Math.pow(2, intento) * 1000;
+          console.warn(`⚠️ Error en intento ${intento}: ${fetchError.message}, reintentando en ${waitTime/1000}s...`);
+          await new Promise(resolve => setTimeout(resolve, waitTime));
+        } else {
+          throw fetchError;
+        }
+      }
+    }
+
+    if (!response || !response.ok) {
+      throw new Error(`HTTP error! status: ${response?.status || 'desconocido'}`);
+    }
+
+    const buffer = await response.arrayBuffer();
+    const decoder = new TextDecoder('utf-8');
+    const csvText = decoder.decode(buffer);
+
+    const lines = csvText.split('\n').map(l => l.trim()).filter(l => l !== '');
+
+    if (lines.length === 0) {
+      console.log('⚠️ CSV del tablón vacío');
+      return { success: false, message: 'CSV vacío' };
+    }
+
+    // Primera línea son headers
+    const headers = lines[0].split(',').map(h => h.trim().replace(/"/g, ''));
+    console.log('📋 Headers CSV tablón:', headers);
+
+    // Mapeo de códigos de puesto a nombres completos
+    const puestoMap = {
+      'T': 'Trincador',
+      'TC': 'Trincador de Coches',
+      'C1': 'Conductor de 1a',
+      'B': 'Conductor de 2a',
+      'E': 'Especialista'
+    };
+
+    // Identificar índices de columnas
+    const indices = {};
+    headers.forEach((header, idx) => {
+      indices[header.toLowerCase()] = idx;
+    });
+
+    // Parsear datos y DESPIVOTEAR
+    const registros = [];
+    for (let i = 1; i < lines.length; i++) {
+      const values = lines[i].split(',').map(v => v.trim().replace(/"/g, ''));
+
+      if (values.length < headers.length) continue;
+
+      // Extraer datos comunes de la fila
+      const fecha = values[indices['fecha']] || '';
+      const jornada = values[indices['jornada']] || '';
+      const empresa = values[indices['empresa']] || '';
+      const parte = values[indices['parte']] || '1';
+      const buque = values[indices['buque']] || '--';
+
+      // VALIDACIÓN: Ignorar filas de encabezados duplicados o basura
+      const fechaRegex = /^\d{1,2}\/\d{1,2}\/\d{2,4}$/;
+      if (!fecha || !fechaRegex.test(fecha)) {
+        continue;
+      }
+
+      // Verificar que la jornada sea válida
+      const jornadaLimpia = jornada.replace(/\s+/g, '').toLowerCase();
+      const jornadasValidas = ['02-08', '08-14', '14-20', '20-02', 'festivo', '02a08', '08a14', '14a20', '20a02'];
+      if (!jornadaLimpia || !jornadasValidas.some(j => jornadaLimpia.includes(j.replace('-', '')))) {
+        continue;
+      }
+
+      // DESPIVOTEAR: Por cada columna de puesto, crear un registro si hay chapa
+      Object.entries(puestoMap).forEach(([codigoPuesto, nombrePuesto]) => {
+        const idx = indices[codigoPuesto.toLowerCase()];
+        if (idx !== undefined) {
+          const chapa = values[idx];
+
+          // Validar que la chapa sea un número válido
+          if (!chapa || chapa.trim() === '') return;
+
+          const chapaNum = parseInt(chapa.trim());
+          if (isNaN(chapaNum) || chapaNum <= 0) return;
+
+          // Convertir fecha a ISO
+          const fechaISO = convertirFechaEspañolAISO(fecha);
+          if (!fechaISO || fechaISO === fecha) return;
+
+          const registro = {
+            fecha: fechaISO,
+            chapa: chapa.trim(),
+            puesto: nombrePuesto,
+            jornada: jornada,
+            empresa: empresa,
+            buque: buque,
+            parte: parte
+          };
+
+          // Validar datos mínimos
+          if (registro.fecha && registro.chapa && registro.jornada) {
+            registros.push(registro);
+          }
+        }
+      });
+    }
+
+    console.log(`✅ ${registros.length} registros despivotados del CSV`);
+
+    if (registros.length > 0) {
+      // PASO 1: ELIMINAR todos los datos existentes en tablon_actual
+      console.log('🗑️ Eliminando datos antiguos de tablon_actual...');
+      const { error: deleteError } = await supabase
+        .from('tablon_actual')
+        .delete()
+        .neq('id', 0); // Eliminar todo
+
+      if (deleteError) {
+        console.error('❌ Error eliminando datos antiguos:', deleteError);
+        throw deleteError;
+      }
+
+      console.log('✅ Datos antiguos eliminados');
+
+      // PASO 2: INSERTAR nuevos datos en lotes
+      console.log(`💾 Insertando ${registros.length} registros nuevos...`);
+
+      let insertados = 0;
+      let errores = 0;
+
+      const BATCH_SIZE = 100;
+      for (let i = 0; i < registros.length; i += BATCH_SIZE) {
+        const batch = registros.slice(i, i + BATCH_SIZE);
+
+        try {
+          const { data, error } = await supabase
+            .from('tablon_actual')
+            .insert(batch)
+            .select();
+
+          if (error) {
+            console.error(`❌ Error en lote ${i}-${i + batch.length}:`, error);
+            errores += batch.length;
+          } else {
+            insertados += data?.length || batch.length;
+          }
+        } catch (error) {
+          console.error(`❌ Excepción en lote ${i}-${i + batch.length}:`, error);
+          errores += batch.length;
+        }
+      }
+
+      console.log(`✅ Sincronización del tablón completa: ${insertados} registros insertados, ${errores} errores`);
+
+      return { success: true, count: insertados, errores };
+    }
+
+    return { success: false, message: 'No hay registros válidos en el CSV' };
+
+  } catch (error) {
+    console.error('❌ Error sincronizando tablón actual desde CSV:', error);
+    return { success: false, message: error.message };
+  }
+}
+
 async function syncCensoFromCSV() {
   try {
     const censoURL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vTrMuapybwZUEGPR1vsP9p1_nlWvznyl0sPD4xWsNJ7HdXCj1ABY1EpU1um538HHZQyJtoAe5Niwrxq/pub?gid=841547354&single=true&output=csv';
@@ -2285,7 +2482,8 @@ const SheetsAPI = {
     const jornales = await getJornales(chapa, null, null, null);
     return jornales;
   },
-  syncJornalesFromCSV: syncJornalesFromCSV, // Sincronización de jornales desde CSV
+  syncJornalesFromCSV: syncJornalesFromCSV, // Sincronización de jornales desde CSV (acumulativo)
+  syncTablonActualFromCSV: syncTablonActualFromCSV, // Sincronización del tablón actual desde CSV (sobrescribe)
   syncPrimasPersonalizadasFromCSV: syncPrimasPersonalizadasFromCSV, // Sincronización de primas desde CSV
   sincronizarJornalesBackup: async function(chapa, jornales) {
     // Esta función de sincronización no es necesaria con Supabase

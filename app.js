@@ -507,6 +507,8 @@ function setupEventListeners() {
     scrollToBottomBtn.addEventListener('click', scrollToBottomForo);
   }
 
+  // Sincronización automática del tablón - no se necesita botón manual
+
   // Detectar scroll en el contenedor de mensajes del foro
   initForoScrollDetection();
 }
@@ -2602,6 +2604,74 @@ async function loadCenso() {
 }
 
 /**
+ * Sincroniza los datos del CSV de la empresa con la tabla tablon_actual en Supabase
+ * Esta función sobrescribe completamente la tabla con los datos actuales del CSV
+ */
+async function sincronizarTablonDesdeCSV() {
+  console.log('🔄 Sincronizando tablón desde CSV...');
+
+  try {
+    // 1. Obtener datos actuales del CSV de la empresa
+    const contratacionesCSV = await SheetsAPI.getContrataciones();
+
+    if (!contratacionesCSV || contratacionesCSV.length === 0) {
+      console.warn('⚠️ No se obtuvieron datos del CSV');
+      return { success: false, message: 'No hay datos en el CSV' };
+    }
+
+    console.log(`📊 Obtenidos ${contratacionesCSV.length} registros del CSV`);
+
+    // 2. Eliminar todos los datos existentes en tablon_actual
+    const { error: deleteError } = await window.supabaseClient
+      .from('tablon_actual')
+      .delete()
+      .neq('id', 0); // Eliminar todo (neq 0 es un truco para eliminar todo)
+
+    if (deleteError) {
+      console.error('❌ Error eliminando datos antiguos:', deleteError);
+      throw deleteError;
+    }
+
+    console.log('🗑️ Datos antiguos eliminados');
+
+    // 3. Preparar datos para inserción
+    const datosParaInsertar = contratacionesCSV.map(item => ({
+      fecha: item.fecha,
+      chapa: item.chapa,
+      puesto: item.puesto,
+      jornada: item.jornada,
+      empresa: item.empresa,
+      buque: item.buque,
+      parte: item.parte
+    }));
+
+    // 4. Insertar nuevos datos en lotes (máximo 1000 por lote para Supabase)
+    const BATCH_SIZE = 1000;
+    for (let i = 0; i < datosParaInsertar.length; i += BATCH_SIZE) {
+      const batch = datosParaInsertar.slice(i, i + BATCH_SIZE);
+
+      const { error: insertError } = await window.supabaseClient
+        .from('tablon_actual')
+        .insert(batch);
+
+      if (insertError) {
+        console.error('❌ Error insertando lote:', insertError);
+        throw insertError;
+      }
+
+      console.log(`✅ Lote ${Math.floor(i / BATCH_SIZE) + 1} insertado (${batch.length} registros)`);
+    }
+
+    console.log(`✅ Sincronización completa: ${datosParaInsertar.length} registros actualizados`);
+    return { success: true, total: datosParaInsertar.length };
+
+  } catch (error) {
+    console.error('❌ Error sincronizando tablón desde CSV:', error);
+    return { success: false, message: error.message };
+  }
+}
+
+/**
  * Carga el tablón de contratación con división por jornadas
  */
 async function loadTablon() {
@@ -2641,6 +2711,16 @@ async function loadTablon() {
   }
 
   try {
+    // 🔄 Sincronizar automáticamente los datos del tablón desde el CSV
+    console.log('🔄 Sincronizando tablón desde CSV...');
+    const syncResult = await SheetsAPI.syncTablonActualFromCSV();
+
+    if (syncResult.success) {
+      console.log(`✅ Tablón sincronizado: ${syncResult.count} registros actualizados`);
+    } else {
+      console.warn('⚠️ Error sincronizando tablón:', syncResult.message);
+    }
+
     // ============================================
     // 🎨 CONFIGURACIÓN DE TAMAÑO DE ESTADÍSTICAS
     // ============================================
@@ -2662,25 +2742,33 @@ async function loadTablon() {
     // Imagen genérica de buque
     const buqueImage = 'https://i.imgur.com/guKCoFy.jpeg';
 
-    // 1. Obtener la última jornada con contratación
+    // 1. Obtener la última jornada con contratación desde tablon_actual (solo datos actuales del CSV)
     const { data: ultimaFecha, error: errorFecha } = await window.supabaseClient
-      .from('jornales')
+      .from('tablon_actual')
       .select('fecha')
-      .not('empresa', 'is', null)
       .order('fecha', { ascending: false })
       .limit(1)
       .single();
 
-    if (errorFecha) throw errorFecha;
+    if (errorFecha) {
+      // Si no hay datos después de sincronizar, mostrar mensaje
+      loading.classList.add('hidden');
+      container.innerHTML = `
+        <div style="text-align: center; padding: 3rem;">
+          <p style="font-size: 1.2rem; margin-bottom: 1rem;">⚠️ No hay datos del tablón</p>
+          <p style="margin-bottom: 2rem;">No se encontraron contrataciones en el CSV de la empresa.</p>
+        </div>
+      `;
+      return;
+    }
 
     const fecha = ultimaFecha.fecha;
 
     // 2. Obtener todas las contrataciones de esa fecha (orden de contratación)
     const { data: contrataciones, error: errorContrataciones } = await window.supabaseClient
-      .from('jornales')
+      .from('tablon_actual')
       .select('chapa, empresa, buque, parte, puesto, jornada')
       .eq('fecha', fecha)
-      .not('empresa', 'is', null)
       .order('jornada')
       .order('empresa')
       .order('buque')
@@ -3200,11 +3288,27 @@ async function loadTablon() {
 
       Object.keys(empresasEnJornada).forEach(empresa => {
         empresasSet.add(empresa);
-        Object.keys(empresasEnJornada[empresa]).forEach(buque => {
+
+        const empresaData = empresasEnJornada[empresa];
+
+        // Agregar buques reales (de la sección 'barcos')
+        Object.keys(empresaData.barcos).forEach(buque => {
           buquesSet.add(buque);
-          Object.keys(empresasEnJornada[empresa][buque]).forEach(especialidad => {
+
+          // Agregar especialidades de este buque
+          Object.keys(empresaData.barcos[buque]).forEach(especialidad => {
             especialidadesSet.add(especialidad);
           });
+        });
+
+        // Agregar especialidades de trincadores
+        Object.keys(empresaData.trincadores).forEach(especialidad => {
+          especialidadesSet.add(especialidad);
+        });
+
+        // Agregar especialidades de R/E
+        Object.keys(empresaData.re).forEach(especialidad => {
+          especialidadesSet.add(especialidad);
         });
       });
 
@@ -3233,7 +3337,8 @@ async function loadTablon() {
         Array.from(especialidadesSet).sort().forEach(especialidad => {
           const option = document.createElement('option');
           option.value = especialidad.toLowerCase();
-          option.textContent = especialidad;
+          // Primera letra en mayúscula
+          option.textContent = especialidad.charAt(0).toUpperCase() + especialidad.slice(1).toLowerCase();
           filterEspecialidad.appendChild(option);
         });
       }
