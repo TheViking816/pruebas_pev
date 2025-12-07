@@ -2364,7 +2364,7 @@ const SheetsAPI = {
         return null;
       }
 
-      const LIMITE_SP = 449;
+      const LIMITE_SP = 455;  // ACTUALIZADO de 449 a 455
       const esUsuarioSP = posicionUsuario <= LIMITE_SP;
 
       // Si el usuario es OC, no hacer cálculo de trinca
@@ -2378,49 +2378,87 @@ const SheetsAPI = {
       // 2. Obtener censo completo
       const censo = await getCenso();
 
-      // 3. Función auxiliar para contar trincadores NO ROJOS entre dos posiciones
+      // 2.1 Función para obtener peso de disponibilidad según color
+      const getPesoDisponibilidad = (posicion) => {
+        const item = censo.find(c => c.posicion === posicion);
+        if (!item) return 0;
+
+        switch(item.color) {
+          case 'red': return 0;
+          case 'orange': return 0.25;
+          case 'yellow': return 0.50;
+          case 'blue': return 0.75;
+          case 'green': return 1.00;
+          default: return 0;
+        }
+      };
+
+      // 3. Función auxiliar para contar trincadores CON PESOS entre dos posiciones
       const contarTrincadoresEntre = (posicionInicio, posicionFin, esCircular) => {
-        let trincadores = 0;
+        let trincadoresEfectivos = 0;
         let trincadoresDetalle = [];
 
         if (!esCircular) {
           // Rango normal: de inicio a fin
-          const trincadoresFiltrados = censo.filter(trabajador => {
-            const pos = trabajador.posicion;
-            const color = trabajador.color;
-            const esTrinca = trabajador.trincador === true || trabajador.trincador === 'true';
-            // El color viene mapeado desde getCenso() como string: 'red', 'orange', 'yellow', 'blue', 'green'
-            // Solo excluir los que están en rojo (color 0 = 'red')
-            const noEsRojo = !(color === 'red');
-
-            return esTrinca && noEsRojo && pos > posicionInicio && pos <= posicionFin && pos <= LIMITE_SP;
-          });
-          trincadores = trincadoresFiltrados.length;
-          trincadoresDetalle = trincadoresFiltrados;
+          for (let pos = posicionInicio + 1; pos <= posicionFin && pos <= LIMITE_SP; pos++) {
+            const trabajador = censo.find(c => c.posicion === pos);
+            if (trabajador && (trabajador.trincador === true || trabajador.trincador === 'true')) {
+              const peso = getPesoDisponibilidad(pos);
+              trincadoresEfectivos += peso;
+              if (peso > 0) {
+                trincadoresDetalle.push({
+                  posicion: pos,
+                  chapa: trabajador.chapa,
+                  color: trabajador.color,
+                  peso: peso
+                });
+              }
+            }
+          }
         } else {
           // Rango circular: de inicio hasta límite SP, luego de 1 hasta fin
-          const trincadoresFiltrados = censo.filter(trabajador => {
-            const pos = trabajador.posicion;
-            const color = trabajador.color;
-            const esTrinca = trabajador.trincador === true || trabajador.trincador === 'true';
-            // El color viene mapeado desde getCenso() como string: 'red', 'orange', 'yellow', 'blue', 'green'
-            // Solo excluir los que están en rojo (color 0 = 'red')
-            const noEsRojo = !(color === 'red');
-
-            return esTrinca && noEsRojo && pos <= LIMITE_SP &&
-                   ((pos > posicionInicio && pos <= LIMITE_SP) || (pos >= 1 && pos <= posicionFin));
-          });
-          trincadores = trincadoresFiltrados.length;
-          trincadoresDetalle = trincadoresFiltrados;
+          // Parte 1: desde posicionInicio+1 hasta LIMITE_SP
+          for (let pos = posicionInicio + 1; pos <= LIMITE_SP; pos++) {
+            const trabajador = censo.find(c => c.posicion === pos);
+            if (trabajador && (trabajador.trincador === true || trabajador.trincador === 'true')) {
+              const peso = getPesoDisponibilidad(pos);
+              trincadoresEfectivos += peso;
+              if (peso > 0) {
+                trincadoresDetalle.push({
+                  posicion: pos,
+                  chapa: trabajador.chapa,
+                  color: trabajador.color,
+                  peso: peso
+                });
+              }
+            }
+          }
+          // Parte 2: desde 1 hasta posicionFin
+          for (let pos = 1; pos <= posicionFin; pos++) {
+            const trabajador = censo.find(c => c.posicion === pos);
+            if (trabajador && (trabajador.trincador === true || trabajador.trincador === 'true')) {
+              const peso = getPesoDisponibilidad(pos);
+              trincadoresEfectivos += peso;
+              if (peso > 0) {
+                trincadoresDetalle.push({
+                  posicion: pos,
+                  chapa: trabajador.chapa,
+                  color: trabajador.color,
+                  peso: peso
+                });
+              }
+            }
+          }
         }
 
-        // Log de debug para verificar que solo se cuentan trincadores disponibles
-        console.log(`🔍 Trincadores entre ${posicionInicio} y ${posicionFin} (${esCircular ? 'circular' : 'normal'}): ${trincadores}`);
+        // Log de debug para verificar que se usan pesos de disponibilidad
+        const trincadoresRedondeados = Math.round(trincadoresEfectivos * 100) / 100;
+        console.log(`🔍 Trincadores entre ${posicionInicio} y ${posicionFin} (${esCircular ? 'circular' : 'normal'}): ${trincadoresRedondeados}`);
         if (trincadoresDetalle.length > 0 && trincadoresDetalle.length <= 20) {
-          console.log('📋 Detalle:', trincadoresDetalle.map(t => `Pos ${t.posicion} (${t.chapa}) - ${t.color}`).join(', '));
+          console.log('📋 Detalle:', trincadoresDetalle.map(t => `Pos ${t.posicion} (${t.chapa}) - ${t.color} (peso: ${t.peso})`).join(', '));
         }
 
-        return trincadores;
+        return trincadoresEfectivos;
       };
 
       // 4. Obtener puertas
@@ -2461,10 +2499,10 @@ const SheetsAPI = {
         }
       }
 
-      // 7. Devolver ambos resultados
+      // 7. Devolver ambos resultados (redondeados a 2 decimales)
       return {
-        laborable: posicionesTrincaLaborable,
-        festiva: posicionesTrincaFestiva
+        laborable: posicionesTrincaLaborable !== null ? Math.round(posicionesTrincaLaborable * 100) / 100 : null,
+        festiva: posicionesTrincaFestiva !== null ? Math.round(posicionesTrincaFestiva * 100) / 100 : null
       };
 
     } catch (error) {
