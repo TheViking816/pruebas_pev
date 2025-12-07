@@ -603,9 +603,10 @@ const SheetsAPI = {
       const censo = await this.getCenso();
       // --- FIN MODIFICACIÓN 1 ---
 
-      const LIMITE_SP = 443;
-      const INICIO_OC = 444;
-      const FIN_OC = 519;
+      // Constantes del censo (ACTUALIZADAS - gente de OC pasó a SP)
+      const LIMITE_SP = 455;  // Posiciones 1-455 son SP
+      const INICIO_OC = 456;  // OC empieza en 456
+      const FIN_OC = 519;     // OC termina en 519
 
       const esUsuarioSP = posicionUsuario <= LIMITE_SP;
 

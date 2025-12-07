@@ -2550,7 +2550,7 @@ async function loadCenso() {
 
     // Función para obtener la clase de posición según SP/OC
     function getPosicionClass(posicion) {
-      const LIMITE_SP = 443;
+      const LIMITE_SP = 455;
 
       if (posicion <= LIMITE_SP) {
         return 'sp'; // Amarillo para SP (Servicio Permanente)
@@ -4100,6 +4100,25 @@ async function loadSueldometro() {
   content.innerHTML = '';
   stats.innerHTML = '';
 
+  // ============================================================================
+  // OBTENER POSICIÓN DEL USUARIO Y DETERMINAR SI ES SP/OC
+  // ============================================================================
+  const LIMITE_SP = 455;
+  let posicionUsuario = null;
+  let esUsuarioOC = false;
+
+  try {
+    posicionUsuario = await SheetsAPI.getPosicionChapa(AppState.currentUser);
+    esUsuarioOC = posicionUsuario > LIMITE_SP;
+    console.log(`👤 Posición del usuario: ${posicionUsuario} → ${esUsuarioOC ? 'OC' : 'SP'}`);
+  } catch (error) {
+    console.error('❌ Error obteniendo posición del usuario:', error);
+    // Si no se puede obtener la posición, asumir SP por defecto
+    posicionUsuario = 1;
+    esUsuarioOC = false;
+  }
+  // ============================================================================
+
   // Inicializar IRPF control
   const irpfControl = document.getElementById('sueldometro-irpf-control');
   const irpfInput = document.getElementById('irpf-input');
@@ -4323,14 +4342,16 @@ async function loadSueldometro() {
         console.log('  Salario info:', salarioInfo);
       }
 
-      // 3.5 Detectar si es Conductor OC (sin barco)
-      // OC usa "--" (dos guiones) en el campo buque
-      const esConductorOC = puestoLower === 'conductor de 1a' &&
-                            (!jornal.buque || jornal.buque.trim() === '' || jornal.buque.trim() === '--');
+      // 3.5 Detectar si el usuario es OC basándose en su POSICIÓN (no en el buque)
+      // CAMBIO: Ahora se basa únicamente en si posicionUsuario > LIMITE_SP
+      // Ya no importa si el buque es "--" o vacío
+      const esConductorOC = (puestoLower === 'conductor de 1a' ||
+                             puestoLower === 'conductor de coches' ||
+                             puestoLower === 'conductor de 2a') && esUsuarioOC;
 
       let salarioBase = 0;
       let prima = 0;
-      let esJornalFijo = false;
+      let esJornalFijo = esConductorOC; // Si es OC y conductor → jornal fijo
 
       // Tabla de primas mínimas para Trincador según horario y jornada
       const primasMinimaTrincador = {
@@ -4351,7 +4372,6 @@ async function loadSueldometro() {
       if (esConductorOC) {
         // Conductores OC tienen salarios fijos sin prima
         // Tarifas diferenciadas por tipo de día (LABORABLE, SABADO, FESTIVO)
-        esJornalFijo = true;
         const salariosOC = {
           // Jornada 02-08 (Super laboral)
           '02-08_LABORABLE': 321.95,
@@ -4879,9 +4899,8 @@ async function loadSueldometro() {
       // Verificar si hay jornales con complemento en esta quincena
       const tieneComplemento = jornalesQuincena.some(j => j.incluye_complemento);
 
-      // Verificar si hay jornales OC en esta quincena
-      const tieneJornalesOC = jornalesQuincena.some(j => j.es_jornal_fijo);
-      const badgeCenso = tieneJornalesOC ? ' <span class="badge-oc">OC</span>' : ' <span class="badge-green">SP</span>';
+      // Badge del censo basado en la POSICIÓN del usuario (no en el tipo de jornal)
+      const badgeCenso = esUsuarioOC ? ' <span class="badge-oc">OC</span>' : ' <span class="badge-green">SP</span>';
 
       // Calcular el último día del mes
       const lastDayOfMonth = new Date(year, month, 0).getDate();
@@ -7513,11 +7532,11 @@ async function loadCalculadora() {
   // ============================================================================
 
   // Constantes del censo
-  var LIMITE_SP = 443;
-  var INICIO_OC = 444;
+  var LIMITE_SP = 455;
+  var INICIO_OC = 456;
   var FIN_OC = 519;
-  var TAMANO_SP = 443; // Posiciones 1-443
-  var TAMANO_OC = 76;  // Posiciones 444-519
+  var TAMANO_SP = 455; // Posiciones 1-455
+  var TAMANO_OC = 64;  // Posiciones 456-519 (519-456+1 = 64)
 
   // ============================================================================
   // ⚙️ CONFIGURACIÓN: FACTOR DE DISPONIBILIDAD EN SEGUNDA VUELTA DEL DÍA
