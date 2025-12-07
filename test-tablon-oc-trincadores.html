@@ -1,0 +1,357 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Test Tablón - OC y Trincadores</title>
+  <link rel="stylesheet" href="styles.css">
+  <style>
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+      padding: 2rem;
+      background: #f8fafc;
+    }
+    .test-container {
+      max-width: 1400px;
+      margin: 0 auto;
+      background: white;
+      padding: 2rem;
+      border-radius: 12px;
+      box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+    }
+    .test-header {
+      background: linear-gradient(135deg, #10b981, #059669);
+      color: white;
+      padding: 1.5rem;
+      border-radius: 8px;
+      margin-bottom: 2rem;
+    }
+    .test-section {
+      margin-bottom: 2rem;
+      padding: 1rem;
+      border: 2px solid #e2e8f0;
+      border-radius: 8px;
+    }
+    .test-section h3 {
+      margin-top: 0;
+      color: #1e40af;
+    }
+    .highlight {
+      background: #fef3c7;
+      padding: 0.25rem 0.5rem;
+      border-radius: 4px;
+      font-weight: 600;
+    }
+    .success {
+      background: #d1fae5;
+      padding: 1rem;
+      border-radius: 8px;
+      border-left: 4px solid #10b981;
+      margin-top: 1rem;
+    }
+  </style>
+</head>
+<body>
+
+<div class="test-container">
+  <div class="test-header">
+    <h1>✅ Test: Visualización de OC y Trincadores - NUEVA IMPLEMENTACIÓN</h1>
+    <p>Ahora los grupos especiales "Trincadores" y "R/E" se muestran separados de los barcos</p>
+  </div>
+
+  <div class="test-section">
+    <h3>📊 Datos de Prueba</h3>
+    <p><strong>Jornada:</strong> 20 a 02</p>
+    <p><strong>Empresa:</strong> APM</p>
+    <p><strong>Tipos de asignación:</strong></p>
+    <ul>
+      <li>✅ <strong>Asignaciones normales a barco:</strong> MAERSK CINCINNATI (3 chapas)</li>
+      <li>✅ <strong>Grupo "Trincadores":</strong> 2 chapas sin barco (buque = "--")</li>
+      <li>✅ <strong>Grupo "R/E":</strong> 2 chapas de personal OC sin barco (buque = "--")</li>
+    </ul>
+
+    <div class="success">
+      <strong>✨ Mejora implementada:</strong> Los grupos especiales aparecen DESPUÉS de los barcos reales dentro del desplegable de cada empresa, claramente identificados con iconos 👷 (Trincadores) y 📋 (R/E).
+    </div>
+  </div>
+
+  <div id="tablon-test-container"></div>
+</div>
+
+<script>
+// Datos de prueba simulando Supabase
+const datosTest = [
+  // Asignaciones normales a barco
+  { fecha: "2025-11-03", chapa: "683", puesto: "Especialista", jornada: "20 a 02", empresa: "APM", buque: "MAERSK CINCINNATI", parte: "31912" },
+  { fecha: "2025-11-03", chapa: "143", puesto: "Especialista", jornada: "20 a 02", empresa: "APM", buque: "MAERSK CINCINNATI", parte: "31912" },
+  { fecha: "2025-11-03", chapa: "521", puesto: "Conductor de 1a", jornada: "20 a 02", empresa: "APM", buque: "MAERSK CINCINNATI", parte: "31913" },
+
+  // Trincadores SIN barco (buque = "--")
+  { fecha: "2025-11-03", chapa: "919", puesto: "Trincador", jornada: "20 a 02", empresa: "APM", buque: "--", parte: "31666" },
+  { fecha: "2025-11-03", chapa: "845", puesto: "Trincador", jornada: "20 a 02", empresa: "APM", buque: "--", parte: "31667" },
+
+  // Personal OC (R/E) SIN barco (buque = "--")
+  { fecha: "2025-11-03", chapa: "472", puesto: "Conductor de 1a", jornada: "20 a 02", empresa: "APM", buque: "--", parte: "31928" },
+  { fecha: "2025-11-03", chapa: "488", puesto: "Conductor de 2a", jornada: "20 a 02", empresa: "APM", buque: "--", parte: "31929" },
+];
+
+// Logos de empresas
+const empresaLogos = {
+  'APM': 'https://i.imgur.com/HgQ95qc.jpeg',
+  'CSP': 'https://i.imgur.com/8Tjx3KP.jpeg',
+  'VTEU': 'https://i.imgur.com/3nNCkw5.jpeg',
+  'MSC': 'https://i.imgur.com/kX4Ujxf.jpeg',
+  'ERH': 'https://i.imgur.com/OHDp62K.png'
+};
+
+// Función para obtener emoji de especialidad
+const getEspecialidadEmoji = (esp) => {
+  const espLower = esp.toLowerCase();
+  if (espLower.includes('especialista')) return '👷';
+  if (espLower.includes('conductor de 1a') || espLower.includes('conductor de 1ª')) return '🚛';
+  if (espLower.includes('conductor de 2a') || espLower.includes('conductor de 2ª')) return '🚗';
+  if (espLower.includes('trincador')) return '👷';
+  return '👷';
+};
+
+// Agrupar datos: jornada → empresa → [barcos | trincadores | re] → especialidad
+const jornadasMap = {};
+
+datosTest.forEach(item => {
+  const jornada = item.jornada || 'Sin jornada';
+  const empresa = item.empresa || 'Sin empresa';
+  const buque = item.buque || 'Sin barco';
+  const especialidad = item.puesto || 'Sin especialidad';
+
+  if (!jornadasMap[jornada]) {
+    jornadasMap[jornada] = {};
+  }
+  if (!jornadasMap[jornada][empresa]) {
+    jornadasMap[jornada][empresa] = {
+      barcos: {},
+      trincadores: {},
+      re: {}
+    };
+  }
+
+  // Determinar si es barco real, trincador o R/E
+  if (buque === '--' || buque === '—' || buque === '-') {
+    if (especialidad.toLowerCase().includes('trincador')) {
+      // Grupo especial: Trincadores
+      if (!jornadasMap[jornada][empresa].trincadores[especialidad]) {
+        jornadasMap[jornada][empresa].trincadores[especialidad] = [];
+      }
+      jornadasMap[jornada][empresa].trincadores[especialidad].push(item);
+    } else {
+      // Grupo especial: R/E
+      if (!jornadasMap[jornada][empresa].re[especialidad]) {
+        jornadasMap[jornada][empresa].re[especialidad] = [];
+      }
+      jornadasMap[jornada][empresa].re[especialidad].push(item);
+    }
+  } else {
+    // Barco real
+    if (!jornadasMap[jornada][empresa].barcos[buque]) {
+      jornadasMap[jornada][empresa].barcos[buque] = {};
+    }
+    if (!jornadasMap[jornada][empresa].barcos[buque][especialidad]) {
+      jornadasMap[jornada][empresa].barcos[buque][especialidad] = [];
+    }
+    jornadasMap[jornada][empresa].barcos[buque][especialidad].push(item);
+  }
+});
+
+console.log('📊 Datos agrupados (nueva estructura):', jornadasMap);
+
+// Renderizar tablón
+const container = document.getElementById('tablon-test-container');
+
+Object.keys(jornadasMap).forEach(jornada => {
+  const jornadaSection = document.createElement('div');
+  jornadaSection.style.marginBottom = '2rem';
+
+  const jornadaTitle = document.createElement('h2');
+  jornadaTitle.textContent = `Jornada: ${jornada}`;
+  jornadaTitle.style.color = '#1e40af';
+  jornadaTitle.style.marginBottom = '1rem';
+  jornadaSection.appendChild(jornadaTitle);
+
+  const empresasMap = jornadasMap[jornada];
+
+  Object.keys(empresasMap).sort().forEach(empresa => {
+    const empresaData = empresasMap[empresa];
+
+    // Calcular totales
+    const chapasBarcos = Object.values(empresaData.barcos).reduce((sum, buque) => {
+      return sum + Object.values(buque).reduce((s, chapas) => s + chapas.length, 0);
+    }, 0);
+    const chapasTrincadores = Object.values(empresaData.trincadores).reduce((sum, chapas) => sum + chapas.length, 0);
+    const chapasRE = Object.values(empresaData.re).reduce((sum, chapas) => sum + chapas.length, 0);
+    const totalChapasEmpresa = chapasBarcos + chapasTrincadores + chapasRE;
+
+    const numBarcos = Object.keys(empresaData.barcos).length;
+    const tieneTrincadores = Object.keys(empresaData.trincadores).length > 0;
+    const tieneRE = Object.keys(empresaData.re).length > 0;
+    const totalElementos = numBarcos + (tieneTrincadores ? 1 : 0) + (tieneRE ? 1 : 0);
+    const etiquetaElementos = numBarcos > 0
+      ? (totalElementos === numBarcos ? `${numBarcos} barcos` : `${numBarcos} barcos + grupos especiales`)
+      : 'grupos especiales';
+
+    // Card de empresa
+    const empresaCard = document.createElement('div');
+    empresaCard.className = 'tablon-empresa-card expanded'; // Expandida por defecto para el test
+    empresaCard.style.marginBottom = '1.5rem';
+
+    // Header de empresa
+    const empresaHeader = document.createElement('div');
+    empresaHeader.className = 'tablon-empresa-header';
+
+    const logo = empresaLogos[empresa];
+    const logoHtml = logo
+      ? `<div class="tablon-empresa-logo-wrapper"><img src="${logo}" alt="${empresa}" class="tablon-empresa-logo"></div>`
+      : `<div class="tablon-empresa-logo-placeholder"><span>${empresa.substring(0, 3)}</span></div>`;
+
+    empresaHeader.innerHTML = `
+      ${logoHtml}
+      <div class="tablon-empresa-info">
+        <div class="tablon-empresa-nombre">${empresa}</div>
+        <div class="tablon-empresa-stats">${totalChapasEmpresa} asignaciones en ${etiquetaElementos}</div>
+      </div>
+      <svg class="tablon-chevron" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+      </svg>
+    `;
+
+    empresaCard.appendChild(empresaHeader);
+
+    // Contenedor de barcos + grupos especiales
+    const empresaContent = document.createElement('div');
+    empresaContent.className = 'tablon-empresa-content';
+    empresaContent.style.display = 'block'; // Visible por defecto para el test
+
+    // Función auxiliar para renderizar un grupo
+    const renderGrupo = (nombre, especialidadesGrupo, icono, etiqueta) => {
+      const buqueCard = document.createElement('div');
+      buqueCard.className = 'tablon-buque-card expanded'; // Expandida por defecto
+
+      const buqueHeader = document.createElement('div');
+      buqueHeader.className = 'tablon-buque-header';
+      buqueHeader.innerHTML = `
+        ${icono}
+        <div class="tablon-buque-nombre">${nombre}</div>
+        <svg class="tablon-buque-toggle" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+        </svg>
+      `;
+
+      buqueCard.appendChild(buqueHeader);
+
+      const buquePanel = document.createElement('div');
+      buquePanel.className = 'tablon-buque-panel';
+
+      const totalChapasGrupo = Object.values(especialidadesGrupo).reduce((sum, chapas) => sum + chapas.length, 0);
+
+      const buqueImage = nombre === 'Trincadores'
+        ? 'https://images.unsplash.com/photo-1578575437130-527eed3abbec?w=400&h=300&fit=crop'
+        : nombre === 'R/E'
+        ? 'https://images.unsplash.com/photo-1519003722824-194d4455a60c?w=400&h=300&fit=crop'
+        : 'https://images.unsplash.com/photo-1551918120-9739cb430c6d?w=400&h=300&fit=crop';
+
+      const panelHeader = document.createElement('div');
+      panelHeader.className = 'tablon-buque-header-panel';
+      panelHeader.innerHTML = `
+        <div class="tablon-buque-image">
+          <img src="${buqueImage}" alt="${nombre}">
+        </div>
+        <div class="tablon-buque-info-panel">
+          <div class="tablon-buque-nombre-panel">${etiqueta || nombre}</div>
+          <div class="tablon-buque-stats-panel">
+            <div class="tablon-buque-stat">${totalChapasGrupo} asignaciones</div>
+            <div class="tablon-buque-stat">${Object.keys(especialidadesGrupo).length} especialidades</div>
+            <div class="tablon-buque-stat">Jornada: ${jornada}</div>
+          </div>
+        </div>
+      `;
+
+      buquePanel.appendChild(panelHeader);
+
+      const especialidadesContainer = document.createElement('div');
+      especialidadesContainer.className = 'tablon-especialidades-container';
+
+      Object.keys(especialidadesGrupo).sort().forEach(especialidad => {
+        const chapasEspecialidad = especialidadesGrupo[especialidad];
+
+        const especialidadGroup = document.createElement('div');
+        especialidadGroup.className = 'tablon-especialidad-group';
+
+        const especialidadHeader = document.createElement('div');
+        especialidadHeader.className = 'tablon-especialidad-header';
+        especialidadHeader.innerHTML = `
+          <span style="font-size: 1.5rem; margin-right: 0.5rem;">${getEspecialidadEmoji(especialidad)}</span>
+          ${especialidad} <span style="font-weight: normal; color: var(--text-secondary); font-size: 0.9rem;">(${chapasEspecialidad.length} asignaciones)</span>
+        `;
+
+        especialidadGroup.appendChild(especialidadHeader);
+
+        const chapasGrid = document.createElement('div');
+        chapasGrid.className = 'tablon-chapas-compact-grid';
+
+        chapasEspecialidad.forEach(chapaData => {
+          const chapaCompact = document.createElement('div');
+          chapaCompact.className = 'tablon-chapa-compact';
+
+          chapaCompact.innerHTML = `
+            <div class="tablon-chapa-compact-numero">${chapaData.chapa}</div>
+            <div class="tablon-chapa-compact-jornada">
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+              ${chapaData.jornada || jornada}
+            </div>
+          `;
+
+          chapasGrid.appendChild(chapaCompact);
+        });
+
+        especialidadGroup.appendChild(chapasGrid);
+        especialidadesContainer.appendChild(especialidadGroup);
+      });
+
+      buquePanel.appendChild(especialidadesContainer);
+
+      const buqueContent = document.createElement('div');
+      buqueContent.className = 'tablon-buque-content';
+      buqueContent.appendChild(buquePanel);
+
+      buqueCard.appendChild(buqueContent);
+      empresaContent.appendChild(buqueCard);
+    };
+
+    // 1. Renderizar barcos reales
+    Object.keys(empresaData.barcos).sort().forEach(buque => {
+      const iconoBarco = '<svg class="tablon-buque-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 21v-4m0 0V5a2 2 0 012-2h6.5l1 1H21l-3 6 3 6h-8.5l-1-1H5a2 2 0 00-2 2zm9-13.5V9" /></svg>';
+      renderGrupo(buque, empresaData.barcos[buque], iconoBarco);
+    });
+
+    // 2. Renderizar grupo "Trincadores" si existe
+    if (Object.keys(empresaData.trincadores).length > 0) {
+      const iconoTrincadores = '<span style="font-size: 1.5rem; margin-right: 0.5rem;">👷</span>';
+      renderGrupo('Trincadores', empresaData.trincadores, iconoTrincadores, '🔗 Trincadores (Sin barco asignado)');
+    }
+
+    // 3. Renderizar grupo "R/E" si existe
+    if (Object.keys(empresaData.re).length > 0) {
+      const iconoRE = '<span style="font-size: 1.5rem; margin-right: 0.5rem;">📋</span>';
+      renderGrupo('R/E', empresaData.re, iconoRE, '📋 R/E - Personal OC (Sin barco asignado)');
+    }
+
+    empresaCard.appendChild(empresaContent);
+    jornadaSection.appendChild(empresaCard);
+  });
+
+  container.appendChild(jornadaSection);
+});
+</script>
+
+</body>
+</html>

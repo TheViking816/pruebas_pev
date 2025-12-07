@@ -2703,7 +2703,7 @@ async function loadTablon() {
       fechaTitulo.textContent = `Última contratación: ${fechaFormateada}`;
     }
 
-    // 3. Agrupar por jornada → empresa → buque → especialidad
+    // 3. Agrupar por jornada → empresa → [barcos | trincadores | re] → especialidad
     const jornadasMap = {};
 
     contrataciones.forEach(item => {
@@ -2716,16 +2716,39 @@ async function loadTablon() {
         jornadasMap[jornada] = {};
       }
       if (!jornadasMap[jornada][empresa]) {
-        jornadasMap[jornada][empresa] = {};
-      }
-      if (!jornadasMap[jornada][empresa][buque]) {
-        jornadasMap[jornada][empresa][buque] = {};
-      }
-      if (!jornadasMap[jornada][empresa][buque][especialidad]) {
-        jornadasMap[jornada][empresa][buque][especialidad] = [];
+        jornadasMap[jornada][empresa] = {
+          barcos: {},       // Barcos reales (buque != "--")
+          trincadores: {},  // Trincadores sin barco (buque = "--" y puesto = "Trincador")
+          re: {}            // Personal OC/R/E sin barco (buque = "--" y puesto != "Trincador")
+        };
       }
 
-      jornadasMap[jornada][empresa][buque][especialidad].push(item);
+      // Determinar si es barco real, trincador o R/E
+      if (buque === '--' || buque === '—' || buque === '-') {
+        // Sin barco asignado
+        if (especialidad.toLowerCase().includes('trincador')) {
+          // Grupo especial: Trincadores
+          if (!jornadasMap[jornada][empresa].trincadores[especialidad]) {
+            jornadasMap[jornada][empresa].trincadores[especialidad] = [];
+          }
+          jornadasMap[jornada][empresa].trincadores[especialidad].push(item);
+        } else {
+          // Grupo especial: R/E (personal OC)
+          if (!jornadasMap[jornada][empresa].re[especialidad]) {
+            jornadasMap[jornada][empresa].re[especialidad] = [];
+          }
+          jornadasMap[jornada][empresa].re[especialidad].push(item);
+        }
+      } else {
+        // Barco real
+        if (!jornadasMap[jornada][empresa].barcos[buque]) {
+          jornadasMap[jornada][empresa].barcos[buque] = {};
+        }
+        if (!jornadasMap[jornada][empresa].barcos[buque][especialidad]) {
+          jornadasMap[jornada][empresa].barcos[buque][especialidad] = [];
+        }
+        jornadasMap[jornada][empresa].barcos[buque][especialidad].push(item);
+      }
     });
 
     // 4. Calcular estadísticas
@@ -2744,12 +2767,25 @@ async function loadTablon() {
       jornadasTabsContainer.innerHTML = '';
 
       Object.keys(jornadasMap).sort().forEach(jornada => {
-        const chapasEnJornada = Object.values(jornadasMap[jornada]).reduce((sum, empresas) => {
-          return sum + Object.values(empresas).reduce((s, buques) => {
-            return s + Object.values(buques).reduce((ss, especialidades) => {
+        const chapasEnJornada = Object.values(jornadasMap[jornada]).reduce((sum, empresaData) => {
+          // Contar chapas en barcos
+          const chapasBarcos = Object.values(empresaData.barcos).reduce((s, buque) => {
+            return s + Object.values(buque).reduce((ss, especialidades) => {
               return ss + especialidades.length;
             }, 0);
           }, 0);
+
+          // Contar chapas en trincadores
+          const chapasTrincadores = Object.values(empresaData.trincadores).reduce((s, especialidades) => {
+            return s + especialidades.length;
+          }, 0);
+
+          // Contar chapas en R/E
+          const chapasRE = Object.values(empresaData.re).reduce((s, especialidades) => {
+            return s + especialidades.length;
+          }, 0);
+
+          return sum + chapasBarcos + chapasTrincadores + chapasRE;
         }, 0);
 
         const tab = document.createElement('div');
@@ -2813,23 +2849,43 @@ async function loadTablon() {
       if (!empresasEnJornada) return;
 
       // Actualizar estadísticas para esta jornada
-      const chapasJornada = Object.values(empresasEnJornada).reduce((sum, empresas) => {
-        return sum + Object.values(empresas).reduce((s, buques) => {
-          return s + Object.values(buques).reduce((ss, especialidades) => {
+      const chapasJornada = Object.values(empresasEnJornada).reduce((sum, empresaData) => {
+        // Contar chapas en barcos
+        const chapasBarcos = Object.values(empresaData.barcos).reduce((s, buque) => {
+          return s + Object.values(buque).reduce((ss, especialidades) => {
             return ss + especialidades.length;
           }, 0);
         }, 0);
+
+        // Contar chapas en trincadores
+        const chapasTrincadores = Object.values(empresaData.trincadores).reduce((s, especialidades) => {
+          return s + especialidades.length;
+        }, 0);
+
+        // Contar chapas en R/E
+        const chapasRE = Object.values(empresaData.re).reduce((s, especialidades) => {
+          return s + especialidades.length;
+        }, 0);
+
+        return sum + chapasBarcos + chapasTrincadores + chapasRE;
       }, 0);
 
       const empresasJornada = Object.keys(empresasEnJornada).length;
       const barcosJornada = new Set();
       const especialidadesJornada = new Set();
 
-      Object.values(empresasEnJornada).forEach(empresas => {
-        Object.keys(empresas).forEach(buque => barcosJornada.add(buque));
-        Object.values(empresas).forEach(buques => {
-          Object.keys(buques).forEach(especialidad => especialidadesJornada.add(especialidad));
+      Object.values(empresasEnJornada).forEach(empresaData => {
+        // Barcos reales
+        Object.keys(empresaData.barcos).forEach(buque => barcosJornada.add(buque));
+        Object.values(empresaData.barcos).forEach(buque => {
+          Object.keys(buque).forEach(especialidad => especialidadesJornada.add(especialidad));
         });
+
+        // Trincadores
+        Object.keys(empresaData.trincadores).forEach(especialidad => especialidadesJornada.add(especialidad));
+
+        // R/E
+        Object.keys(empresaData.re).forEach(especialidad => especialidadesJornada.add(especialidad));
       });
 
       if (statsContainer) {
@@ -2868,10 +2924,42 @@ async function loadTablon() {
       let allExpanded = false;
 
       Object.keys(empresasEnJornada).sort().forEach(empresa => {
-        const buquesEmpresa = empresasEnJornada[empresa];
-        const totalChapasEmpresa = Object.values(buquesEmpresa).reduce((sum, especialidades) => {
-          return sum + Object.values(especialidades).reduce((s, chapas) => s + chapas.length, 0);
+        const empresaData = empresasEnJornada[empresa];
+
+        // Calcular total de chapas de la empresa (barcos + trincadores + re)
+        const chapasBarcos = Object.values(empresaData.barcos).reduce((sum, buque) => {
+          return sum + Object.values(buque).reduce((s, chapas) => s + chapas.length, 0);
         }, 0);
+        const chapasTrincadores = Object.values(empresaData.trincadores).reduce((sum, chapas) => sum + chapas.length, 0);
+        const chapasRE = Object.values(empresaData.re).reduce((sum, chapas) => sum + chapas.length, 0);
+        const totalChapasEmpresa = chapasBarcos + chapasTrincadores + chapasRE;
+
+        // Contar elementos (barcos + grupos especiales)
+        const numBarcos = Object.keys(empresaData.barcos).length;
+        const tieneTrincadores = Object.keys(empresaData.trincadores).length > 0;
+        const tieneRE = Object.keys(empresaData.re).length > 0;
+
+        // Construir etiqueta específica
+        let etiquetaElementos = '';
+        if (numBarcos > 0) {
+          etiquetaElementos = `${numBarcos} barcos`;
+          if (tieneTrincadores && tieneRE) {
+            etiquetaElementos += ' + Trincadores + R/E';
+          } else if (tieneTrincadores) {
+            etiquetaElementos += ' + Trincadores';
+          } else if (tieneRE) {
+            etiquetaElementos += ' + R/E';
+          }
+        } else {
+          // Solo grupos especiales, sin barcos
+          if (tieneTrincadores && tieneRE) {
+            etiquetaElementos = 'Trincadores + R/E';
+          } else if (tieneTrincadores) {
+            etiquetaElementos = 'Trincadores';
+          } else if (tieneRE) {
+            etiquetaElementos = 'R/E';
+          }
+        }
 
       // Card de empresa
       const empresaCard = document.createElement('div');
@@ -2908,7 +2996,7 @@ async function loadTablon() {
       empresaInfo.className = 'tablon-empresa-info';
       empresaInfo.innerHTML = `
           <div class="tablon-empresa-nombre">${empresa}</div>
-          <div class="tablon-empresa-stats">${totalChapasEmpresa} asignaciones en ${Object.keys(buquesEmpresa).length} barcos</div>
+          <div class="tablon-empresa-stats">${totalChapasEmpresa} asignaciones en ${etiquetaElementos}</div>
         `;
         empresaHeader.appendChild(empresaInfo);
 
@@ -2928,26 +3016,24 @@ async function loadTablon() {
 
       empresaCard.appendChild(empresaHeader);
 
-      // Contenido de empresa (barcos)
+      // Contenido de empresa (barcos + grupos especiales)
       const empresaContent = document.createElement('div');
       empresaContent.className = 'tablon-empresa-content';
 
-        Object.keys(buquesEmpresa).sort().forEach(buque => {
-          const especialidadesBuque = buquesEmpresa[buque];
+        // Función auxiliar para renderizar un grupo (barco o grupo especial)
+        const renderGrupo = (nombre, especialidadesGrupo, icono, etiqueta) => {
 
-          // Card de barco (simple, clickeable para mostrar panel)
+          // Card del grupo (barco o grupo especial)
           const buqueCard = document.createElement('div');
           buqueCard.className = 'tablon-buque-card';
-          buqueCard.dataset.buque = buque.toLowerCase();
+          buqueCard.dataset.buque = nombre.toLowerCase();
 
-          // Header de barco
+          // Header del grupo
           const buqueHeader = document.createElement('div');
           buqueHeader.className = 'tablon-buque-header';
           buqueHeader.innerHTML = `
-            <svg class="tablon-buque-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 21v-4m0 0V5a2 2 0 012-2h6.5l1 1H21l-3 6 3 6h-8.5l-1-1H5a2 2 0 00-2 2zm9-13.5V9" />
-            </svg>
-            <div class="tablon-buque-nombre">${buque}</div>
+            ${icono}
+            <div class="tablon-buque-nombre">${nombre}</div>
             <svg class="tablon-buque-toggle" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
             </svg>
@@ -2959,7 +3045,7 @@ async function loadTablon() {
 
           buqueCard.appendChild(buqueHeader);
 
-          // Panel especial del buque (se muestra al expandir)
+          // Panel del grupo (se muestra al expandir)
           const buquePanel = document.createElement('div');
           buquePanel.className = 'tablon-buque-panel';
 
@@ -2967,17 +3053,24 @@ async function loadTablon() {
           const panelHeader = document.createElement('div');
           panelHeader.className = 'tablon-buque-header-panel';
 
-          const totalChapasBuque = Object.values(especialidadesBuque).reduce((sum, chapas) => sum + chapas.length, 0);
+          const totalChapasGrupo = Object.values(especialidadesGrupo).reduce((sum, chapas) => sum + chapas.length, 0);
+
+          // Imagen del grupo (diferente para cada tipo)
+          const grupoImage = nombre === 'Trincadores'
+            ? 'https://images.unsplash.com/photo-1578575437130-527eed3abbec?w=400&h=300&fit=crop' // Imagen de trincado
+            : nombre === 'R/E'
+            ? 'https://i.imgur.com/d4sdfOn.jpeg' // Imagen personalizada R/E
+            : 'https://i.imgur.com/guKCoFy.jpeg'; // Imagen de barco con grúas (original)
 
           panelHeader.innerHTML = `
             <div class="tablon-buque-image">
-              <img src="${buqueImage}" alt="${buque}">
+              <img src="${grupoImage}" alt="${nombre}">
             </div>
             <div class="tablon-buque-info-panel">
-              <div class="tablon-buque-nombre-panel">${buque}</div>
+              <div class="tablon-buque-nombre-panel">${etiqueta || nombre}</div>
               <div class="tablon-buque-stats-panel">
-                <div class="tablon-buque-stat">${totalChapasBuque} asignaciones</div>
-                <div class="tablon-buque-stat">${Object.keys(especialidadesBuque).length} especialidades</div>
+                <div class="tablon-buque-stat">${totalChapasGrupo} asignaciones</div>
+                <div class="tablon-buque-stat">${Object.keys(especialidadesGrupo).length} especialidades</div>
                 <div class="tablon-buque-stat">Jornada: ${jornada}</div>
               </div>
             </div>
@@ -2989,8 +3082,8 @@ async function loadTablon() {
           const especialidadesContainer = document.createElement('div');
           especialidadesContainer.className = 'tablon-especialidades-container';
 
-          Object.keys(especialidadesBuque).sort().forEach(especialidad => {
-            const chapasEspecialidad = especialidadesBuque[especialidad];
+          Object.keys(especialidadesGrupo).sort().forEach(especialidad => {
+            const chapasEspecialidad = especialidadesGrupo[especialidad];
 
             // Grupo de especialidad
             const especialidadGroup = document.createElement('div');
@@ -3024,7 +3117,7 @@ async function loadTablon() {
               chapaCompact.className = 'tablon-chapa-compact';
               chapaCompact.dataset.chapa = chapaData.chapa;
               chapaCompact.dataset.empresa = empresa.toLowerCase();
-              chapaCompact.dataset.buque = buque.toLowerCase();
+              chapaCompact.dataset.buque = nombre.toLowerCase();
               chapaCompact.dataset.especialidad = especialidad.toLowerCase();
 
               chapaCompact.innerHTML = `
@@ -3057,7 +3150,25 @@ async function loadTablon() {
 
           buqueCard.appendChild(buqueContent);
           empresaContent.appendChild(buqueCard);
+        }; // Fin de renderGrupo
+
+        // 1. Renderizar barcos reales
+        Object.keys(empresaData.barcos).sort().forEach(buque => {
+          const iconoBarco = '<svg class="tablon-buque-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 21v-4m0 0V5a2 2 0 012-2h6.5l1 1H21l-3 6 3 6h-8.5l-1-1H5a2 2 0 00-2 2zm9-13.5V9" /></svg>';
+          renderGrupo(buque, empresaData.barcos[buque], iconoBarco);
         });
+
+        // 2. Renderizar grupo especial "Trincadores" (si existe)
+        if (Object.keys(empresaData.trincadores).length > 0) {
+          const iconoTrincadores = '<span style="font-size: 1.5rem; margin-right: 0.5rem;">👷</span>';
+          renderGrupo('Trincadores', empresaData.trincadores, iconoTrincadores, '🔗 Trincadores');
+        }
+
+        // 3. Renderizar grupo especial "R/E" (si existe)
+        if (Object.keys(empresaData.re).length > 0) {
+          const iconoRE = '<span style="font-size: 1.5rem; margin-right: 0.5rem;">📋</span>';
+          renderGrupo('R/E', empresaData.re, iconoRE, '📋 R/E - Personal OC');
+        }
 
       empresaCard.appendChild(empresaContent);
       container.appendChild(empresaCard);
