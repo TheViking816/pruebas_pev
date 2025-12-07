@@ -840,6 +840,39 @@ body::before {
 .censo-legend-color.orange { background: linear-gradient(135deg, #f97316 0%, #ea580c 100%); }
 .censo-legend-color.red { background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%); }
 
+.censo-legend-divider {
+  width: 100%;
+  height: 1px;
+  background: var(--border-color);
+  margin: 0.5rem 0;
+}
+
+.censo-legend-section-title {
+  width: 100%;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--text-secondary);
+  margin: 0.25rem 0;
+  text-align: left;
+}
+
+.censo-badge-sp,
+.censo-badge-oc {
+  display: inline-block;
+  width: 24px;
+  height: 24px;
+  border-radius: 6px;
+  box-shadow: var(--shadow-sm);
+}
+
+.censo-badge-sp {
+  background: #fbbf24;
+}
+
+.censo-badge-oc {
+  background: #C2DFFF;
+}
+
 /* Censo Grid - Optimizado para 535 chapas */
 .censo-grid {
   display: grid;
@@ -1583,6 +1616,38 @@ body::before {
   gap: 0.75rem;
 }
 
+.btn-lock-quincena {
+  background: rgba(255, 255, 255, 0.15);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  color: white;
+  cursor: pointer;
+  padding: 0.4rem 0.8rem;
+  border-radius: 8px;
+  font-size: 1rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+  margin-left: 0.5rem;
+  min-width: 36px;
+}
+
+.btn-lock-quincena:hover {
+  background: rgba(255, 255, 255, 0.25);
+  border-color: rgba(255, 255, 255, 0.5);
+  transform: scale(1.05);
+}
+
+.btn-lock-quincena.locked {
+  background: rgba(245, 158, 11, 0.3);
+  border-color: rgba(245, 158, 11, 0.6);
+}
+
+.btn-lock-quincena.locked:hover {
+  background: rgba(245, 158, 11, 0.4);
+  border-color: rgba(245, 158, 11, 0.8);
+}
+
 .quincena-toggle {
   background: none;
   border: none;
@@ -1648,6 +1713,31 @@ body::before {
 
 .neto-value {
   color: var(--puerto-green);
+}
+
+.badge-irpf-diff {
+  display: inline-block;
+  margin-left: 6px;
+  padding: 2px 6px;
+  background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+  color: white;
+  border-radius: 4px;
+  font-size: 0.7rem;
+  font-weight: 700;
+  vertical-align: middle;
+  box-shadow: var(--shadow-sm);
+  cursor: help;
+  animation: pulseIRPF 2s ease-in-out infinite;
+}
+
+@keyframes pulseIRPF {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.7; }
+}
+
+.badge-irpf-diff:hover {
+  transform: scale(1.1);
+  box-shadow: 0 2px 8px rgba(245, 158, 11, 0.4);
 }
 
 .bruto-value strong {

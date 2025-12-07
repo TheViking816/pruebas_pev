@@ -1964,18 +1964,27 @@ async function guardarPrimaPersonalizada(chapa, fecha, jornada, primaPersonaliza
  */
 async function guardarJornalManual(jornal) {
   try {
+    // Preparar objeto de inserción
+    const jornalData = {
+      fecha: jornal.fecha,
+      chapa: jornal.chapa,
+      puesto: jornal.puesto,
+      jornada: jornal.jornada,
+      empresa: jornal.empresa,
+      buque: jornal.buque,
+      parte: jornal.parte,
+      origen: 'manual'
+    };
+
+    // Incluir irpf_aplicado si se proporciona
+    if (jornal.irpf_aplicado !== undefined && jornal.irpf_aplicado !== null) {
+      jornalData.irpf_aplicado = jornal.irpf_aplicado;
+      console.log(`💰 Guardando jornal con IRPF aplicado: ${jornal.irpf_aplicado}%`);
+    }
+
     const { data, error } = await supabase
       .from('jornales')
-      .insert([{
-        fecha: jornal.fecha,
-        chapa: jornal.chapa,
-        puesto: jornal.puesto,
-        jornada: jornal.jornada,
-        empresa: jornal.empresa,
-        buque: jornal.buque,
-        parte: jornal.parte,
-        origen: 'manual'
-      }])
+      .insert([jornalData])
       .select();
 
     if (error) throw error;
@@ -2582,9 +2591,9 @@ const SheetsAPI = {
   },
 
   // Jornales manuales
-  saveJornalManual: async function(chapa, fecha, jornada, tipo_dia, puesto, empresa, buque, parte) {
+  saveJornalManual: async function(chapa, fecha, jornada, tipo_dia, puesto, empresa, buque, parte, irpfActual = null) {
     // Wrapper para mantener compatibilidad con app.js que llama con parámetros individuales
-    console.log('💾 Guardando jornal manual en Supabase:', { chapa, fecha, jornada, tipo_dia, puesto, empresa, buque, parte });
+    console.log('💾 Guardando jornal manual en Supabase:', { chapa, fecha, jornada, tipo_dia, puesto, empresa, buque, parte, irpfActual });
 
     // Convertir fecha de formato español (dd/mm/yyyy) a ISO (yyyy-mm-dd)
     let fechaISO = fecha;
@@ -2603,6 +2612,11 @@ const SheetsAPI = {
       buque: buque || '--',
       parte: parte || '1'
     };
+
+    // Añadir IRPF actual si se proporciona
+    if (irpfActual !== null && irpfActual !== undefined) {
+      jornal.irpf_aplicado = irpfActual;
+    }
 
     // Llamar a la función real de guardado
     const result = await guardarJornalManual(jornal);
