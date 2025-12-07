@@ -4446,6 +4446,7 @@ async function loadSueldometro() {
       const incluyeComplemento = (puestoLower === 'trincador' || puestoLower === 'trincador de coches');
 
       // IRPF: usar el irpf_aplicado del jornal si existe, sino usar el IRPF actual del usuario
+      const irpfOriginal = jornal.irpf_aplicado; // Guardar el valor original de la BD
       const irpfJornal = (jornal.irpf_aplicado !== null && jornal.irpf_aplicado !== undefined)
         ? jornal.irpf_aplicado
         : irpfPorcentaje;
@@ -4462,9 +4463,35 @@ async function loadSueldometro() {
         clave_jornada: claveJornada,
         es_jornal_fijo: esJornalFijo,
         incluye_complemento: incluyeComplemento,
-        irpf_aplicado: irpfJornal // IRPF específico de este jornal
+        irpf_aplicado: irpfJornal, // IRPF específico de este jornal
+        irpf_aplicado_original: irpfOriginal // Valor original de la BD para detectar si necesita actualización
       };
     }).filter(j => j !== null); // Filtrar jornales nulos (incompletos)
+
+    // IMPORTANTE: Asignar IRPF a jornales que no lo tienen en la base de datos
+    // Esto asegura que los jornales antiguos mantengan el IRPF actual como "congelado"
+    const jornalesSinIRPF = jornalesConSalario.filter(j =>
+      (j.irpf_aplicado_original === null || j.irpf_aplicado_original === undefined) && j.id
+    );
+
+    if (jornalesSinIRPF.length > 0) {
+      console.log(`📝 Asignando IRPF (${irpfPorcentaje}%) a ${jornalesSinIRPF.length} jornales sin IRPF guardado...`);
+
+      // Actualizar en batch todos los jornales sin IRPF
+      const updates = jornalesSinIRPF.map(jornal =>
+        window.supabaseClient
+          .from('jornales')
+          .update({ irpf_aplicado: irpfPorcentaje })
+          .eq('id', jornal.id)
+      );
+
+      try {
+        await Promise.all(updates);
+        console.log(`✅ IRPF asignado correctamente a ${jornalesSinIRPF.length} jornales`);
+      } catch (error) {
+        console.error('❌ Error asignando IRPF a jornales:', error);
+      }
+    }
 
     // 3. Agrupar por quincena (DESPUÉS de filtrar jornales incompletos)
     const quincenasMap = groupByQuincena(jornalesConSalario);
@@ -5069,7 +5096,7 @@ async function loadSueldometro() {
                 const importeRemate = tarifaRemate ? (horasRemateValue * tarifaRemate) : 0;
 
                 const bruto = j.salario_base + primaRecalculada + importeRelevo + importeRemate;
-                const neto = bruto * (1 - irpfPorcentaje / 100);
+                const neto = bruto * (1 - j.irpf_aplicado / 100);
 
                 // Actualizar el objeto jornal en el array global
                 j.total = bruto;
@@ -6219,21 +6246,21 @@ async function loadSueldometro() {
       console.log(`💰 IRPF actualizado y guardado: ${nuevoIRPF}%`);
       console.log(`💾 Guardado en localStorage con clave: ${irpfKey}`);
 
-      // Actualizar todos los valores neto sin recargar la página
-      // Recalcular todos los netos individuales en cada fila
-      // IMPORTANTE: Usar el IRPF específico de cada jornal (data-irpf-aplicado)
-      // Los jornales con IRPF histórico NO se modifican
+      // Actualizar badges de IRPF sin recalcular netos
+      // Los netos ya están correctamente calculados con el IRPF específico de cada jornal
+      // Solo necesitamos actualizar los badges para mostrar qué jornales tienen IRPF diferente
       document.querySelectorAll('tr[data-lock-key]').forEach(row => {
-        const brutoElement = row.querySelector('.bruto-value strong');
         const netoCell = row.querySelector('.neto-value');
-        const netoElement = netoCell?.querySelector('strong');
 
-        if (brutoElement && netoElement && netoCell) {
-          const bruto = parseFloat(brutoElement.textContent.replace('€', '')) || 0;
-          // Usar el IRPF específico de este jornal, no el nuevo IRPF global
-          const irpfJornal = parseFloat(row.dataset.irpfAplicado) || nuevoIRPF;
-          const nuevoNeto = bruto * (1 - irpfJornal / 100);
-          netoElement.textContent = `${nuevoNeto.toFixed(2)}€`;
+        if (netoCell) {
+          // Obtener el IRPF específico de este jornal
+          const irpfJornal = parseFloat(row.dataset.irpfAplicado);
+
+          // Si el jornal no tiene IRPF aplicado guardado, saltar (no debería pasar)
+          if (!irpfJornal || isNaN(irpfJornal)) {
+            console.warn('⚠️ Jornal sin IRPF aplicado encontrado:', row.dataset.fecha);
+            return;
+          }
 
           // Regenerar badge de IRPF diferente
           // Primero eliminar badge existente si lo hay
@@ -6243,7 +6270,7 @@ async function loadSueldometro() {
           }
 
           // Si el IRPF del jornal es diferente al nuevo IRPF global, mostrar badge
-          if (irpfJornal && irpfJornal !== nuevoIRPF) {
+          if (irpfJornal !== nuevoIRPF) {
             const badge = document.createElement('span');
             badge.className = 'badge-irpf-diff';
             badge.textContent = `${irpfJornal}%`;
@@ -6264,9 +6291,11 @@ async function loadSueldometro() {
           if (brutoElement) {
             const bruto = parseFloat(brutoElement.textContent.replace('€', '')) || 0;
             totalBrutoQuincena += bruto;
-            // Usar el IRPF específico de este jornal
-            const irpfJornal = parseFloat(row.dataset.irpfAplicado) || nuevoIRPF;
-            totalNetoQuincena += bruto * (1 - irpfJornal / 100);
+            // Usar el IRPF específico de este jornal (no usar fallback)
+            const irpfJornal = parseFloat(row.dataset.irpfAplicado);
+            if (irpfJornal && !isNaN(irpfJornal)) {
+              totalNetoQuincena += bruto * (1 - irpfJornal / 100);
+            }
           }
         });
 
@@ -6287,9 +6316,11 @@ async function loadSueldometro() {
         if (brutoElement) {
           const bruto = parseFloat(brutoElement.textContent.replace('€', '')) || 0;
           totalGlobalBruto += bruto;
-          // Usar el IRPF específico de este jornal
-          const irpfJornal = parseFloat(row.dataset.irpfAplicado) || nuevoIRPF;
-          totalGlobalNeto += bruto * (1 - irpfJornal / 100);
+          // Usar el IRPF específico de este jornal (no usar fallback)
+          const irpfJornal = parseFloat(row.dataset.irpfAplicado);
+          if (irpfJornal && !isNaN(irpfJornal)) {
+            totalGlobalNeto += bruto * (1 - irpfJornal / 100);
+          }
           contadorJornales++;
         }
       });
