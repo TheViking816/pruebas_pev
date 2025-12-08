@@ -1076,7 +1076,7 @@ Escribe tu pregunta abajo ⬇️`,
 
         // Si es trincador, mostrar también trincadores (igual que app.js línea 772)
         if (posicion.esTrincador && posicion.posicionesTrincaLaborable !== null) {
-          respuesta += `⚡ ${posicion.posicionesTrincaLaborable} trincadores hasta la puerta laborable\n`;
+          respuesta += `⚡ ${Math.round(posicion.posicionesTrincaLaborable)} trincadores hasta la puerta laborable\n`;
         }
       }
 
@@ -1086,7 +1086,7 @@ Escribe tu pregunta abajo ⬇️`,
 
         // Si es trincador, mostrar también trincadores (igual que app.js línea 803)
         if (posicion.esTrincador && posicion.posicionesTrincaFestiva !== null) {
-          respuesta += `⚡ ${posicion.posicionesTrincaFestiva} trincadores hasta la puerta festiva\n`;
+          respuesta += `⚡ ${Math.round(posicion.posicionesTrincaFestiva)} trincadores hasta la puerta festiva\n`;
         }
       }
 

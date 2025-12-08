@@ -12,7 +12,7 @@ let stripe = null;
 export function initStripe() {
   if (!stripe) {
     // Hardcoded porque import.meta.env no funciona sin bundler
-    const publishableKey = 'pk_live_51SWmqbChRaIBXTnc355sMM4KaaPuqSXK95EwP4Vx3tPwPxFo9Y9t53oO6czRh6pdCrYI77atzBv7o0dg4AuOiMta00vbn2BMAO';
+    const publishableKey = 'pk_test_51SVcFZFApc6nOGEvWGRDRJAIrDNCfbpyTCmDyEX7eVRE5YvwJdYOZUDIBi5sy7bPPRnSOCLl1HTV3loZyOEKtkED00Tfnaqegl';
 
     if (!window.Stripe) {
       console.error('❌ Stripe SDK no cargado. Asegúrate de incluir <script src="https://js.stripe.com/v3/"></script>');
@@ -45,7 +45,7 @@ export async function redirectToCheckout(chapa) {
       },
       body: JSON.stringify({
         chapa: chapa,
-        priceId: 'price_1SZJz1ChRaIBXTncSV0nMALS'
+        priceId: 'price_1SVccrFApc6nOGEvgrJJ1xBR'
       }),
     });
 

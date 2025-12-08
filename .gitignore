@@ -2,6 +2,7 @@
 .env
 .env.local
 .env.*
+.stripe-production-backup.txt
 
 # Configuración local con API keys (NO SUBIR A GIT)
 chatbot/config.local.js
