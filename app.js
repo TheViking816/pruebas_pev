@@ -519,6 +519,7 @@ function setupEventListeners() {
 function checkStoredSession() {
   const storedChapa = localStorage.getItem('currentChapa');
   const storedName = localStorage.getItem('currentUserName');
+  const lastVisitedPage = localStorage.getItem('lastVisitedPage');
 
   if (storedChapa) {
     console.log('✅ Sesión existente detectada para chapa:', storedChapa);
@@ -527,9 +528,10 @@ function checkStoredSession() {
     AppState.isAuthenticated = true;
     updateUIForAuthenticatedUser();
 
-    // IMPORTANTE: Si hay sesión válida, redirigir automáticamente al dashboard
-    // NO mostrar la pantalla de login
-    navigateTo('dashboard');
+    // IMPORTANTE: Restaurar la última página visitada si existe, sino ir a dashboard
+    const pageToRestore = lastVisitedPage || 'dashboard';
+    console.log('📍 Restaurando última página visitada:', pageToRestore);
+    navigateTo(pageToRestore);
     return true; // Indica que hay sesión activa
   }
 
@@ -625,6 +627,7 @@ async function handleLogin() {
     // LIMPIEZA CRÍTICA: Eliminar cualquier sesión residual
     localStorage.removeItem('currentChapa');
     localStorage.removeItem('currentUserName');
+    localStorage.removeItem('lastVisitedPage');
     AppState.isAuthenticated = false;
     AppState.currentUser = null;
     AppState.currentUserName = null;
@@ -657,6 +660,9 @@ async function loginUser(chapa, nombre = null) {
   // Guardar en localStorage
   localStorage.setItem('currentChapa', chapa);
   localStorage.setItem('currentUserName', AppState.currentUserName);
+
+  // Limpiar última página visitada al hacer login (empezar de cero)
+  localStorage.removeItem('lastVisitedPage');
 
   // Actualizar cache de nombres de usuarios desde Supabase
   try {
@@ -831,6 +837,7 @@ function handleLogout() {
   // Limpiar localStorage
   localStorage.removeItem('currentChapa');
   localStorage.removeItem('currentUserName');
+  localStorage.removeItem('lastVisitedPage');
 
   // Ocultar información de usuario
   const userInfo = document.getElementById('user-info');
@@ -1112,6 +1119,7 @@ function navigateTo(pageName) {
     console.log('🧹 Limpieza preventiva: Navegando a login, eliminando sesiones residuales');
     localStorage.removeItem('currentChapa');
     localStorage.removeItem('currentUserName');
+    localStorage.removeItem('lastVisitedPage'); // Limpiar también la última página visitada
     AppState.isAuthenticated = false;
     AppState.currentUser = null;
     AppState.currentUserName = null;
@@ -1124,6 +1132,12 @@ function navigateTo(pageName) {
 
   AppState.currentPage = pageName;
   showPage(pageName);
+
+  // Guardar la última página visitada (solo si está autenticado y no es login)
+  if (AppState.isAuthenticated && pageName !== 'login') {
+    localStorage.setItem('lastVisitedPage', pageName);
+    console.log('💾 Página guardada en localStorage:', pageName);
+  }
 
   // Cargar datos según la página
   switch (pageName) {
@@ -2742,16 +2756,16 @@ async function loadTablon() {
     // Imagen genérica de buque
     const buqueImage = 'https://i.imgur.com/guKCoFy.jpeg';
 
-    // 1. Obtener la última jornada con contratación desde tablon_actual (solo datos actuales del CSV)
-    const { data: ultimaFecha, error: errorFecha } = await window.supabaseClient
+    // 1. Obtener TODAS las contrataciones de tablon_actual (todas las jornadas disponibles)
+    // NO APLICAR .order() - mantener el orden natural de Supabase (orden del CSV = orden de contratación)
+    const { data: contrataciones, error: errorContrataciones } = await window.supabaseClient
       .from('tablon_actual')
-      .select('fecha')
-      .order('fecha', { ascending: false })
-      .limit(1)
-      .single();
+      .select('chapa, empresa, buque, parte, puesto, jornada, fecha');
 
-    if (errorFecha) {
-      // Si no hay datos después de sincronizar, mostrar mensaje
+    if (errorContrataciones) throw errorContrataciones;
+
+    // Verificar si hay contrataciones
+    if (!contrataciones || contrataciones.length === 0) {
       loading.classList.add('hidden');
       container.innerHTML = `
         <div style="text-align: center; padding: 3rem;">
@@ -2762,28 +2776,20 @@ async function loadTablon() {
       return;
     }
 
-    const fecha = ultimaFecha.fecha;
-
-    // 2. Obtener todas las contrataciones de esa fecha (orden de contratación)
-    // NO APLICAR .order() - mantener el orden natural de Supabase (orden del CSV = orden de contratación)
-    const { data: contrataciones, error: errorContrataciones } = await window.supabaseClient
-      .from('tablon_actual')
-      .select('chapa, empresa, buque, parte, puesto, jornada')
-      .eq('fecha', fecha);
-
-    if (errorContrataciones) throw errorContrataciones;
-
     loading.classList.add('hidden');
 
-    // Actualizar título con la fecha
+    // Actualizar título con la última fecha de contratación
     if (fechaTitulo) {
-      const fechaObj = new Date(fecha + 'T12:00:00');
+      const fechasUnicas = [...new Set(contrataciones.map(c => c.fecha))].sort().reverse();
+      const ultimaFecha = fechasUnicas[0];
+      const fechaObj = new Date(ultimaFecha + 'T12:00:00');
       const fechaFormateada = fechaObj.toLocaleDateString('es-ES', {
         weekday: 'long',
         year: 'numeric',
         month: 'long',
         day: 'numeric'
       });
+
       fechaTitulo.textContent = `Última contratación: ${fechaFormateada}`;
     }
 
@@ -2841,8 +2847,44 @@ async function loadTablon() {
     const totalBarcos = new Set(contrataciones.map(c => c.buque)).size;
     const totalEspecialidades = new Set(contrataciones.map(c => c.puesto)).size;
 
+    // 4.1. Crear mapa de jornadas con su fecha más antigua para ordenamiento cronológico
+    const jornadaFechaMap = {};
+    contrataciones.forEach(item => {
+      const jornada = item.jornada || 'Sin jornada';
+      const fecha = item.fecha;
+      if (!jornadaFechaMap[jornada] || fecha < jornadaFechaMap[jornada]) {
+        jornadaFechaMap[jornada] = fecha;
+      }
+    });
+
+    // 4.2. Función para ordenar jornadas cronológicamente
+    const ordenarJornadasCronologicamente = (jornadas) => {
+      return jornadas.sort((a, b) => {
+        const fechaA = jornadaFechaMap[a];
+        const fechaB = jornadaFechaMap[b];
+
+        // Primero ordenar por fecha
+        if (fechaA !== fechaB) {
+          return fechaA < fechaB ? -1 : 1;
+        }
+
+        // Si la fecha es la misma, ordenar por hora de inicio de la jornada
+        const horaInicioA = parseInt(a.split(' ')[0]);
+        const horaInicioB = parseInt(b.split(' ')[0]);
+
+        // Las jornadas nocturnas (>= 12) van antes que las de madrugada (< 12)
+        const esNocturnaA = horaInicioA >= 12;
+        const esNocturnaB = horaInicioB >= 12;
+
+        if (esNocturnaA && !esNocturnaB) return -1;
+        if (!esNocturnaA && esNocturnaB) return 1;
+
+        return horaInicioA - horaInicioB;
+      });
+    };
+
     // 5. Crear tabs de jornadas
-    let jornadaActual = Object.keys(jornadasMap).sort()[0]; // Primera jornada por defecto
+    let jornadaActual = ordenarJornadasCronologicamente(Object.keys(jornadasMap))[0]; // Primera jornada cronológica por defecto
 
     const renderJornadasTabs = () => {
       if (!jornadasTabsContainer) return;
@@ -2850,7 +2892,7 @@ async function loadTablon() {
       jornadasTabsContainer.className = 'tablon-jornadas-tabs';
       jornadasTabsContainer.innerHTML = '';
 
-      Object.keys(jornadasMap).sort().forEach(jornada => {
+      ordenarJornadasCronologicamente(Object.keys(jornadasMap)).forEach(jornada => {
         const chapasEnJornada = Object.values(jornadasMap[jornada]).reduce((sum, empresaData) => {
           // Contar chapas en barcos
           const chapasBarcos = Object.values(empresaData.barcos).reduce((s, buque) => {
