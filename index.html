@@ -438,65 +438,6 @@
         </div>
       </div>
       <div class="container">
-        <!-- Buscador de jornadas históricas -->
-        <div style="background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%); border: 2px solid #0ea5e9; border-radius: 12px; padding: 1.5rem; margin-bottom: 2rem; box-shadow: 0 4px 12px rgba(14, 165, 233, 0.1);">
-          <div style="display: flex; align-items: center; gap: 0.75rem; margin-bottom: 1rem;">
-            <svg xmlns="http://www.w3.org/2000/svg" style="width: 24px; height: 24px; color: #0ea5e9;" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-            </svg>
-            <h3 style="margin: 0; font-size: 1.125rem; font-weight: 700; color: #0c4a6e;">Buscar Jornada Histórica</h3>
-          </div>
-          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; align-items: end;">
-            <!-- Selector de Fecha -->
-            <div>
-              <label style="display: block; font-size: 0.875rem; font-weight: 600; color: #0c4a6e; margin-bottom: 0.5rem;">Fecha</label>
-              <input
-                type="date"
-                id="tablon-buscar-fecha"
-                style="width: 100%; padding: 0.75rem; border: 1px solid #0ea5e9; border-radius: 8px; font-size: 1rem; background: white;"
-              />
-            </div>
-
-            <!-- Selector de Jornada -->
-            <div>
-              <label style="display: block; font-size: 0.875rem; font-weight: 600; color: #0c4a6e; margin-bottom: 0.5rem;">Jornada</label>
-              <select
-                id="tablon-buscar-jornada"
-                style="width: 100%; padding: 0.75rem; border: 1px solid #0ea5e9; border-radius: 8px; font-size: 1rem; background: white; cursor: pointer;"
-              >
-                <option value="">Seleccionar jornada...</option>
-                <option value="08 a 14">08 a 14</option>
-                <option value="14 a 20">14 a 20</option>
-                <option value="20 a 02">20 a 02</option>
-                <option value="02 a 08">02 a 08</option>
-              </select>
-            </div>
-
-            <!-- Botones -->
-            <div style="display: flex; gap: 0.5rem;">
-              <button
-                id="tablon-buscar-btn"
-                style="flex: 1; padding: 0.75rem 1.5rem; background: #0ea5e9; color: white; border: none; border-radius: 8px; font-size: 1rem; font-weight: 600; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 0.5rem; transition: background 0.2s;"
-                onmouseover="this.style.background='#0284c7'"
-                onmouseout="this.style.background='#0ea5e9'"
-              >
-                <svg xmlns="http://www.w3.org/2000/svg" style="width: 20px; height: 20px;" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                </svg>
-                Buscar
-              </button>
-              <button
-                id="tablon-volver-actual-btn"
-                style="padding: 0.75rem 1rem; background: white; color: #0ea5e9; border: 2px solid #0ea5e9; border-radius: 8px; font-size: 1rem; font-weight: 600; cursor: pointer; display: none; transition: all 0.2s;"
-                onmouseover="this.style.background='#f0f9ff'"
-                onmouseout="this.style.background='white'"
-              >
-                Volver al tablón actual
-              </button>
-            </div>
-          </div>
-        </div>
-
         <!-- Selector de jornadas (tabs) -->
         <div id="tablon-jornadas-tabs" style="margin-bottom: 2rem;"></div>
 
@@ -593,6 +534,65 @@
               <button id="modal-close-btn" style="background: rgba(255,255,255,0.2); border: none; color: white; width: 36px; height: 36px; border-radius: 50%; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; line-height: 1;">×</button>
             </div>
             <div id="modal-chapa-content" style="padding: 1.5rem;"></div>
+          </div>
+        </div>
+
+        <!-- Buscador de jornadas históricas -->
+        <div style="background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%); border: 2px solid #0ea5e9; border-radius: 12px; padding: 1.5rem; margin-top: 3rem; margin-bottom: 2rem; box-shadow: 0 4px 12px rgba(14, 165, 233, 0.1);">
+          <div style="display: flex; align-items: center; gap: 0.75rem; margin-bottom: 1rem;">
+            <svg xmlns="http://www.w3.org/2000/svg" style="width: 24px; height: 24px; color: #0ea5e9;" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+            </svg>
+            <h3 style="margin: 0; font-size: 1.125rem; font-weight: 700; color: #0c4a6e;">Buscar Jornada Histórica</h3>
+          </div>
+          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; align-items: end;">
+            <!-- Selector de Fecha -->
+            <div>
+              <label style="display: block; font-size: 0.875rem; font-weight: 600; color: #0c4a6e; margin-bottom: 0.5rem;">Fecha</label>
+              <input
+                type="date"
+                id="tablon-buscar-fecha"
+                style="width: 100%; padding: 0.75rem; border: 1px solid #0ea5e9; border-radius: 8px; font-size: 1rem; background: white;"
+              />
+            </div>
+
+            <!-- Selector de Jornada -->
+            <div>
+              <label style="display: block; font-size: 0.875rem; font-weight: 600; color: #0c4a6e; margin-bottom: 0.5rem;">Jornada</label>
+              <select
+                id="tablon-buscar-jornada"
+                style="width: 100%; padding: 0.75rem; border: 1px solid #0ea5e9; border-radius: 8px; font-size: 1rem; background: white; cursor: pointer;"
+              >
+                <option value="">Seleccionar jornada...</option>
+                <option value="08 a 14">08 a 14</option>
+                <option value="14 a 20">14 a 20</option>
+                <option value="20 a 02">20 a 02</option>
+                <option value="02 a 08">02 a 08</option>
+              </select>
+            </div>
+
+            <!-- Botones -->
+            <div style="display: flex; gap: 0.5rem;">
+              <button
+                id="tablon-buscar-btn"
+                style="flex: 1; padding: 0.75rem 1.5rem; background: #0ea5e9; color: white; border: none; border-radius: 8px; font-size: 1rem; font-weight: 600; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 0.5rem; transition: background 0.2s;"
+                onmouseover="this.style.background='#0284c7'"
+                onmouseout="this.style.background='#0ea5e9'"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" style="width: 20px; height: 20px;" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                </svg>
+                Buscar
+              </button>
+              <button
+                id="tablon-volver-actual-btn"
+                style="padding: 0.75rem 1rem; background: white; color: #0ea5e9; border: 2px solid #0ea5e9; border-radius: 8px; font-size: 1rem; font-weight: 600; cursor: pointer; display: none; transition: all 0.2s;"
+                onmouseover="this.style.background='#f0f9ff'"
+                onmouseout="this.style.background='white'"
+              >
+                Volver al tablón actual
+              </button>
+            </div>
           </div>
         </div>
       </div>
