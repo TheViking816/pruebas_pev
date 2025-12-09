@@ -3257,6 +3257,9 @@ async function loadTablon(options = {}) {
         // Función auxiliar para renderizar un grupo (barco o grupo especial)
         const renderGrupo = (nombre, especialidadesGrupo, icono, etiqueta) => {
 
+          // Calcular total de chapas primero (para usarlo en el header)
+          const totalChapasGrupo = Object.values(especialidadesGrupo).reduce((sum, chapas) => sum + chapas.length, 0);
+
           // Card del grupo (barco o grupo especial)
           const buqueCard = document.createElement('div');
           buqueCard.className = 'tablon-buque-card';
@@ -3268,6 +3271,7 @@ async function loadTablon(options = {}) {
           buqueHeader.innerHTML = `
             ${icono}
             <div class="tablon-buque-nombre">${nombre}</div>
+            <div style="margin-left: auto; margin-right: 0.5rem; font-size: 0.875rem; font-weight: 600; color: var(--puerto-blue); background: rgba(37, 99, 235, 0.1); padding: 0.25rem 0.75rem; border-radius: 12px;">${totalChapasGrupo} asignaciones</div>
             <svg class="tablon-buque-toggle" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
             </svg>
@@ -3286,8 +3290,6 @@ async function loadTablon(options = {}) {
           // Header del panel con imagen
           const panelHeader = document.createElement('div');
           panelHeader.className = 'tablon-buque-header-panel';
-
-          const totalChapasGrupo = Object.values(especialidadesGrupo).reduce((sum, chapas) => sum + chapas.length, 0);
 
           // Imagen del grupo (diferente para cada tipo)
           const grupoImage = nombre === 'Trincadores'
