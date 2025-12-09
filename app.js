@@ -8283,39 +8283,45 @@ async function loadCalculadora() {
             var ratioCobertura = demandaEventuales / Math.max(1, distanciaNecesaria);
 
             // PROBABILIDAD SUAVE Y PROGRESIVA según distancia
-            // Dentro del rango +-50 posiciones, probabilidades muy similares
+            // Ajustada para ser más realista con distancias cortas
             if (posicionRestante <= 10) {
-              // Muy cerca (1-10 posiciones), prob alta
-              probBaseSalir = 0.38 + (10 - posicionRestante) * 0.008; // 38-46%
+              // Muy cerca (1-10 posiciones), prob muy alta
+              probBaseSalir = 0.60 + (10 - posicionRestante) * 0.015; // 60-75%
             } else if (posicionRestante <= 30) {
-              // Cerca (11-30 posiciones), prob media-alta
-              probBaseSalir = 0.28 + (30 - posicionRestante) * 0.005; // 28-38%
+              // Cerca (11-30 posiciones), prob alta
+              probBaseSalir = 0.45 + (30 - posicionRestante) * 0.0075; // 45-60%
             } else if (posicionRestante <= 50) {
-              // Rango medio (31-50 posiciones), prob media
-              probBaseSalir = 0.20 + (50 - posicionRestante) * 0.004; // 20-28%
-            } else if (posicionRestante <= 100) {
-              // Algo lejos (51-100 posiciones), prob media-baja
-              probBaseSalir = 0.10 + (100 - posicionRestante) * 0.002; // 10-20%
-            } else if (posicionRestante <= 150) {
-              // Lejos (101-150 posiciones), prob baja
-              probBaseSalir = Math.min(0.06, Math.max(0.015, ratioCobertura * 0.12)); // 1.5-6%
+              // Rango cercano-medio (31-50 posiciones), prob media-alta
+              probBaseSalir = 0.32 + (50 - posicionRestante) * 0.0065; // 32-45%
+            } else if (posicionRestante <= 80) {
+              // Algo lejos (51-80 posiciones), prob media
+              probBaseSalir = 0.18 + (80 - posicionRestante) * 0.0047; // 18-32%
+            } else if (posicionRestante <= 120) {
+              // Lejos (81-120 posiciones), prob media-baja
+              probBaseSalir = 0.08 + (120 - posicionRestante) * 0.0025; // 8-18%
+            } else if (posicionRestante <= 180) {
+              // Muy lejos (121-180 posiciones), prob baja
+              probBaseSalir = Math.min(0.05, Math.max(0.02, ratioCobertura * 0.15)); // 2-5%
             } else {
-              // Muy muy lejos (>150 posiciones), prob muy baja
-              probBaseSalir = Math.min(0.025, Math.max(0.008, ratioCobertura * 0.06)); // 0.8-2.5%
+              // Extremadamente lejos (>180 posiciones), prob muy baja
+              probBaseSalir = Math.min(0.02, Math.max(0.005, ratioCobertura * 0.08)); // 0.5-2%
             }
 
-            // PENALIZACIÓN por cobertura insuficiente
-            // Si la demanda NO cubre la distancia necesaria, reducir probabilidad
-            // Esto es especialmente importante para OC donde las diferencias son más claras
-            if (ratioCobertura < 1.0) {
-              // La demanda NO alcanza para llegar al usuario
-              // Penalizar fuertemente según qué tan lejos queda
-              // ratioCobertura = 0.5 → factor 0.35 (reducir a 35%)
-              // ratioCobertura = 0.75 → factor 0.55 (reducir a 55%)
-              // ratioCobertura = 0.9 → factor 0.75 (reducir a 75%)
-              var factorPenalizacion = Math.max(0.15, Math.min(0.85, ratioCobertura * 0.90));
+            // PENALIZACIÓN por cobertura insuficiente (AJUSTADA)
+            // Solo penalizar si la puerta se quedó MUY lejos (>80 posiciones)
+            // Si se quedó cerca (<50 posiciones), NO penalizar porque la demanda fue efectiva
+            if (ratioCobertura < 1.0 && posicionRestante > 80) {
+              // La demanda NO alcanza Y la puerta se quedó MUY lejos
+              // Penalizar según qué tan lejos quedó
+              var factorPenalizacion = Math.max(0.20, Math.min(0.75, ratioCobertura * 0.85));
+              probBaseSalir = probBaseSalir * factorPenalizacion;
+            } else if (ratioCobertura < 0.7 && posicionRestante > 50 && posicionRestante <= 80) {
+              // Distancia media (50-80) con demanda muy baja (<70% de cobertura)
+              // Penalización moderada
+              var factorPenalizacion = Math.max(0.50, ratioCobertura * 1.2);
               probBaseSalir = probBaseSalir * factorPenalizacion;
             }
+            // Si posicionRestante <= 50: NO penalizar, la demanda fue suficiente para llegar cerca
           }
 
           // IMPORTANTE: Dar prioridad a la jornada inmediatamente siguiente
