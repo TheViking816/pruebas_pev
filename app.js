@@ -509,6 +509,19 @@ function setupEventListeners() {
 
   // Sincronización automática del tablón - no se necesita botón manual
 
+  // Botones de búsqueda histórica del tablón
+  const tablonBuscarBtn = document.getElementById('tablon-buscar-btn');
+  if (tablonBuscarBtn) {
+    tablonBuscarBtn.addEventListener('click', buscarJornadaHistorica);
+  }
+
+  const tablonVolverActualBtn = document.getElementById('tablon-volver-actual-btn');
+  if (tablonVolverActualBtn) {
+    tablonVolverActualBtn.addEventListener('click', () => {
+      loadTablon(); // Cargar tablón actual sin opciones
+    });
+  }
+
   // Detectar scroll en el contenedor de mensajes del foro
   initForoScrollDetection();
 }
@@ -2686,9 +2699,39 @@ async function sincronizarTablonDesdeCSV() {
 }
 
 /**
- * Carga el tablón de contratación con división por jornadas
+ * Busca una jornada histórica específica
  */
-async function loadTablon() {
+async function buscarJornadaHistorica() {
+  const fechaInput = document.getElementById('tablon-buscar-fecha');
+  const jornadaInput = document.getElementById('tablon-buscar-jornada');
+
+  const fecha = fechaInput?.value;
+  const jornada = jornadaInput?.value;
+
+  // Validar que se hayan seleccionado ambos campos
+  if (!fecha || !jornada) {
+    alert('Por favor, selecciona una fecha y una jornada para buscar.');
+    return;
+  }
+
+  console.log(`🔍 Buscando jornada: ${fecha} - ${jornada}`);
+
+  // Cargar tablón con opciones de búsqueda histórica
+  await loadTablon({
+    historico: true,
+    fecha: fecha,
+    jornada: jornada
+  });
+}
+
+/**
+ * Carga el tablón de contratación con división por jornadas
+ * @param {Object} options - Opciones de carga
+ * @param {boolean} options.historico - Si es true, carga datos históricos
+ * @param {string} options.fecha - Fecha en formato YYYY-MM-DD (para búsqueda histórica)
+ * @param {string} options.jornada - Jornada específica (para búsqueda histórica)
+ */
+async function loadTablon(options = {}) {
   const container = document.getElementById('tablon-content');
   const loading = document.getElementById('tablon-loading');
   const statsContainer = document.getElementById('tablon-stats');
@@ -2725,15 +2768,44 @@ async function loadTablon() {
   }
 
   try {
-    // 🔄 Sincronizar automáticamente los datos del tablón desde el CSV
-    console.log('🔄 Sincronizando tablón desde CSV...');
-    const syncResult = await SheetsAPI.syncTablonActualFromCSV();
+    let contrataciones;
+    let errorContrataciones;
 
-    if (syncResult.success) {
-      console.log(`✅ Tablón sincronizado: ${syncResult.count} registros actualizados`);
+    // Verificar si es búsqueda histórica o tablón actual
+    if (options.historico && options.fecha && options.jornada) {
+      // BÚSQUEDA HISTÓRICA: Consultar tabla jornales
+      console.log(`🔍 Buscando jornada histórica: ${options.fecha} - ${options.jornada}`);
+
+      const result = await window.supabaseClient
+        .from('jornales')
+        .select('chapa, empresa, buque, parte, puesto, jornada, fecha')
+        .eq('fecha', options.fecha)
+        .eq('jornada', options.jornada);
+
+      contrataciones = result.data;
+      errorContrataciones = result.error;
     } else {
-      console.warn('⚠️ Error sincronizando tablón:', syncResult.message);
+      // TABLÓN ACTUAL: Sincronizar y obtener datos de tablon_actual
+      console.log('🔄 Sincronizando tablón desde CSV...');
+      const syncResult = await SheetsAPI.syncTablonActualFromCSV();
+
+      if (syncResult.success) {
+        console.log(`✅ Tablón sincronizado: ${syncResult.count} registros actualizados`);
+      } else {
+        console.warn('⚠️ Error sincronizando tablón:', syncResult.message);
+      }
+
+      // 1. Obtener TODAS las contrataciones de tablon_actual (todas las jornadas disponibles)
+      // NO APLICAR .order() - mantener el orden natural de Supabase (orden del CSV = orden de contratación)
+      const result = await window.supabaseClient
+        .from('tablon_actual')
+        .select('chapa, empresa, buque, parte, puesto, jornada, fecha');
+
+      contrataciones = result.data;
+      errorContrataciones = result.error;
     }
+
+    if (errorContrataciones) throw errorContrataciones;
 
     // ============================================
     // 🎨 CONFIGURACIÓN DE TAMAÑO DE ESTADÍSTICAS
@@ -2756,41 +2828,77 @@ async function loadTablon() {
     // Imagen genérica de buque
     const buqueImage = 'https://i.imgur.com/guKCoFy.jpeg';
 
-    // 1. Obtener TODAS las contrataciones de tablon_actual (todas las jornadas disponibles)
-    // NO APLICAR .order() - mantener el orden natural de Supabase (orden del CSV = orden de contratación)
-    const { data: contrataciones, error: errorContrataciones } = await window.supabaseClient
-      .from('tablon_actual')
-      .select('chapa, empresa, buque, parte, puesto, jornada, fecha');
-
-    if (errorContrataciones) throw errorContrataciones;
-
     // Verificar si hay contrataciones
     if (!contrataciones || contrataciones.length === 0) {
       loading.classList.add('hidden');
-      container.innerHTML = `
-        <div style="text-align: center; padding: 3rem;">
-          <p style="font-size: 1.2rem; margin-bottom: 1rem;">⚠️ No hay datos del tablón</p>
-          <p style="margin-bottom: 2rem;">No se encontraron contrataciones en el CSV de la empresa.</p>
-        </div>
-      `;
+
+      let mensaje = '';
+      if (options.historico) {
+        const fechaObj = new Date(options.fecha + 'T12:00:00');
+        const fechaFormateada = fechaObj.toLocaleDateString('es-ES', {
+          day: 'numeric',
+          month: 'long',
+          year: 'numeric'
+        });
+        mensaje = `
+          <div style="text-align: center; padding: 3rem;">
+            <p style="font-size: 1.2rem; margin-bottom: 1rem;">⚠️ No se encontraron contrataciones</p>
+            <p style="margin-bottom: 1rem;">No hay datos para la jornada <strong>${options.jornada}</strong> del <strong>${fechaFormateada}</strong>.</p>
+            <button onclick="loadTablon()" style="margin-top: 1rem; padding: 0.75rem 1.5rem; background: var(--puerto-blue); color: white; border: none; border-radius: 8px; font-size: 1rem; font-weight: 600; cursor: pointer;">
+              Volver al tablón actual
+            </button>
+          </div>
+        `;
+      } else {
+        mensaje = `
+          <div style="text-align: center; padding: 3rem;">
+            <p style="font-size: 1.2rem; margin-bottom: 1rem;">⚠️ No hay datos del tablón</p>
+            <p style="margin-bottom: 2rem;">No se encontraron contrataciones en el CSV de la empresa.</p>
+          </div>
+        `;
+      }
+
+      container.innerHTML = mensaje;
       return;
     }
 
     loading.classList.add('hidden');
 
-    // Actualizar título con la última fecha de contratación
+    // Actualizar título
     if (fechaTitulo) {
-      const fechasUnicas = [...new Set(contrataciones.map(c => c.fecha))].sort().reverse();
-      const ultimaFecha = fechasUnicas[0];
-      const fechaObj = new Date(ultimaFecha + 'T12:00:00');
-      const fechaFormateada = fechaObj.toLocaleDateString('es-ES', {
-        weekday: 'long',
-        year: 'numeric',
-        month: 'long',
-        day: 'numeric'
-      });
+      if (options.historico) {
+        // Búsqueda histórica: mostrar fecha y jornada buscada
+        const fechaObj = new Date(options.fecha + 'T12:00:00');
+        const fechaFormateada = fechaObj.toLocaleDateString('es-ES', {
+          weekday: 'long',
+          year: 'numeric',
+          month: 'long',
+          day: 'numeric'
+        });
+        fechaTitulo.textContent = `Jornada histórica: ${fechaFormateada} - ${options.jornada}`;
+      } else {
+        // Tablón actual: mostrar última fecha
+        const fechasUnicas = [...new Set(contrataciones.map(c => c.fecha))].sort().reverse();
+        const ultimaFecha = fechasUnicas[0];
+        const fechaObj = new Date(ultimaFecha + 'T12:00:00');
+        const fechaFormateada = fechaObj.toLocaleDateString('es-ES', {
+          weekday: 'long',
+          year: 'numeric',
+          month: 'long',
+          day: 'numeric'
+        });
+        fechaTitulo.textContent = `Última contratación: ${fechaFormateada}`;
+      }
+    }
 
-      fechaTitulo.textContent = `Última contratación: ${fechaFormateada}`;
+    // Mostrar/ocultar botón "Volver al tablón actual"
+    const volverBtn = document.getElementById('tablon-volver-actual-btn');
+    if (volverBtn) {
+      if (options.historico) {
+        volverBtn.style.display = 'block';
+      } else {
+        volverBtn.style.display = 'none';
+      }
     }
 
     // 3. Agrupar por jornada → empresa → [barcos | trincadores | re] → especialidad
