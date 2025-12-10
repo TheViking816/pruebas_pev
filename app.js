@@ -790,7 +790,7 @@ function updateUIForAuthenticatedUser() {
               posicionTrincaLab.style.fontSize = '0.85rem';
               posicionTrincaLab.style.color = '#FCD34D'; // Color dorado/amarillo
               posicionTrincaLab.style.fontWeight = '500';
-              posicionTrincaLab.innerHTML = `⚡ ${posicionesTrinca.laborable} trincadores hasta la puerta <strong>laborable</strong>`;
+              posicionTrincaLab.innerHTML = `⚡ ${Math.round(posicionesTrinca.laborable)} trincadores hasta la puerta <strong>laborable</strong>`;
               welcomeMsg.appendChild(posicionTrincaLab);
             }
           }
@@ -821,7 +821,7 @@ function updateUIForAuthenticatedUser() {
               posicionTrincaFest.style.fontSize = '0.85rem';
               posicionTrincaFest.style.color = '#FCD34D'; // Color dorado/amarillo
               posicionTrincaFest.style.fontWeight = '500';
-              posicionTrincaFest.innerHTML = `⚡ ${posicionesTrinca.festiva} trincadores hasta la puerta <strong>festiva</strong>`;
+              posicionTrincaFest.innerHTML = `⚡ ${Math.round(posicionesTrinca.festiva)} trincadores hasta la puerta <strong>festiva</strong>`;
               welcomeMsg.appendChild(posicionTrincaFest);
             }
           }
