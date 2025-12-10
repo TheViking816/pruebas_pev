@@ -2780,7 +2780,8 @@ async function loadTablon(options = {}) {
         .from('jornales')
         .select('chapa, empresa, buque, parte, puesto, jornada, fecha')
         .eq('fecha', options.fecha)
-        .eq('jornada', options.jornada);
+        .eq('jornada', options.jornada)
+        .order('id', { ascending: true });
 
       contrataciones = result.data;
       errorContrataciones = result.error;
@@ -2796,10 +2797,11 @@ async function loadTablon(options = {}) {
       }
 
       // 1. Obtener TODAS las contrataciones de tablon_actual (todas las jornadas disponibles)
-      // NO APLICAR .order() - mantener el orden natural de Supabase (orden del CSV = orden de contratación)
+      // Ordenar por id para mantener el orden cronológico de contratación
       const result = await window.supabaseClient
         .from('tablon_actual')
-        .select('chapa, empresa, buque, parte, puesto, jornada, fecha');
+        .select('chapa, empresa, buque, parte, puesto, jornada, fecha')
+        .order('id', { ascending: true });
 
       contrataciones = result.data;
       errorContrataciones = result.error;
