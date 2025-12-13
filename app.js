@@ -2012,6 +2012,52 @@ function groupByQuincena(jornales) {
 }
 
 /**
+ * Ordena jornales por fecha y jornada (en el orden correcto del día)
+ * Orden de jornadas: 02-08, 08-14, 14-20, 20-02
+ */
+function sortJornalesByDateAndShift(jornales) {
+  // Definir orden de jornadas
+  const jornadaOrder = {
+    '02-08': 1,
+    '02 a 08': 1,
+    '08-14': 2,
+    '08 a 14': 2,
+    '14-20': 3,
+    '14 a 20': 3,
+    '20-02': 4,
+    '20 a 02': 4
+  };
+
+  return jornales.sort((a, b) => {
+    // Primero ordenar por fecha
+    let dateA, dateB;
+
+    if (a.fecha.includes('/')) {
+      const [day, month, year] = a.fecha.split('/').map(Number);
+      dateA = new Date(year, month - 1, day);
+    } else {
+      dateA = new Date(a.fecha);
+    }
+
+    if (b.fecha.includes('/')) {
+      const [day, month, year] = b.fecha.split('/').map(Number);
+      dateB = new Date(year, month - 1, day);
+    } else {
+      dateB = new Date(b.fecha);
+    }
+
+    if (dateA.getTime() !== dateB.getTime()) {
+      return dateA.getTime() - dateB.getTime();
+    }
+
+    // Si las fechas son iguales, ordenar por jornada
+    const orderA = jornadaOrder[a.jornada] || 999;
+    const orderB = jornadaOrder[b.jornada] || 999;
+    return orderA - orderB;
+  });
+}
+
+/**
  * Crea una tarjeta de quincena con datos resumidos
  */
 function createQuincenaCard(year, month, quincena, jornales) {
@@ -2025,6 +2071,9 @@ function createQuincenaCard(year, month, quincena, jornales) {
 
   // Calcular estadísticas
   const totalJornales = jornales.length;
+
+  // Ordenar jornales por fecha y jornada
+  const jornalesOrdenados = sortJornalesByDateAndShift([...jornales]);
 
   // Desglose por empresa
   const porEmpresa = {};
@@ -2145,7 +2194,7 @@ function createQuincenaCard(year, month, quincena, jornales) {
             </tr>
           </thead>
           <tbody>
-            ${jornales.map(row => `
+            ${jornalesOrdenados.map(row => `
               <tr>
                 <td style="white-space: nowrap;"><strong>${formatearFecha(row.fecha)}</strong></td>
                 <td style="white-space: nowrap;">
@@ -2257,12 +2306,8 @@ function exportJornalesToPDF(data) {
     doc.setTextColor(0, 0, 0);
     doc.text(`Total de jornales: ${jornales.length}`, 14, 28);
 
-    // Ordenar jornales por fecha
-    const jornalesOrdenados = jornales.sort((a, b) => {
-      const dateA = new Date((a.fecha.includes('/') ? a.fecha.split('/').reverse().join('-') : a.fecha));
-      const dateB = new Date((b.fecha.includes('/') ? b.fecha.split('/').reverse().join('-') : b.fecha));
-      return dateA - dateB;
-    });
+    // Ordenar jornales por fecha y jornada
+    const jornalesOrdenados = sortJornalesByDateAndShift([...jornales]);
 
     // Preparar datos para la tabla
     const tableData = jornalesOrdenados.map(j => [
@@ -5077,6 +5122,9 @@ async function loadSueldometro() {
 
 
     quincenasArray.forEach(({ year, month, quincena, jornales: jornalesQuincena }) => { // Utilizar el array con salarios
+      // Ordenar jornales por fecha y jornada
+      jornalesQuincena = sortJornalesByDateAndShift([...jornalesQuincena]);
+
       // Recalcular estos totales para el header de la quincena para que reflejen los datos ya actualizados
       // por la lógica del `jornalesConSalario` que ya tiene los valores bloqueados y recalculados.
       const totalQuincenaBruto = jornalesQuincena.reduce((sum, j) => j.total ? sum + j.total : sum, 0);
