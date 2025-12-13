@@ -2016,16 +2016,30 @@ function groupByQuincena(jornales) {
  * Fechas más recientes primero, pero respetando orden de jornadas: 02-08, 08-14, 14-20, 20-02
  */
 function sortJornalesByDateAndShift(jornales) {
-  // Definir orden de jornadas
-  const jornadaOrder = {
-    '02-08': 1,
-    '02 a 08': 1,
-    '08-14': 2,
-    '08 a 14': 2,
-    '14-20': 3,
-    '14 a 20': 3,
-    '20-02': 4,
-    '20 a 02': 4
+  // Definir orden de jornadas - normalizar para soportar todos los formatos
+  const getJornadaOrder = (jornada) => {
+    if (!jornada) return 999;
+
+    // Normalizar la jornada eliminando espacios extras
+    const normalizedJornada = jornada.trim();
+
+    // Mapeo de todas las variantes posibles
+    const orderMap = {
+      '02-08': 1,
+      '02 a 08': 1,
+      '02a08': 1,
+      '08-14': 2,
+      '08 a 14': 2,
+      '08a14': 2,
+      '14-20': 3,
+      '14 a 20': 3,
+      '14a20': 3,
+      '20-02': 4,
+      '20 a 02': 4,
+      '20a02': 4
+    };
+
+    return orderMap[normalizedJornada] || 999;
   };
 
   return jornales.sort((a, b) => {
@@ -2050,10 +2064,11 @@ function sortJornalesByDateAndShift(jornales) {
       return dateB.getTime() - dateA.getTime(); // Descendente: más recientes primero
     }
 
-    // Si las fechas son iguales, ordenar por jornada (ascendente: 02-08, 08-14, 14-20, 20-02)
-    const orderA = jornadaOrder[a.jornada] || 999;
-    const orderB = jornadaOrder[b.jornada] || 999;
-    return orderA - orderB;
+    // Si las fechas son iguales, ordenar por jornada
+    // NOTA: Se invierte el orden (orderB - orderA) debido a que el renderizado invierte el orden final
+    const orderA = getJornadaOrder(a.jornada);
+    const orderB = getJornadaOrder(b.jornada);
+    return orderB - orderA;
   });
 }
 
@@ -5206,7 +5221,7 @@ async function loadSueldometro() {
               </tr>
             </thead>
             <tbody id="tbody-${year}-${month}-${quincena}">
-              ${jornalesQuincena.map((j, idx) => { // Usar jornalesQuincena
+              ${jornalesQuincena.map((j, idx) => {
                 // Validar que el jornal tenga los campos necesarios
                 if (!j.jornada || !j.fecha) {
                   console.warn('⚠️ Jornal incompleto en sueldómetro, saltando:', j);
