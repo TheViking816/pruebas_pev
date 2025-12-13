@@ -1,8 +1,19 @@
 // supabase/functions/daily-oracle-notifications/index.ts
 import { serve } from "https://deno.land/std@0.177.0/http/server.ts";
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.7.1';
+
+const corsHeaders = {
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+};
+
 console.log("daily-oracle-notifications Edge Function started!");
 serve(async (req)=>{
+  // Manejar solicitudes OPTIONS para CORS
+  if (req.method === 'OPTIONS') {
+    return new Response('ok', { headers: corsHeaders });
+  }
+
   try {
     // Inicializar cliente de Supabase
     const supabaseUrl = Deno.env.get('SUPABASE_URL');
@@ -26,7 +37,8 @@ serve(async (req)=>{
       return new Response(JSON.stringify({
         error: subsError.message
       }), {
-        status: 500
+        status: 500,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
       });
     }
     if (!subscriptions || subscriptions.length === 0) {
@@ -34,7 +46,8 @@ serve(async (req)=>{
       return new Response(JSON.stringify({
         message: 'No hay suscripciones'
       }), {
-        status: 200
+        status: 200,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
       });
     }
     console.log(`📋 Encontrados ${subscriptions.length} usuarios suscritos`);
@@ -51,7 +64,8 @@ serve(async (req)=>{
           success: false,
           message: `No hay suscripción activa para chapa ${testChapa}`
         }), {
-          status: 200
+          status: 200,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' }
         });
       }
     }
@@ -100,7 +114,8 @@ serve(async (req)=>{
       return new Response(JSON.stringify({
         error: censoError.message
       }), {
-        status: 500
+        status: 500,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
       });
     }
     console.log(`📊 Censo cargado: ${censoData.length} trabajadores`);
@@ -234,7 +249,8 @@ serve(async (req)=>{
       return new Response(JSON.stringify({
         error: 'No se encontró puerta para la jornada del Oráculo'
       }), {
-        status: 500
+        status: 500,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
       });
     }
 
@@ -348,6 +364,7 @@ serve(async (req)=>{
     console.log('📊 Resumen:', summary);
     return new Response(JSON.stringify(summary), {
       headers: {
+        ...corsHeaders,
         'Content-Type': 'application/json'
       },
       status: 200
@@ -357,7 +374,8 @@ serve(async (req)=>{
     return new Response(JSON.stringify({
       error: error.message
     }), {
-      status: 500
+      status: 500,
+      headers: { ...corsHeaders, 'Content-Type': 'application/json' }
     });
   }
 });
