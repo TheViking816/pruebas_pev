@@ -7586,8 +7586,16 @@ window.cargarDatosNoray = async function() {
     // Intentar cargar desde el scraper de Render primero
     try {
       console.log('Intentando cargar desde scraper de Render...');
-      var renderUrl = 'https://noray-scraper.onrender.com/api/all';
-      var renderResponse = await fetch(renderUrl);
+      // Añadir timestamp para evitar caché
+      var renderUrl = 'https://noray-scraper.onrender.com/api/all?t=' + Date.now();
+      var renderResponse = await fetch(renderUrl, {
+        cache: 'no-store',
+        headers: {
+          'Cache-Control': 'no-cache, no-store, must-revalidate',
+          'Pragma': 'no-cache',
+          'Expires': '0'
+        }
+      });
       var renderData = await renderResponse.json();
 
       if (renderData.success && renderData.demandas) {
@@ -7808,8 +7816,16 @@ window.cargarPrevisionNoray = async function() {
 
   try {
     console.log('📊 Cargando previsión desde scraper de Render...');
-    var renderUrl = 'https://noray-scraper.onrender.com/api/prevision';
-    var response = await fetch(renderUrl);
+    // Añadir timestamp para evitar caché
+    var renderUrl = 'https://noray-scraper.onrender.com/api/prevision?t=' + Date.now();
+    var response = await fetch(renderUrl, {
+      cache: 'no-store',
+      headers: {
+        'Cache-Control': 'no-cache, no-store, must-revalidate',
+        'Pragma': 'no-cache',
+        'Expires': '0'
+      }
+    });
     var data = await response.json();
 
     if (data.success && data.demandas) {
@@ -7889,8 +7905,16 @@ window.cargarFijosNoray = async function() {
 
   try {
     console.log('👥 Cargando fijos desde scraper de Render...');
-    var renderUrl = 'https://noray-scraper.onrender.com/api/chapero';
-    var response = await fetch(renderUrl);
+    // Añadir timestamp para evitar caché
+    var renderUrl = 'https://noray-scraper.onrender.com/api/chapero?t=' + Date.now();
+    var response = await fetch(renderUrl, {
+      cache: 'no-store',
+      headers: {
+        'Cache-Control': 'no-cache, no-store, must-revalidate',
+        'Pragma': 'no-cache',
+        'Expires': '0'
+      }
+    });
     var data = await response.json();
 
     if (data.success && data.fijos !== undefined) {

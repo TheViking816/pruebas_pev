@@ -149,7 +149,7 @@ body::after {
   max-width: 600px;
   margin: 0 auto;
   width: 100%;
-  padding-bottom: 160px; /* Espacio para input area + quick actions */
+  padding-bottom: 140px; /* Espacio para input area + quick actions */
   position: relative;
   z-index: 1;
 }
@@ -161,7 +161,7 @@ body::after {
 .chat-container::-webkit-scrollbar-track {
   background: rgba(255, 255, 255, 0.05);
   border-radius: 10px;
-  margin: 4px 4px 160px 4px; /* Bottom margin para no solapar con input area */
+  margin: 4px 4px 140px 4px; /* Bottom margin para no solapar con input area */
 }
 
 .chat-container::-webkit-scrollbar-thumb {
@@ -953,7 +953,7 @@ body::after {
   }
 
   .chat-container {
-    padding-bottom: 180px; /* Más espacio para input + quick actions en móvil */
+    padding-bottom: 150px; /* Más espacio para input + quick actions en móvil */
   }
 
   .quick-actions {
