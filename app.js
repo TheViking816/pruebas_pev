@@ -2013,7 +2013,7 @@ function groupByQuincena(jornales) {
 
 /**
  * Ordena jornales por fecha y jornada (en el orden correcto del día)
- * Orden de jornadas: 02-08, 08-14, 14-20, 20-02
+ * Fechas más recientes primero, pero respetando orden de jornadas: 02-08, 08-14, 14-20, 20-02
  */
 function sortJornalesByDateAndShift(jornales) {
   // Definir orden de jornadas
@@ -2029,7 +2029,7 @@ function sortJornalesByDateAndShift(jornales) {
   };
 
   return jornales.sort((a, b) => {
-    // Primero ordenar por fecha
+    // Primero ordenar por fecha (más recientes primero)
     let dateA, dateB;
 
     if (a.fecha.includes('/')) {
@@ -2047,10 +2047,10 @@ function sortJornalesByDateAndShift(jornales) {
     }
 
     if (dateA.getTime() !== dateB.getTime()) {
-      return dateA.getTime() - dateB.getTime();
+      return dateB.getTime() - dateA.getTime(); // Descendente: más recientes primero
     }
 
-    // Si las fechas son iguales, ordenar por jornada
+    // Si las fechas son iguales, ordenar por jornada (ascendente: 02-08, 08-14, 14-20, 20-02)
     const orderA = jornadaOrder[a.jornada] || 999;
     const orderB = jornadaOrder[b.jornada] || 999;
     return orderA - orderB;
