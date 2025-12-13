@@ -6363,6 +6363,178 @@ async function loadSueldometro() {
         });
       });
 
+      // Event listeners para inputs de barras en ACORDEÓN (Trincadores)
+      card.querySelectorAll('.acc-barras-input').forEach(input => {
+        input.addEventListener('input', (e) => {
+          const barras = parseInt(e.target.value) || 0;
+          const jornalIndex = parseInt(e.target.dataset.jornalIndex);
+          const jornal = jornalesQuincena[jornalIndex];
+          const accordionItem = e.target.closest('.accordion-item');
+          const lockKey = accordionItem.dataset.lockKey;
+          const [fecha, jornada] = lockKey.split('_');
+
+          // Obtener el tipo de operación actual
+          const tipoOpSelect = accordionItem.querySelector('.acc-tipo-op-select');
+          const tipoOperacion = tipoOpSelect ? tipoOpSelect.value : null;
+
+          console.log(`🔧 [MÓVIL] Barras cambiadas: ${barras} barras, tipo operación: ${tipoOperacion || 'no seleccionado'}`);
+
+          // Guardar barras en movimientos
+          if (!lockedValues[lockKey]) lockedValues[lockKey] = {};
+          lockedValues[lockKey].movimientos = barras;
+          if (tipoOperacion) {
+            lockedValues[lockKey].tipoOperacionTrincaPersonalizada = tipoOperacion;
+          }
+
+          // Recalcular prima si hay barras Y tipo de operación seleccionado
+          let nuevaPrima = 0;
+          if (barras > 0 && tipoOperacion) {
+            // Mapear tipo_dia y jornada
+            const { horario_trinca, jornada_trinca } = mapearTipoDiaParaTrincaDestrinca(jornal.tipo_dia, jornal.jornada);
+
+            // Buscar tarifa
+            const tarifa = buscarTarifaTrincaDestrinca(tarifasTrincaDestrinca, horario_trinca, jornada_trinca, tipoOperacion);
+
+            // Calcular prima
+            nuevaPrima = barras * tarifa;
+
+            console.log(`✅ [MÓVIL] Prima recalculada: ${barras} × ${tarifa.toFixed(2)}€ = ${nuevaPrima.toFixed(2)}€`);
+          } else if (barras === 0 || !tipoOperacion) {
+            console.log(`⚠️ [MÓVIL] Prima puesta a 0 (barras: ${barras}, tipo_op: ${tipoOperacion || 'ninguno'})`);
+          }
+
+          // Actualizar input de prima
+          const primaInput = accordionItem.querySelector('.acc-prima-input');
+          if (primaInput) {
+            primaInput.value = nuevaPrima.toFixed(2);
+            lockedValues[lockKey].prima = nuevaPrima;
+          }
+
+          // Calcular horas de relevo
+          const relevoSelect = accordionItem.querySelector('.acc-relevo-select');
+          const horasRelevo = relevoSelect ? parseInt(relevoSelect.value) : 0;
+          const tarifaRelevo = calcularTarifaRelevo(jornal.jornada.replace(/\s+a\s+/g, '-').replace(/\s+/g, ''), jornal.tipo_dia);
+          const importeRelevo = tarifaRelevo ? (horasRelevo * tarifaRelevo) : 0;
+
+          // Calcular horas de remate
+          const remateSelect = accordionItem.querySelector('.acc-remate-select');
+          const horasRemate = remateSelect ? parseInt(remateSelect.value) : 0;
+          const tarifaRemate = calcularTarifaRemate(jornal.jornada.replace(/\s+a\s+/g, '-').replace(/\s+/g, ''), jornal.tipo_dia);
+          const importeRemate = tarifaRemate ? (horasRemate * tarifaRemate) : 0;
+
+          const nuevoTotal = jornal.salario_base + nuevaPrima + importeRelevo + importeRemate;
+          const nuevoNeto = nuevoTotal * (1 - irpfPorcentaje / 100);
+
+          // Actualizar UI del acordeón
+          const brutoHeader = accordionItem.querySelector('.accordion-header-right .acc-bruto-value');
+          const brutoFooter = accordionItem.querySelector('.acc-bruto-footer');
+          const netoValue = accordionItem.querySelector('.acc-neto-value');
+
+          if (brutoHeader) brutoHeader.textContent = `${nuevoTotal.toFixed(2)}€`;
+          if (brutoFooter) brutoFooter.textContent = `${nuevoTotal.toFixed(2)}€`;
+          if (netoValue) netoValue.textContent = `${nuevoNeto.toFixed(2)}€`;
+
+          // Actualizar el jornal en el array global
+          jornal.total = nuevoTotal;
+          jornal.prima = nuevaPrima;
+          const globalJornal = jornalesConSalario.find(gJ => gJ.fecha === jornal.fecha && gJ.jornada === jornal.jornada && gJ.chapa === jornal.chapa);
+          if (globalJornal) {
+            globalJornal.total = nuevoTotal;
+            globalJornal.prima = nuevaPrima;
+          }
+
+          // Guardar en Supabase
+          saveLockedValues(fecha, jornada);
+
+          actualizarTotales();
+        });
+      });
+
+      // Event listeners para selects de tipo de operación en ACORDEÓN (Trincadores)
+      card.querySelectorAll('.acc-tipo-op-select').forEach(select => {
+        select.addEventListener('change', (e) => {
+          const tipoOperacion = e.target.value;
+          const jornalIndex = parseInt(e.target.dataset.jornalIndex);
+          const jornal = jornalesQuincena[jornalIndex];
+          const accordionItem = e.target.closest('.accordion-item');
+          const lockKey = accordionItem.dataset.lockKey;
+          const [fecha, jornada] = lockKey.split('_');
+
+          // Obtener barras actuales
+          const barrasInput = accordionItem.querySelector('.acc-barras-input');
+          const barras = barrasInput ? parseInt(barrasInput.value) || 0 : 0;
+
+          console.log(`🔧 [MÓVIL] Tipo de operación cambiado: ${tipoOperacion}, barras: ${barras}`);
+
+          // Guardar tipo de operación
+          if (!lockedValues[lockKey]) lockedValues[lockKey] = {};
+          lockedValues[lockKey].tipoOperacionTrincaPersonalizada = tipoOperacion || null;
+          if (barras > 0) {
+            lockedValues[lockKey].movimientos = barras;
+          }
+
+          // Recalcular prima si hay barras Y tipo de operación seleccionado
+          let nuevaPrima = 0;
+          if (barras > 0 && tipoOperacion) {
+            // Mapear tipo_dia y jornada
+            const { horario_trinca, jornada_trinca } = mapearTipoDiaParaTrincaDestrinca(jornal.tipo_dia, jornal.jornada);
+
+            // Buscar tarifa
+            const tarifa = buscarTarifaTrincaDestrinca(tarifasTrincaDestrinca, horario_trinca, jornada_trinca, tipoOperacion);
+
+            // Calcular prima
+            nuevaPrima = barras * tarifa;
+
+            console.log(`✅ [MÓVIL] Prima recalculada: ${barras} × ${tarifa.toFixed(2)}€ = ${nuevaPrima.toFixed(2)}€`);
+          }
+
+          // Actualizar input de prima
+          const primaInput = accordionItem.querySelector('.acc-prima-input');
+          if (primaInput) {
+            primaInput.value = nuevaPrima.toFixed(2);
+            lockedValues[lockKey].prima = nuevaPrima;
+          }
+
+          // Calcular horas de relevo
+          const relevoSelect = accordionItem.querySelector('.acc-relevo-select');
+          const horasRelevo = relevoSelect ? parseInt(relevoSelect.value) : 0;
+          const tarifaRelevo = calcularTarifaRelevo(jornal.jornada.replace(/\s+a\s+/g, '-').replace(/\s+/g, ''), jornal.tipo_dia);
+          const importeRelevo = tarifaRelevo ? (horasRelevo * tarifaRelevo) : 0;
+
+          // Calcular horas de remate
+          const remateSelect = accordionItem.querySelector('.acc-remate-select');
+          const horasRemate = remateSelect ? parseInt(remateSelect.value) : 0;
+          const tarifaRemate = calcularTarifaRemate(jornal.jornada.replace(/\s+a\s+/g, '-').replace(/\s+/g, ''), jornal.tipo_dia);
+          const importeRemate = tarifaRemate ? (horasRemate * tarifaRemate) : 0;
+
+          const nuevoTotal = jornal.salario_base + nuevaPrima + importeRelevo + importeRemate;
+          const nuevoNeto = nuevoTotal * (1 - irpfPorcentaje / 100);
+
+          // Actualizar UI del acordeón
+          const brutoHeader = accordionItem.querySelector('.accordion-header-right .acc-bruto-value');
+          const brutoFooter = accordionItem.querySelector('.acc-bruto-footer');
+          const netoValue = accordionItem.querySelector('.acc-neto-value');
+
+          if (brutoHeader) brutoHeader.textContent = `${nuevoTotal.toFixed(2)}€`;
+          if (brutoFooter) brutoFooter.textContent = `${nuevoTotal.toFixed(2)}€`;
+          if (netoValue) netoValue.textContent = `${nuevoNeto.toFixed(2)}€`;
+
+          // Actualizar el jornal en el array global
+          jornal.total = nuevoTotal;
+          jornal.prima = nuevaPrima;
+          const globalJornal = jornalesConSalario.find(gJ => gJ.fecha === jornal.fecha && gJ.jornada === jornal.jornada && gJ.chapa === jornal.chapa);
+          if (globalJornal) {
+            globalJornal.total = nuevoTotal;
+            globalJornal.prima = nuevaPrima;
+          }
+
+          // Guardar en Supabase
+          saveLockedValues(fecha, jornada);
+
+          actualizarTotales();
+        });
+      });
+
       // IMPORTANTE: Calcular totales iniciales correctamente (incluyen relevo y remate)
       actualizarTotales();
     });
