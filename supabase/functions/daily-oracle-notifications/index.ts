@@ -273,8 +273,8 @@ serve(async (req)=>{
         const notificationPayload = {
           title,
           body,
-          url: '/?page=calculadora',
-          page: 'calculadora',
+          url: '/?page=dashboard',
+          page: 'dashboard',
           icon: 'https://i.imgur.com/Q91Pi44.png',
           badge: 'https://i.imgur.com/Q91Pi44.png',
           chapa_target: userChapa

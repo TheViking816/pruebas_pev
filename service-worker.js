@@ -219,7 +219,7 @@ self.addEventListener('push', (event) => {
 
   // Determinar el texto del botón de acción según la página
   let actionTitle = 'Ver';
-  if (page === 'calculadora') {
+  if (page === 'calculadora' || page === 'dashboard') {
     actionTitle = 'Abrir Oráculo';
   } else if (page === 'contratacion') {
     actionTitle = 'Abrir Parte';
