@@ -1,0 +1,22 @@
+# Configuración de Netlify
+# Si NO usas Netlify, ignora este archivo
+
+[build]
+  # Comando de build: genera config.local.js automáticamente
+  command = "node generate-config.js"
+
+  # Directorio a publicar
+  publish = "."
+
+[build.environment]
+  # Node version
+  NODE_VERSION = "18"
+
+# Headers de seguridad
+[[headers]]
+  for = "/*"
+  [headers.values]
+    X-Frame-Options = "DENY"
+    X-Content-Type-Options = "nosniff"
+    X-XSS-Protection = "1; mode=block"
+    Referrer-Policy = "strict-origin-when-cross-origin"
