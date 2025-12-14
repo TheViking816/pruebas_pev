@@ -30,6 +30,7 @@ jobs:
           node generate-config.js
         env:
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          OPENAI_APT_KEY: ${{ secrets.OPENAI_APT_KEY }}
 
       - name: Setup Pages
         uses: actions/configure-pages@v4

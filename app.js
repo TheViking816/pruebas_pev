@@ -1585,8 +1585,10 @@ async function loadContratacion() {
       'MSC': 'https://i.imgur.com/kX4Ujxf.jpeg',
       'ERH': 'https://i.imgur.com/OHDp62K.png',
       'ERSHIP': 'https://i.imgur.com/OHDp62K.png',
-      'BALEARIA': 'https://i.imgur.com/2hv399O.png',
-      'BALE?RIA': 'https://i.imgur.com/2hv399O.png'
+      'BALEARIA': 'https://i.imgur.com/3YT93jc.png',
+      'BALE?RIA': 'https://i.imgur.com/3YT93jc.png',
+      'BAL': 'https://i.imgur.com/3YT93jc.png',
+      'BALE': 'https://i.imgur.com/3YT93jc.png',
     };
 
     const getEmpresaLogo = (empresa) => {
@@ -3074,8 +3076,10 @@ async function loadTablon(options = {}) {
       'VTEU': 'https://i.imgur.com/3nNCkw5.jpeg',
       'MSC': 'https://i.imgur.com/kX4Ujxf.jpeg',
       'ERH': 'https://i.imgur.com/OHDp62K.png',
-      'BALEARIA': 'https://i.imgur.com/2hv399O.png',
-      'BALE?RIA': 'https://i.imgur.com/2hv399O.png'
+      'BALEARIA': 'https://i.imgur.com/3YT93jc.png',
+      'BALE?RIA': 'https://i.imgur.com/3YT93jc.png',
+      'BAL': 'https://i.imgur.com/3YT93jc.png',
+      'BALE': 'https://i.imgur.com/3YT93jc.png',
     };
 
     // Imagen genérica de buque

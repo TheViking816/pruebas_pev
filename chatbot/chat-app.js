@@ -204,7 +204,7 @@ class ChatApp {
       const quickHeight = quickVisible ? quick.getBoundingClientRect().height : 0;
       const inputHeight = inputArea ? inputArea.getBoundingClientRect().height : 0;
 
-      const extra = 32;
+      const extra = 56;
       root.style.setProperty('--quick-actions-height', `${quickHeight}px`);
       root.style.setProperty('--input-area-height', `${inputHeight}px`);
       root.style.setProperty('--chat-bottom-padding', `${quickHeight + inputHeight + extra}px`);
@@ -683,9 +683,20 @@ class ChatApp {
    */
   scrollToBottom() {
     const container = document.getElementById('chat-container');
+    const lastMessage = this.elements.messagesArea ? this.elements.messagesArea.lastElementChild : null;
+
     setTimeout(() => {
-      container.scrollTop = container.scrollHeight;
-    }, 100);
+      try {
+        if (lastMessage && typeof lastMessage.scrollIntoView === 'function') {
+          lastMessage.scrollIntoView({ block: 'end' });
+          return;
+        }
+      } catch (e) {}
+
+      if (container) {
+        container.scrollTop = container.scrollHeight;
+      }
+    }, 60);
   }
 
   /**

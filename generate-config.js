@@ -11,16 +11,12 @@
 const fs = require('fs');
 const path = require('path');
 
-const apiKey = process.env.OPENAI_API_KEY;
+const apiKey = process.env.OPENAI_API_KEY || process.env.OPENAI_APT_KEY || process.env.OPENAI_KEY;
+
 
 if (!apiKey) {
-  console.error('❌ ERROR: Variable de entorno OPENAI_API_KEY no configurada');
-  console.log('');
-  console.log('Configúrala en tu servicio de hosting:');
-  console.log('- Netlify: Site settings > Environment variables');
-  console.log('- Vercel: Settings > Environment Variables');
-  console.log('- GitHub Actions: Settings > Secrets and variables > Actions');
-  process.exit(1);
+  console.warn('?? WARN: No hay OPENAI_API_KEY/OPENAI_APT_KEY/OPENAI_KEY configurada. Se generar? config.local.js vac?o (sin clave).');
+
 }
 
 const configContent = `/**
@@ -28,7 +24,7 @@ const configContent = `/**
  * NO EDITAR - Este archivo se genera durante el build
  */
 window.OPENAI_CONFIG = {
-  apiKey: '${apiKey}'
+  apiKey: '${apiKey || ''}'
 };
 
 // Configurar automáticamente
