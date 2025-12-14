@@ -1,4 +1,4 @@
-# 📦 Archivos para subir al Backend
+# 📦 Archivos para subir al Backend.
 
 Estos archivos deben subirse al repositorio: `portalestiba-push-backend-one`
 
