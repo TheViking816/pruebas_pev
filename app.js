@@ -837,14 +837,19 @@ function updateUIForAuthenticatedUser() {
           } else if (trincadoresSection) {
             trincadoresSection.style.display = 'none';
           }
-
-          // --- ACTUALIZAR ÚLTIMA JORNADA Y NUEVAS ASIGNACIONES ---
-          updateLastInfoSections();
-          checkNewAssignments();
         }
+
+        // --- ACTUALIZAR ?LTIMA JORNADA Y NUEVAS ASIGNACIONES ---
+        updateLastInfoSections();
+        checkNewAssignments();
+
       })
       .catch(error => {
         console.error('Error obteniendo posiciones:', error);
+
+        // Mantener las tarjetas de ?ltima jornada incluso si falla la distancia a puerta
+        updateLastInfoSections();
+        checkNewAssignments();
       });
   }
 }
@@ -1579,13 +1584,15 @@ async function loadContratacion() {
       'VTEU': 'https://i.imgur.com/3nNCkw5.jpeg',
       'MSC': 'https://i.imgur.com/kX4Ujxf.jpeg',
       'ERH': 'https://i.imgur.com/OHDp62K.png',
-      'ERSHIP': 'https://i.imgur.com/OHDp62K.png'
+      'ERSHIP': 'https://i.imgur.com/OHDp62K.png',
+      'BALEARIA': 'https://i.imgur.com/2hv399O.png',
+      'BALE?RIA': 'https://i.imgur.com/2hv399O.png'
     };
 
     const getEmpresaLogo = (empresa) => {
       if (!empresa) return null;
       const empresaUpper = empresa.toString().toUpperCase().trim();
-      return empresaLogos[empresaUpper] || null;
+      return empresaLogos[empresaUpper] || (Object.keys(empresaLogos).find(k => empresaUpper.includes(k)) ? empresaLogos[Object.keys(empresaLogos).find(k => empresaUpper.includes(k))] : null);
     };
 
     // AGRUPAR POR FECHA
@@ -3066,7 +3073,9 @@ async function loadTablon(options = {}) {
       'CSP': 'https://i.imgur.com/8Tjx3KP.jpeg',
       'VTEU': 'https://i.imgur.com/3nNCkw5.jpeg',
       'MSC': 'https://i.imgur.com/kX4Ujxf.jpeg',
-      'ERH': 'https://i.imgur.com/OHDp62K.png'
+      'ERH': 'https://i.imgur.com/OHDp62K.png',
+      'BALEARIA': 'https://i.imgur.com/2hv399O.png',
+      'BALE?RIA': 'https://i.imgur.com/2hv399O.png'
     };
 
     // Imagen genérica de buque
@@ -3467,7 +3476,7 @@ async function loadTablon(options = {}) {
       logoDiv.className = 'tablon-empresa-logo';
 
       const empresaUpper = empresa.toUpperCase().trim();
-      const logoUrl = empresaLogos[empresaUpper];
+      const logoUrl = empresaLogos[empresaUpper] || (Object.keys(empresaLogos).find(k => empresaUpper.includes(k)) ? empresaLogos[Object.keys(empresaLogos).find(k => empresaUpper.includes(k))] : null);
 
       if (logoUrl) {
         const img = document.createElement('img');

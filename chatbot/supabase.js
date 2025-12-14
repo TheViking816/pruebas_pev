@@ -1921,113 +1921,83 @@ const SheetsAPI = {
    * Calcula posiciones hasta contratación (Laborable y Festiva)
    * COPIA EXACTA DEL SUPABASE.JS PRINCIPAL
    */
-  getPosicionesHastaContratacion: async function(chapa) {
+    getPosicionesHastaContratacion: async function(chapa) {
     try {
-      // 1. Obtener posición del usuario
+      // 1. Obtener posicion del usuario
       const posicionUsuario = await this.getPosicionChapa(chapa);
       if (!posicionUsuario) {
         return null;
       }
 
-      const LIMITE_SP = 443;
-      const INICIO_OC = 444;
+      const LIMITE_SP = 455;
+      const INICIO_OC = 456;
       const FIN_OC = 519;
 
       const esUsuarioSP = posicionUsuario <= LIMITE_SP;
 
-      // 2. Obtener censo completo para contar trabajadores según disponibilidad
+      // 2. Obtener censo completo para contar trabajadores segun disponibilidad
       const censo = await getCenso();
 
-      // 3. Función auxiliar para obtener el peso NO disponible según el color
-      const getPesoNoDisponible = (color) => {
-        // Calculamos cuánto NO está disponible (inverso del peso de disponibilidad)
-        // red (0 jornadas): 1.00 (totalmente no disponible)
-        // orange (1 jornada): 0.75 (3/4 no disponible)
-        // yellow (2 jornadas): 0.50 (2/4 no disponible)
-        // blue (3 jornadas): 0.25 (1/4 no disponible)
-        // green (todas): 0.00 (totalmente disponible)
-        switch(color) {
-          case 'red': return 1.00;
-          case 'orange': return 0.75;
+      // 3. Funcion para obtener el peso de disponibilidad segun el color
+      const getPesoDisponibilidad = (posicion) => {
+        const item = censo.find(c => c.posicion === posicion);
+        if (!item) return 0;
+
+        switch(item.color) {
+          case 'red': return 0;
+          case 'orange': return 0.25;
           case 'yellow': return 0.50;
-          case 'blue': return 0.25;
-          case 'green': return 0.00;
-          default: return 1.00;
+          case 'blue': return 0.75;
+          case 'green': return 1.00;
+          default: return 0;
         }
       };
 
-      // 4. Función auxiliar para contar trabajadores no disponibles entre dos posiciones
-      // Ahora suma fracciones según la disponibilidad de cada trabajador
-      const contarNoDisponiblesEntre = (posicionInicio, posicionFin, esCircular, limite) => {
-        let noDisponibles = 0;
+      // 4. Funcion para contar disponibles entre dos posiciones (con pesos)
+      const contarDisponiblesEntre = (desde, hasta) => {
+        let disponibles = 0;
 
-        if (!esCircular) {
-          // Rango normal: de inicio a fin
-          censo.forEach(trabajador => {
-            const pos = trabajador.posicion;
-            const color = trabajador.color;
-            if (pos > posicionInicio && pos <= posicionFin) {
-              noDisponibles += getPesoNoDisponible(color);
-            }
-          });
+        if (desde <= hasta) {
+          for (let pos = desde + 1; pos <= hasta; pos++) {
+            disponibles += getPesoDisponibilidad(pos);
+          }
         } else {
-          // Rango circular: de inicio hasta límite, luego de 1 hasta fin
-          censo.forEach(trabajador => {
-            const pos = trabajador.posicion;
-            const color = trabajador.color;
-
-            if (esUsuarioSP) {
-              if ((pos > posicionInicio && pos <= LIMITE_SP) || (pos >= 1 && pos <= posicionFin)) {
-                noDisponibles += getPesoNoDisponible(color);
-              }
-            } else {
-              if ((pos > posicionInicio && pos <= FIN_OC) || (pos >= INICIO_OC && pos <= posicionFin)) {
-                noDisponibles += getPesoNoDisponible(color);
-              }
+          if (esUsuarioSP) {
+            for (let pos = desde + 1; pos <= LIMITE_SP; pos++) {
+              disponibles += getPesoDisponibilidad(pos);
             }
-          });
+            for (let pos = 1; pos <= hasta; pos++) {
+              disponibles += getPesoDisponibilidad(pos);
+            }
+          } else {
+            for (let pos = desde + 1; pos <= FIN_OC; pos++) {
+              disponibles += getPesoDisponibilidad(pos);
+            }
+            for (let pos = INICIO_OC; pos <= hasta; pos++) {
+              disponibles += getPesoDisponibilidad(pos);
+            }
+          }
         }
 
-        return Math.round(noDisponibles);
+        return disponibles;
       };
 
       // 5. Obtener puertas
       const puertasResult = await this.getPuertas();
       const puertas = puertasResult.puertas;
 
-      // 6. CÁLCULO PARA PUERTAS LABORABLES
+      // 6. Calculo para puertas laborables
       const puertasLaborables = puertas.filter(p => p.jornada !== 'Festivo');
       let posicionesLaborable = null;
 
       const ultimaPuertaLaborable = this.detectarUltimaJornadaContratada(puertasLaborables, esUsuarioSP);
 
       if (ultimaPuertaLaborable !== null) {
-        let noDisponiblesLaborable = 0;
-
-        if (esUsuarioSP) {
-          if (posicionUsuario > ultimaPuertaLaborable) {
-            posicionesLaborable = posicionUsuario - ultimaPuertaLaborable;
-            noDisponiblesLaborable = contarNoDisponiblesEntre(ultimaPuertaLaborable, posicionUsuario, false);
-          } else {
-            posicionesLaborable = (LIMITE_SP - ultimaPuertaLaborable) + posicionUsuario;
-            noDisponiblesLaborable = contarNoDisponiblesEntre(ultimaPuertaLaborable, posicionUsuario, true, LIMITE_SP);
-          }
-        } else {
-          if (posicionUsuario > ultimaPuertaLaborable) {
-            posicionesLaborable = posicionUsuario - ultimaPuertaLaborable;
-            noDisponiblesLaborable = contarNoDisponiblesEntre(ultimaPuertaLaborable, posicionUsuario, false);
-          } else {
-            posicionesLaborable = (FIN_OC - ultimaPuertaLaborable) + (posicionUsuario - INICIO_OC + 1);
-            noDisponiblesLaborable = contarNoDisponiblesEntre(ultimaPuertaLaborable, posicionUsuario, true, FIN_OC);
-          }
-        }
-
-        // Restar trabajadores no disponibles del cálculo (usando pesos)
-        posicionesLaborable = Math.max(0, posicionesLaborable - noDisponiblesLaborable);
+        const disponiblesEntre = contarDisponiblesEntre(ultimaPuertaLaborable, posicionUsuario);
+        posicionesLaborable = Math.round(disponiblesEntre);
       }
 
-      // 7. CÁLCULO PARA PUERTAS FESTIVAS
-      // IMPORTANTE: Para festivas NO se aplican pesos, se cuentan todas las posiciones
+      // 7. Calculo para puertas festivas
       const puertasFestivas = puertas.filter(p => p.jornada === 'Festivo');
       let posicionesFestiva = null;
 
@@ -2038,54 +2008,37 @@ const SheetsAPI = {
 
         if (puertasFest.length > 0) {
           const ultimaPuertaFest = Math.max(...puertasFest);
-
-          if (esUsuarioSP) {
-            if (posicionUsuario > ultimaPuertaFest) {
-              posicionesFestiva = posicionUsuario - ultimaPuertaFest;
-            } else {
-              posicionesFestiva = (LIMITE_SP - ultimaPuertaFest) + posicionUsuario;
-            }
-          } else {
-            if (posicionUsuario > ultimaPuertaFest) {
-              posicionesFestiva = posicionUsuario - ultimaPuertaFest;
-            } else {
-              posicionesFestiva = (FIN_OC - ultimaPuertaFest) + (posicionUsuario - INICIO_OC + 1);
-            }
-          }
-
-          // Para festivas NO restamos nada, se cuentan todas las posiciones
-          posicionesFestiva = Math.max(0, posicionesFestiva);
+          const disponiblesEntre = contarDisponiblesEntre(ultimaPuertaFest, posicionUsuario);
+          posicionesFestiva = Math.round(disponiblesEntre);
         }
       }
 
-      // 8. Devolver ambos resultados
       return {
         laborable: posicionesLaborable,
         festiva: posicionesFestiva
       };
 
     } catch (error) {
-      console.error('Error calculando posiciones hasta contratación:', error);
+      console.error('Error calculando posiciones hasta contratacion:', error);
       return null;
     }
   },
-
   /**
    * Calcula posiciones de trinca hasta las puertas (laborable y festivo)
    * SOLO para chapas de SP (los de OC no hacen trinca)
    */
-  getPosicionesTrinca: async function(chapa) {
+    getPosicionesTrinca: async function(chapa) {
     try {
-      // 1. Obtener posición del usuario
+      // 1. Obtener posicion del usuario
       const posicionUsuario = await this.getPosicionChapa(chapa);
       if (!posicionUsuario) {
         return null;
       }
 
-      const LIMITE_SP = 449;
+      const LIMITE_SP = 455;
       const esUsuarioSP = posicionUsuario <= LIMITE_SP;
 
-      // Si el usuario es OC, no hacer cálculo de trinca
+      // Si el usuario es OC, no hacer calculo de trinca
       if (!esUsuarioSP) {
         return {
           laborable: null,
@@ -2096,56 +2049,53 @@ const SheetsAPI = {
       // 2. Obtener censo completo
       const censo = await getCenso();
 
-      // 3. Función auxiliar para contar trincadores NO ROJOS entre dos posiciones
+      const getPesoDisponibilidad = (posicion) => {
+        const item = censo.find(c => c.posicion === posicion);
+        if (!item) return 0;
+
+        switch(item.color) {
+          case 'red': return 0;
+          case 'orange': return 0.25;
+          case 'yellow': return 0.50;
+          case 'blue': return 0.75;
+          case 'green': return 1.00;
+          default: return 0;
+        }
+      };
+
       const contarTrincadoresEntre = (posicionInicio, posicionFin, esCircular) => {
-        let trincadores = 0;
-        let trincadoresDetalle = [];
+        let trincadoresEfectivos = 0;
 
         if (!esCircular) {
-          // Rango normal: de inicio a fin
-          const trincadoresFiltrados = censo.filter(trabajador => {
-            const pos = trabajador.posicion;
-            const color = trabajador.color;
-            const esTrinca = trabajador.trincador === true || trabajador.trincador === 'true';
-            // El color viene mapeado desde getCenso() como string: 'red', 'orange', 'yellow', 'blue', 'green'
-            // Solo excluir los que están en rojo (color 0 = 'red')
-            const noEsRojo = !(color === 'red');
-
-            return esTrinca && noEsRojo && pos > posicionInicio && pos <= posicionFin && pos <= LIMITE_SP;
-          });
-          trincadores = trincadoresFiltrados.length;
-          trincadoresDetalle = trincadoresFiltrados;
+          for (let pos = posicionInicio + 1; pos <= posicionFin && pos <= LIMITE_SP; pos++) {
+            const trabajador = censo.find(c => c.posicion === pos);
+            if (trabajador && (trabajador.trincador === true || trabajador.trincador === 'true')) {
+              trincadoresEfectivos += getPesoDisponibilidad(pos);
+            }
+          }
         } else {
-          // Rango circular: de inicio hasta límite SP, luego de 1 hasta fin
-          const trincadoresFiltrados = censo.filter(trabajador => {
-            const pos = trabajador.posicion;
-            const color = trabajador.color;
-            const esTrinca = trabajador.trincador === true || trabajador.trincador === 'true';
-            // El color viene mapeado desde getCenso() como string: 'red', 'orange', 'yellow', 'blue', 'green'
-            // Solo excluir los que están en rojo (color 0 = 'red')
-            const noEsRojo = !(color === 'red');
-
-            return esTrinca && noEsRojo && pos <= LIMITE_SP &&
-                   ((pos > posicionInicio && pos <= LIMITE_SP) || (pos >= 1 && pos <= posicionFin));
-          });
-          trincadores = trincadoresFiltrados.length;
-          trincadoresDetalle = trincadoresFiltrados;
+          for (let pos = posicionInicio + 1; pos <= LIMITE_SP; pos++) {
+            const trabajador = censo.find(c => c.posicion === pos);
+            if (trabajador && (trabajador.trincador === true || trabajador.trincador === 'true')) {
+              trincadoresEfectivos += getPesoDisponibilidad(pos);
+            }
+          }
+          for (let pos = 1; pos <= posicionFin; pos++) {
+            const trabajador = censo.find(c => c.posicion === pos);
+            if (trabajador && (trabajador.trincador === true || trabajador.trincador === 'true')) {
+              trincadoresEfectivos += getPesoDisponibilidad(pos);
+            }
+          }
         }
 
-        // Log de debug para verificar que solo se cuentan trincadores disponibles
-        console.log(`🔍 Trincadores entre ${posicionInicio} y ${posicionFin} (${esCircular ? 'circular' : 'normal'}): ${trincadores}`);
-        if (trincadoresDetalle.length > 0 && trincadoresDetalle.length <= 20) {
-          console.log('📋 Detalle:', trincadoresDetalle.map(t => `Pos ${t.posicion} (${t.chapa}) - ${t.color}`).join(', '));
-        }
-
-        return trincadores;
+        return trincadoresEfectivos;
       };
 
       // 4. Obtener puertas
       const puertasResult = await this.getPuertas();
       const puertas = puertasResult.puertas;
 
-      // 5. CÁLCULO PARA PUERTAS LABORABLES DE TRINCA
+      // 5. Calculo para puertas laborables de trinca
       const puertasLaborables = puertas.filter(p => p.jornada !== 'Festivo');
       let posicionesTrincaLaborable = null;
 
@@ -2157,9 +2107,11 @@ const SheetsAPI = {
         } else {
           posicionesTrincaLaborable = contarTrincadoresEntre(ultimaPuertaLaborable, posicionUsuario, true);
         }
+
+        posicionesTrincaLaborable = Math.round(posicionesTrincaLaborable);
       }
 
-      // 6. CÁLCULO PARA PUERTAS FESTIVAS DE TRINCA
+      // 6. Calculo para puertas festivas de trinca
       const puertasFestivas = puertas.filter(p => p.jornada === 'Festivo');
       let posicionesTrincaFestiva = null;
 
@@ -2176,10 +2128,11 @@ const SheetsAPI = {
           } else {
             posicionesTrincaFestiva = contarTrincadoresEntre(ultimaPuertaFest, posicionUsuario, true);
           }
+
+          posicionesTrincaFestiva = Math.round(posicionesTrincaFestiva);
         }
       }
 
-      // 7. Devolver ambos resultados
       return {
         laborable: posicionesTrincaLaborable,
         festiva: posicionesTrincaFestiva
@@ -2190,7 +2143,6 @@ const SheetsAPI = {
       return null;
     }
   },
-
   // Contrataciones
   getContrataciones: getContrataciones,
 

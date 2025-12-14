@@ -19,6 +19,7 @@ class ChatApp {
       voiceIndicator: null,
       loadingOverlay: null,
       quickActions: null,
+      inputArea: null,
       settingsModal: null,
       userName: null
     };
@@ -128,6 +129,17 @@ class ChatApp {
     // Configurar event listeners
     this.setupEventListeners();
 
+    // Ajustar layout inicial (mensajes/input/acciones r?pidas)
+    this.updateLayoutVars();
+
+    window.addEventListener('resize', () => this.updateLayoutVars());
+
+    if (typeof ResizeObserver !== 'undefined') {
+      const ro = new ResizeObserver(() => this.updateLayoutVars());
+      if (this.elements.quickActions) ro.observe(this.elements.quickActions);
+      if (this.elements.inputArea) ro.observe(this.elements.inputArea);
+    }
+
     // Mostrar nombre del usuario
     await this.displayUserName();
 
@@ -174,11 +186,34 @@ class ChatApp {
     this.elements.voiceIndicator = document.getElementById('voice-indicator');
     this.elements.loadingOverlay = document.getElementById('loading-overlay');
     this.elements.quickActions = document.getElementById('quick-actions');
+    this.elements.inputArea = document.querySelector('.input-area');
     this.elements.settingsModal = document.getElementById('settings-modal');
     this.elements.userName = document.getElementById('user-name');
   }
 
-  /**
+    /**
+   * Ajusta variables CSS para evitar solapes (mensajes/input/acciones r?pidas)
+   */
+  updateLayoutVars() {
+    try {
+      const root = document.documentElement;
+      const quick = this.elements.quickActions;
+      const inputArea = this.elements.inputArea;
+
+      const quickVisible = quick && quick.style.display !== 'none';
+      const quickHeight = quickVisible ? quick.getBoundingClientRect().height : 0;
+      const inputHeight = inputArea ? inputArea.getBoundingClientRect().height : 0;
+
+      const extra = 16;
+      root.style.setProperty('--quick-actions-height', `${quickHeight}px`);
+      root.style.setProperty('--input-area-height', `${inputHeight}px`);
+      root.style.setProperty('--chat-bottom-padding', `${quickHeight + inputHeight + extra}px`);
+    } catch (e) {
+      // No bloquear la app por layout
+    }
+  }
+
+/**
    * Configura event listeners
    */
   setupEventListeners() {
@@ -238,6 +273,7 @@ class ChatApp {
     document.getElementById('quick-actions-toggle').addEventListener('change', (e) => {
       this.elements.quickActions.style.display = e.target.checked ? 'flex' : 'none';
       localStorage.setItem('quick_actions_enabled', e.target.checked ? '1' : '0');
+      setTimeout(() => this.updateLayoutVars(), 0);
     });
 
     // Back button

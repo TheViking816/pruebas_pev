@@ -149,7 +149,7 @@ body::after {
   max-width: 600px;
   margin: 0 auto;
   width: 100%;
-  padding-bottom: 140px; /* Espacio para input area + quick actions */
+  padding-bottom: var(--chat-bottom-padding, 160px);
   position: relative;
   z-index: 1;
 }
@@ -532,7 +532,7 @@ body::after {
    ============================================================================= */
 .input-area {
   position: fixed;
-  bottom: 60px; /* Espacio para quick actions */
+  bottom: var(--quick-actions-height, 60px);
   left: 0;
   right: 0;
   background: var(--surface);
@@ -949,11 +949,11 @@ body::after {
 
   .input-area {
     padding: 0.75rem;
-    bottom: 55px;
+    bottom: var(--quick-actions-height, 55px);
   }
 
   .chat-container {
-    padding-bottom: 150px; /* Más espacio para input + quick actions en móvil */
+    padding-bottom: var(--chat-bottom-padding, 180px);
   }
 
   .quick-actions {

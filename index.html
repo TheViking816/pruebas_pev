@@ -80,13 +80,7 @@
         </svg>
         Mis Jornales
       </button>
-      <button class="nav-link" data-page="sueldometro">
-        <svg xmlns="http://www.w3.org/2000/svg" class="nav-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-        </svg>
-        Sueldómetro
-      </button>
-      <button class="nav-link" data-page="censo">
+<button class="nav-link" data-page="censo">
         <svg xmlns="http://www.w3.org/2000/svg" class="nav-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
         </svg>
@@ -933,6 +927,15 @@
       </div>
       <span class="bottom-nav-label">Mi Contratación</span>
     </a>
+    <a href="./chatbot/index.html" id="chatbot-nav-item" class="bottom-nav-item" aria-label="Abrir Asistente IA">
+      <div class="bottom-nav-icon-wrapper">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" class="bottom-nav-icon" aria-hidden="true">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z" />
+        </svg>
+      </div>
+      <span class="bottom-nav-label">Asistente</span>
+    </a>
+
     <a href="#" class="bottom-nav-item" data-page="puertas">
       <div class="bottom-nav-icon-wrapper">
         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" class="bottom-nav-icon">
@@ -1216,16 +1219,7 @@
       </div>
     </div>
   </div>
-
-  <!-- Botón flotante del Chatbot IA -->
-  <a href="./chatbot/index.html" id="chatbot-fab" class="chatbot-fab" title="Asistente IA" aria-label="Abrir Asistente IA">
-    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
-      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z" />
-    </svg>
-    <span class="chatbot-fab-badge">✨</span>
-  </a>
-
-  <!-- Botón de instalación PWA flotante -->
+<!-- Botón de instalación PWA flotante -->
   <button id="install-pwa-btn" class="install-pwa-btn" aria-label="Instalar aplicación">
     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
@@ -1270,13 +1264,13 @@
      * - Se oculta en la página de login
      */
     function controlarVisibilidadChatbot() {
-      const chatbotFab = document.getElementById('chatbot-fab');
-      if (!chatbotFab) return;
+      const chatbotNavItem = document.getElementById('chatbot-nav-item');
+      if (!chatbotNavItem) return;
 
       // Verificar configuración
       const config = window.FEATURES_CONFIG?.CHATBOT_IA;
       if (!config || !config.mostrarBoton) {
-        chatbotFab.style.display = 'none';
+        chatbotNavItem.style.display = 'none';
         console.log('🤖 Chatbot IA: Oculto (configuración: mostrarBoton = false)');
         return;
       }
@@ -1284,7 +1278,7 @@
       // Verificar que el usuario esté logueado
       const currentChapa = localStorage.getItem('currentChapa');
       if (!currentChapa) {
-        chatbotFab.style.display = 'none';
+        chatbotNavItem.style.display = 'none';
         console.log('🤖 Chatbot IA: Oculto (usuario no logueado)');
         return;
       }
@@ -1292,13 +1286,13 @@
       // Verificar que NO estemos en la página de login
       const loginPage = document.getElementById('page-login');
       if (loginPage && loginPage.classList.contains('active')) {
-        chatbotFab.style.display = 'none';
+        chatbotNavItem.style.display = 'none';
         console.log('🤖 Chatbot IA: Oculto (página de login)');
         return;
       }
 
       // Si pasó todas las verificaciones, mostrar el botón
-      chatbotFab.style.display = 'flex'; // flex para que mantenga el centrado
+      chatbotNavItem.style.display = '';
       console.log('🤖 Chatbot IA: Visible');
     }
 
