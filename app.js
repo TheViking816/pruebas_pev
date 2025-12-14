@@ -822,68 +822,6 @@ function updateUIForAuthenticatedUser() {
           // --- ACTUALIZAR ÚLTIMA JORNADA Y NUEVAS ASIGNACIONES ---
           updateLastInfoSections();
           checkNewAssignments();
-
-          // --- RENDERIZAR LÍNEA LABORABLE (diseño antiguo) ---
-          if (posicionesObj.laborable !== null) {
-            const posicionInfoLab = document.createElement('span');
-            posicionInfoLab.style.display = 'block';
-            posicionInfoLab.style.marginTop = '0.5rem';
-            posicionInfoLab.style.fontSize = '0.95rem';
-            posicionInfoLab.style.color = '#FFFFFF';
-            posicionInfoLab.style.fontWeight = '600';
-
-            if (posicionesObj.laborable === 0) {
-              posicionInfoLab.innerHTML = '🎉 ¡Estás en la última puerta <strong>laborable</strong>!';
-            } else {
-              posicionInfoLab.innerHTML = `📍 Estás a <strong style="color: #FFFFFF; font-weight: 800;">${posicionesObj.laborable}</strong> posiciones de la puerta <strong>laborable</strong>`;
-            }
-            welcomeMsg.appendChild(posicionInfoLab);
-
-            // --- RENDERIZAR LÍNEA DE TRINCA LABORABLE (debajo) ---
-            // Solo mostrar si el usuario tiene la especialidad de trincador
-            if (esTrincador && posicionesTrinca && posicionesTrinca.laborable !== null) {
-              const posicionTrincaLab = document.createElement('span');
-              posicionTrincaLab.style.display = 'block';
-              posicionTrincaLab.style.marginTop = '0.15rem';
-              posicionTrincaLab.style.marginLeft = '1.5rem';
-              posicionTrincaLab.style.fontSize = '0.85rem';
-              posicionTrincaLab.style.color = '#FCD34D'; // Color dorado/amarillo
-              posicionTrincaLab.style.fontWeight = '500';
-              posicionTrincaLab.innerHTML = `⚡ ${Math.round(posicionesTrinca.laborable)} trincadores hasta la puerta <strong>laborable</strong>`;
-              welcomeMsg.appendChild(posicionTrincaLab);
-            }
-          }
-
-          // --- RENDERIZAR LÍNEA FESTIVA ---
-          if (posicionesObj.festiva !== null) {
-            const posicionInfoFest = document.createElement('span');
-            posicionInfoFest.style.display = 'block';
-            posicionInfoFest.style.marginTop = '0.25rem'; // Menos espacio entre las dos líneas
-            posicionInfoFest.style.fontSize = '0.95rem';
-            posicionInfoFest.style.color = '#FFFFFF';
-            posicionInfoFest.style.fontWeight = '600';
-
-            if (posicionesObj.festiva === 0) {
-              posicionInfoFest.innerHTML = '🎉 ¡Estás en la última puerta <strong>festiva</strong>!';
-            } else {
-              posicionInfoFest.innerHTML = `📍 Estás a <strong style="color: #FFFFFF; font-weight: 800;">${posicionesObj.festiva}</strong> posiciones de la puerta <strong>festiva</strong>`;
-            }
-            welcomeMsg.appendChild(posicionInfoFest);
-
-            // --- RENDERIZAR LÍNEA DE TRINCA FESTIVA (debajo) ---
-            // Solo mostrar si el usuario tiene la especialidad de trincador
-            if (esTrincador && posicionesTrinca && posicionesTrinca.festiva !== null) {
-              const posicionTrincaFest = document.createElement('span');
-              posicionTrincaFest.style.display = 'block';
-              posicionTrincaFest.style.marginTop = '0.15rem';
-              posicionTrincaFest.style.marginLeft = '1.5rem';
-              posicionTrincaFest.style.fontSize = '0.85rem';
-              posicionTrincaFest.style.color = '#FCD34D'; // Color dorado/amarillo
-              posicionTrincaFest.style.fontWeight = '500';
-              posicionTrincaFest.innerHTML = `⚡ ${Math.round(posicionesTrinca.festiva)} trincadores hasta la puerta <strong>festiva</strong>`;
-              welcomeMsg.appendChild(posicionTrincaFest);
-            }
-          }
         }
       })
       .catch(error => {
@@ -907,11 +845,24 @@ async function updateLastInfoSections() {
     // Obtener última jornada de puertas
     if (lastPuertaInfo) {
       const puertasResult = await SheetsAPI.getPuertas();
-      if (puertasResult && puertasResult.fecha) {
+      if (puertasResult && puertasResult.fecha && puertasResult.puertas) {
         const valueElement = lastPuertaInfo.querySelector('.last-info-value');
         if (valueElement) {
-          // Mostrar fecha en formato dd/mm
-          valueElement.textContent = puertasResult.fecha;
+          // Obtener la primera jornada que no sea "Festivo"
+          const primeraJornada = puertasResult.puertas.find(p => p.jornada !== 'Festivo');
+
+          // Formatear fecha a DD/MM (sin año)
+          let fechaCorta = puertasResult.fecha;
+          if (puertasResult.fecha.includes('/')) {
+            const partes = puertasResult.fecha.split('/');
+            fechaCorta = `${partes[0]}/${partes[1]}`; // DD/MM
+          }
+
+          if (primeraJornada) {
+            valueElement.textContent = `${fechaCorta} - ${primeraJornada.jornada}`;
+          } else {
+            valueElement.textContent = fechaCorta;
+          }
         }
       }
     }
@@ -922,11 +873,25 @@ async function updateLastInfoSections() {
       if (contrataciones && contrataciones.length > 0) {
         const valueElement = lastTablonInfo.querySelector('.last-info-value');
         if (valueElement) {
-          // Mostrar fecha actual en formato dd/mm
-          const hoy = new Date();
-          const dia = String(hoy.getDate()).padStart(2, '0');
-          const mes = String(hoy.getMonth() + 1).padStart(2, '0');
-          valueElement.textContent = `${dia}/${mes}`;
+          // Obtener la fecha y jornada de la primera contratación
+          const primeraContratacion = contrataciones[0];
+
+          if (primeraContratacion.fecha && primeraContratacion.jornada) {
+            // Formatear fecha desde YYYY-MM-DD a DD/MM
+            let fechaCorta = primeraContratacion.fecha;
+            if (primeraContratacion.fecha.includes('-')) {
+              const partes = primeraContratacion.fecha.split('-');
+              fechaCorta = `${partes[2]}/${partes[1]}`; // DD/MM
+            }
+
+            valueElement.textContent = `${fechaCorta} - ${primeraContratacion.jornada}`;
+          } else {
+            // Fallback: mostrar fecha actual
+            const hoy = new Date();
+            const dia = String(hoy.getDate()).padStart(2, '0');
+            const mes = String(hoy.getMonth() + 1).padStart(2, '0');
+            valueElement.textContent = `${dia}/${mes}`;
+          }
         }
       }
     }

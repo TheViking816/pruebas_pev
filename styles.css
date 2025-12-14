@@ -4698,10 +4698,11 @@ body::before {
   background: rgba(255, 255, 255, 0.98);
 }
 
-.access-card-content > div:first-child {
+.access-left-group {
   display: flex;
   align-items: center;
   gap: 1rem;
+  flex: 1;
 }
 
 .access-icon-container {
