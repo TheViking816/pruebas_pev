@@ -17,6 +17,7 @@ class OpenAIAssistantsManager {
     // que carga antes de este script y guarda la key en localStorage
     // También puede venir de window.OPENAI_CONFIG si config.local.js acabó de cargar
     this.apiKey = localStorage.getItem('openai_api_key') ||
+                  localStorage.getItem('ai_api_key') ||
                   (window.OPENAI_CONFIG && window.OPENAI_CONFIG.apiKey) ||
                   null;
 

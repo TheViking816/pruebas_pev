@@ -204,7 +204,7 @@ class ChatApp {
       const quickHeight = quickVisible ? quick.getBoundingClientRect().height : 0;
       const inputHeight = inputArea ? inputArea.getBoundingClientRect().height : 0;
 
-      const extra = 16;
+      const extra = 32;
       root.style.setProperty('--quick-actions-height', `${quickHeight}px`);
       root.style.setProperty('--input-area-height', `${inputHeight}px`);
       root.style.setProperty('--chat-bottom-padding', `${quickHeight + inputHeight + extra}px`);
@@ -415,6 +415,8 @@ class ChatApp {
     this.elements.messagesArea.appendChild(messageDiv);
 
     console.log(`✅ Mensaje añadido al DOM. Total mensajes en área: ${this.elements.messagesArea.children.length}`);
+
+    this.updateLayoutVars();
 
     // Scroll al final
     this.scrollToBottom();
