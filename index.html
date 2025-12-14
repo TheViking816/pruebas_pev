@@ -27,7 +27,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
 </head>
-<body>
+<body class="login-active">
   <!-- Skip link para accesibilidad -->
   <a href="#main-content" class="skip-link">Saltar al contenido principal</a>
 
@@ -72,13 +72,7 @@
         <svg xmlns="http://www.w3.org/2000/svg" class="nav-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
         </svg>
-        Dashboard
-      </button>
-      <button class="nav-link" data-page="contratacion">
-        <svg xmlns="http://www.w3.org/2000/svg" class="nav-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
-        </svg>
-        Mi Contratación
+        Inicio
       </button>
       <button class="nav-link" data-page="jornales">
         <svg xmlns="http://www.w3.org/2000/svg" class="nav-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -92,29 +86,11 @@
         </svg>
         Sueldómetro
       </button>
-      <button class="nav-link" data-page="calculadora">
-        <svg xmlns="http://www.w3.org/2000/svg" class="nav-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
-        </svg>
-        El Oráculo
-      </button>
-      <button class="nav-link" data-page="puertas">
-        <svg xmlns="http://www.w3.org/2000/svg" class="nav-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-        </svg>
-        Puertas
-      </button>
       <button class="nav-link" data-page="censo">
         <svg xmlns="http://www.w3.org/2000/svg" class="nav-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
         </svg>
         Censo
-      </button>
-      <button class="nav-link" data-page="tablon">
-        <svg xmlns="http://www.w3.org/2000/svg" class="nav-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" />
-        </svg>
-        Tablón
       </button>
       <button class="nav-link" data-page="enlaces">
         <svg xmlns="http://www.w3.org/2000/svg" class="nav-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -190,87 +166,167 @@
       </div>
     </section>
 
-    <!-- PÁGINA DASHBOARD -->
+    <!-- PÁGINA INICIO -->
     <section id="page-dashboard" class="page">
-      <div class="page-hero">
-        <img src="https://i.imgur.com/bSOecVC.jpeg" alt="Puerto de Valencia">
-        <div class="page-hero-content">
-          <h2>Portal de Estibadores Eventuales</h2>
-          <p>Puerto de Valencia - Información en tiempo real</p>
-        </div>
-      </div>
+      <div class="container mobile-first">
+        <!-- Hero Card con Bienvenida y Posiciones -->
+        <div class="hero-positions-card">
+          <h1 class="hero-title" id="welcome-message">Bienvenido/a, Administrador</h1>
+          <p class="hero-subtitle">Panel de Control Principal</p>
 
-      <div class="container">
-        <div class="welcome-card">
-          <h3 id="welcome-message">Bienvenido al Portal</h3>
-          <p>Accede rápidamente a toda tu información laboral</p>
-        </div>
-
-        <div class="dashboard-grid">
-          <div class="dashboard-card" data-navigate="contratacion">
-            <div class="dashboard-card-icon blue">
-              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+          <div class="positions-compact">
+            <div class="position-compact-item">
+              <svg class="position-compact-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                <path fill-rule="evenodd" d="M5 5a3 3 0 015-2.236A3 3 0 0114.83 6H16a2 2 0 110 4h-5V9a1 1 0 10-2 0v1H4a2 2 0 110-4h1.17C5.06 5.687 5 5.35 5 5zm4 1V5a1 1 0 10-1 1h1zm3 0a1 1 0 10-1-1v1h1z" clip-rule="evenodd"/>
+                <path d="M9 11H3v5a2 2 0 002 2h4v-7zM11 18h4a2 2 0 002-2v-5h-6v7z"/>
               </svg>
+              <div>
+                <p class="position-compact-text">Estás a <strong id="pos-laborable">257</strong> posiciones</p>
+                <p class="position-compact-label">de la puerta laborable</p>
+              </div>
             </div>
-            <h3>Mi Contratación</h3>
-            <p>Consulta tus asignaciones del día</p>
-            <img src="https://i.imgur.com/guKCoFy.jpeg" alt="Contenedores">
+
+            <div class="position-compact-item">
+              <svg class="position-compact-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                <path fill-rule="evenodd" d="M5 5a3 3 0 015-2.236A3 3 0 0114.83 6H16a2 2 0 110 4h-5V9a1 1 0 10-2 0v1H4a2 2 0 110-4h1.17C5.06 5.687 5 5.35 5 5zm4 1V5a1 1 0 10-1 1h1zm3 0a1 1 0 10-1-1v1h1z" clip-rule="evenodd"/>
+                <path d="M9 11H3v5a2 2 0 002 2h4v-7zM11 18h4a2 2 0 002-2v-5h-6v7z"/>
+              </svg>
+              <div>
+                <p class="position-compact-text">Estás a <strong id="pos-festiva">232</strong> posiciones</p>
+                <p class="position-compact-label">de la puerta festiva</p>
+              </div>
+            </div>
           </div>
 
-          <div class="dashboard-card" data-navigate="jornales">
-            <div class="dashboard-card-icon green">
-              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
-              </svg>
+          <!-- Posiciones de Trincadores (solo visible para trincadores) -->
+          <div id="trincadores-positions" class="trincadores-positions" style="display: none;">
+            <div class="trinca-position-item">
+              <span class="trinca-icon">👷</span>
+              <p class="trinca-text"><strong id="trinca-lab-count">--</strong> trincadores hasta la puerta laborable</p>
             </div>
-            <h3>Mis Jornales</h3>
-            <p>Seguimiento de jornales por quincena</p>
-            <img src="https://i.imgur.com/C3UpaWV.jpeg" alt="Terminal">
+            <div class="trinca-position-item">
+              <span class="trinca-icon">👷</span>
+              <p class="trinca-text"><strong id="trinca-fest-count">--</strong> trincadores hasta la puerta festiva</p>
+            </div>
           </div>
 
-          <div class="dashboard-card" data-navigate="puertas">
-            <div class="dashboard-card-icon orange">
+          <div class="hero-footer">
+            <svg class="info-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+              <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd" />
+            </svg>
+            <span>Actualizado en tiempo real</span>
+          </div>
+        </div>
+
+        <!-- Accesos Directos -->
+        <h2 class="section-title">Accesos Directos</h2>
+
+        <!-- Mi Contratación -->
+        <div class="access-card featured" data-navigate="contratacion">
+          <div class="access-card-content">
+            <div class="access-left-group">
+              <div class="access-icon-container blue">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+                </svg>
+              </div>
+              <div class="access-text">
+                <h2 class="access-title">Mi Contratación</h2>
+                <p class="access-subtitle">Estado y Asignaciones</p>
+              </div>
+            </div>
+            <span class="status-badge new-assignment" id="new-assignment-badge" style="display: none;">¡Nueva asignación!</span>
+          </div>
+        </div>
+
+        <!-- Grid de Puertas y Tablón -->
+        <div class="quick-access-grid">
+          <div class="quick-card blue" data-navigate="puertas">
+            <div class="quick-card-bg"></div>
+            <div class="quick-icon-container blue">
               <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
               </svg>
             </div>
-            <h3>Puertas</h3>
-            <p>Consulta las puertas del día</p>
-            <img src="https://i.imgur.com/gUw97fH.jpeg" alt="Puertas">
+            <div class="quick-card-info">
+              <h3 class="quick-title">Puertas</h3>
+            </div>
+            <!-- Última Jornada debajo -->
+            <div class="last-info-mini" id="last-puerta-info">
+              <span class="last-info-label">Última jornada:</span>
+              <span class="last-info-date" id="last-puerta-fecha">--</span>
+              <span class="last-info-time" id="last-puerta-hora">--</span>
+            </div>
           </div>
 
-          <div class="dashboard-card" data-navigate="censo">
-            <div class="dashboard-card-icon purple">
+          <div class="quick-card orange" data-navigate="tablon">
+            <div class="quick-card-bg"></div>
+            <div class="quick-icon-container orange">
               <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" />
               </svg>
             </div>
-            <h3>Censo</h3>
-            <p>Consulta el censo de disponibilidad</p>
-            <img src="https://i.imgur.com/iHJOi0K.jpeg" alt="Operativa">
+            <div class="quick-card-info">
+              <h3 class="quick-title">Tablón</h3>
+            </div>
+            <!-- Última Contratación debajo -->
+            <div class="last-info-mini" id="last-tablon-info">
+              <span class="last-info-label">Última jornada:</span>
+              <span class="last-info-date" id="last-tablon-fecha">--</span>
+              <span class="last-info-time" id="last-tablon-hora">--</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Herramientas -->
+        <h2 class="section-title">Herramientas</h2>
+
+        <div class="tools-list">
+          <div class="tool-item" data-navigate="sueldometro">
+            <div class="tool-icon green">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M10.464 8.746c.227-.18.497-.311.786-.394v2.795a2.252 2.252 0 01-.786-.393c-.394-.313-.546-.681-.546-1.004 0-.323.152-.691.546-1.004zM12.75 15.662v-2.824c.347.085.664.228.921.421.427.32.579.686.579.991 0 .305-.152.671-.579.991a2.534 2.534 0 01-.921.42z" />
+                <path fill-rule="evenodd" d="M12 2.25c-5.385 0-9.75 4.365-9.75 9.75s4.365 9.75 9.75 9.75 9.75-4.365 9.75-9.75S17.385 2.25 12 2.25zM12.75 6a.75.75 0 00-1.5 0v.816a3.836 3.836 0 00-1.72.756c-.712.566-1.112 1.35-1.112 2.178 0 .829.4 1.612 1.113 2.178.502.4 1.102.647 1.719.756v2.978a2.536 2.536 0 01-.921-.421l-.879-.66a.75.75 0 00-.9 1.2l.879.66c.533.4 1.169.645 1.821.75V18a.75.75 0 001.5 0v-.81a4.124 4.124 0 001.821-.749c.745-.559 1.179-1.344 1.179-2.191 0-.847-.434-1.632-1.179-2.191a4.122 4.122 0 00-1.821-.75V8.354c.29.082.559.213.786.393l.415.33a.75.75 0 00.933-1.175l-.415-.33a3.836 3.836 0 00-1.719-.755V6z" clip-rule="evenodd" />
+              </svg>
+            </div>
+            <div class="tool-text">
+              <h4 class="tool-title">Sueldómetro</h4>
+              <p class="tool-label">ESTIMACIÓN</p>
+            </div>
+            <svg class="chevron-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
+              <path fill-rule="evenodd" d="M16.28 11.47a.75.75 0 010 1.06l-7.5 7.5a.75.75 0 01-1.06-1.06L14.69 12 7.72 5.03a.75.75 0 011.06-1.06l7.5 7.5z" clip-rule="evenodd" />
+            </svg>
           </div>
 
-          <div class="dashboard-card" data-navigate="noticias">
-            <div class="dashboard-card-icon red">
-              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10a2 2 0 012 2v1m2 13a2 2 0 01-2-2V7m2 13a2 2 0 002-2V9a2 2 0 00-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z" />
+          <div class="tool-item" data-navigate="jornales">
+            <div class="tool-icon purple">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M18.375 2.25c-1.035 0-1.875.84-1.875 1.875v15.75c0 1.035.84 1.875 1.875 1.875h.75c1.035 0 1.875-.84 1.875-1.875V4.125c0-1.036-.84-1.875-1.875-1.875h-.75zM9.75 8.625c0-1.036.84-1.875 1.875-1.875h.75c1.036 0 1.875.84 1.875 1.875v11.25c0 1.035-.84 1.875-1.875 1.875h-.75a1.875 1.875 0 01-1.875-1.875V8.625zM3 13.125c0-1.036.84-1.875 1.875-1.875h.75c1.036 0 1.875.84 1.875 1.875v6.75c0 1.035-.84 1.875-1.875 1.875h-.75A1.875 1.875 0 013 19.875v-6.75z" />
               </svg>
             </div>
-            <h3>Noticias</h3>
-            <p>Últimas comunicaciones importantes</p>
-            <img src="https://i.imgur.com/7F1BWQ2.jpeg" alt="Noticias">
+            <div class="tool-text">
+              <h4 class="tool-title">Mis Jornales</h4>
+              <p class="tool-label">HISTÓRICO</p>
+            </div>
+            <svg class="chevron-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
+              <path fill-rule="evenodd" d="M16.28 11.47a.75.75 0 010 1.06l-7.5 7.5a.75.75 0 01-1.06-1.06L14.69 12 7.72 5.03a.75.75 0 011.06-1.06l7.5 7.5z" clip-rule="evenodd" />
+            </svg>
           </div>
 
-          <div class="dashboard-card" data-navigate="foro">
-            <div class="dashboard-card-icon teal">
-              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8h2a2 2 0 012 2v6a2 2 0 01-2 2h-2v4l-4-4H9a1.994 1.994 0 01-1.414-.586m0 0L11 14h4a2 2 0 002-2V6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2v4l.586-.586z" />
+          <div class="tool-item" data-navigate="calculadora">
+            <div class="tool-icon indigo">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
+                <path fill-rule="evenodd" d="M6.75 2.25A.75.75 0 017.5 3v1.5h9V3A.75.75 0 0118 3v1.5h.75a3 3 0 013 3v11.25a3 3 0 01-3 3H5.25a3 3 0 01-3-3V7.5a3 3 0 013-3H6V3a.75.75 0 01.75-.75zm13.5 9a1.5 1.5 0 00-1.5-1.5H5.25a1.5 1.5 0 00-1.5 1.5v7.5a1.5 1.5 0 001.5 1.5h13.5a1.5 1.5 0 001.5-1.5v-7.5z" clip-rule="evenodd" />
+                <path d="M7.5 12.75a.75.75 0 01.75-.75h.008a.75.75 0 01.75.75v.008a.75.75 0 01-.75.75H8.25a.75.75 0 01-.75-.75v-.008zm0 3a.75.75 0 01.75-.75h.008a.75.75 0 01.75.75v.008a.75.75 0 01-.75.75H8.25a.75.75 0 01-.75-.75v-.008zm3-3a.75.75 0 01.75-.75h.008a.75.75 0 01.75.75v.008a.75.75 0 01-.75.75h-.008a.75.75 0 01-.75-.75v-.008zm0 3a.75.75 0 01.75-.75h.008a.75.75 0 01.75.75v.008a.75.75 0 01-.75.75h-.008a.75.75 0 01-.75-.75v-.008zm3.75-3.75a.75.75 0 00-.75.75v.008c0 .414.336.75.75.75h.008a.75.75 0 00.75-.75v-.008a.75.75 0 00-.75-.75h-.008zm-.75 3.75a.75.75 0 01.75-.75h.008a.75.75 0 01.75.75v.008a.75.75 0 01-.75.75h-.008a.75.75 0 01-.75-.75v-.008z" />
               </svg>
             </div>
-            <h3>Foro</h3>
-            <p>Conecta con otros estibadores</p>
-            <img src="https://i.imgur.com/xcHiyAn.jpeg" alt="Foro">
+            <div class="tool-text">
+              <h4 class="tool-title">El Oráculo</h4>
+              <p class="tool-label">CALCULADORA</p>
+            </div>
+            <svg class="chevron-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
+              <path fill-rule="evenodd" d="M16.28 11.47a.75.75 0 010 1.06l-7.5 7.5a.75.75 0 01-1.06-1.06L14.69 12 7.72 5.03a.75.75 0 011.06-1.06l7.5 7.5z" clip-rule="evenodd" />
+            </svg>
           </div>
         </div>
       </div>
@@ -857,6 +913,44 @@
     <!-- FIN DE LA SECCIÓN AÑADIDA: PÁGINA PARA GESTIONAR NOTIFICACIONES PUSH -->
 
   </main>
+
+  <!-- Bottom Navigation Bar Global -->
+  <nav id="bottom-navbar" class="bottom-navbar" role="navigation" aria-label="Navegación principal inferior">
+    <a href="#" class="bottom-nav-item active" data-page="dashboard">
+      <div class="bottom-nav-icon-wrapper">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="bottom-nav-icon">
+          <path d="M11.47 3.84a.75.75 0 011.06 0l8.69 8.69a.75.75 0 101.06-1.06l-8.689-8.69a2.25 2.25 0 00-3.182 0l-8.69 8.69a.75.75 0 001.061 1.06l8.69-8.69z" />
+          <path d="M12 5.432l8.159 8.159c.03.03.06.058.091.086v6.198c0 1.035-.84 1.875-1.875 1.875H15a.75.75 0 01-.75-.75v-4.5a.75.75 0 00-.75-.75h-3a.75.75 0 00-.75.75V21a.75.75 0 01-.75.75H5.625a1.875 1.875 0 01-1.875-1.875v-6.198a2.29 2.29 0 00.091-.086L12 5.43z" />
+        </svg>
+      </div>
+      <span class="bottom-nav-label">Inicio</span>
+    </a>
+    <a href="#" class="bottom-nav-item" data-page="contratacion">
+      <div class="bottom-nav-icon-wrapper">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" class="bottom-nav-icon">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+        </svg>
+      </div>
+      <span class="bottom-nav-label">Mi Contratación</span>
+    </a>
+    <a href="#" class="bottom-nav-item" data-page="puertas">
+      <div class="bottom-nav-icon-wrapper">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" class="bottom-nav-icon">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+        </svg>
+      </div>
+      <span class="bottom-nav-label">Puertas</span>
+    </a>
+    <a href="#" class="bottom-nav-item" data-page="tablon">
+      <div class="bottom-nav-icon-wrapper">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" class="bottom-nav-icon">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" />
+        </svg>
+        <span class="bottom-nav-notification-dot" id="tablon-notification-dot" style="display: none;"></span>
+      </div>
+      <span class="bottom-nav-label">Tablón</span>
+    </a>
+  </nav>
 
   <!-- Footer Copyright -->
   <footer id="app-footer" class="app-footer" role="contentinfo">

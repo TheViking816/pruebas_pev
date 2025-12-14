@@ -474,6 +474,49 @@ function setupEventListeners() {
     });
   });
 
+  // Nuevo diseño de inicio: Access cards, quick cards y herramientas
+  const accessCards = document.querySelectorAll('.access-card[data-navigate]');
+  accessCards.forEach(card => {
+    card.addEventListener('click', () => {
+      const page = card.dataset.navigate;
+      if (page) {
+        navigateTo(page);
+      }
+    });
+  });
+
+  const quickCards = document.querySelectorAll('.quick-card[data-navigate]');
+  quickCards.forEach(card => {
+    card.addEventListener('click', () => {
+      const page = card.dataset.navigate;
+      if (page) {
+        navigateTo(page);
+      }
+    });
+  });
+
+  const toolItems = document.querySelectorAll('.tool-item[data-navigate]');
+  toolItems.forEach(item => {
+    item.addEventListener('click', () => {
+      const page = item.dataset.navigate;
+      if (page) {
+        navigateTo(page);
+      }
+    });
+  });
+
+  // Bottom navbar global navigation
+  const bottomNavItems = document.querySelectorAll('.bottom-nav-item[data-page]');
+  bottomNavItems.forEach(item => {
+    item.addEventListener('click', (e) => {
+      e.preventDefault();
+      const page = item.dataset.page;
+      if (page) {
+        navigateTo(page);
+      }
+    });
+  });
+
   // Menú móvil
   const menuBtn = document.getElementById('menuBtn');
   if (menuBtn) {
@@ -764,72 +807,187 @@ function updateUIForAuthenticatedUser() {
 
         if (posicionesObj) {
 
-          // --- RENDERIZAR LÍNEA LABORABLE ---
-          if (posicionesObj.laborable !== null) {
-            const posicionInfoLab = document.createElement('span');
-            posicionInfoLab.style.display = 'block';
-            posicionInfoLab.style.marginTop = '0.5rem';
-            posicionInfoLab.style.fontSize = '0.95rem';
-            posicionInfoLab.style.color = '#FFFFFF';
-            posicionInfoLab.style.fontWeight = '600';
+          // --- ACTUALIZAR NUEVO DISEÑO (si existe) ---
+          const posLaborableEl = document.getElementById('pos-laborable');
+          const posFestivaEl = document.getElementById('pos-festiva');
 
-            if (posicionesObj.laborable === 0) {
-              posicionInfoLab.innerHTML = '🎉 ¡Estás en la última puerta <strong>laborable</strong>!';
-            } else {
-              posicionInfoLab.innerHTML = `📍 Estás a <strong style="color: #FFFFFF; font-weight: 800;">${posicionesObj.laborable}</strong> posiciones de la puerta <strong>laborable</strong>`;
-            }
-            welcomeMsg.appendChild(posicionInfoLab);
-
-            // --- RENDERIZAR LÍNEA DE TRINCA LABORABLE (debajo) ---
-            // Solo mostrar si el usuario tiene la especialidad de trincador
-            if (esTrincador && posicionesTrinca && posicionesTrinca.laborable !== null) {
-              const posicionTrincaLab = document.createElement('span');
-              posicionTrincaLab.style.display = 'block';
-              posicionTrincaLab.style.marginTop = '0.15rem';
-              posicionTrincaLab.style.marginLeft = '1.5rem';
-              posicionTrincaLab.style.fontSize = '0.85rem';
-              posicionTrincaLab.style.color = '#FCD34D'; // Color dorado/amarillo
-              posicionTrincaLab.style.fontWeight = '500';
-              posicionTrincaLab.innerHTML = `⚡ ${Math.round(posicionesTrinca.laborable)} trincadores hasta la puerta <strong>laborable</strong>`;
-              welcomeMsg.appendChild(posicionTrincaLab);
-            }
+          if (posLaborableEl && posicionesObj.laborable !== null) {
+            posLaborableEl.textContent = posicionesObj.laborable;
           }
 
-          // --- RENDERIZAR LÍNEA FESTIVA ---
-          if (posicionesObj.festiva !== null) {
-            const posicionInfoFest = document.createElement('span');
-            posicionInfoFest.style.display = 'block';
-            posicionInfoFest.style.marginTop = '0.25rem'; // Menos espacio entre las dos líneas
-            posicionInfoFest.style.fontSize = '0.95rem';
-            posicionInfoFest.style.color = '#FFFFFF';
-            posicionInfoFest.style.fontWeight = '600';
-
-            if (posicionesObj.festiva === 0) {
-              posicionInfoFest.innerHTML = '🎉 ¡Estás en la última puerta <strong>festiva</strong>!';
-            } else {
-              posicionInfoFest.innerHTML = `📍 Estás a <strong style="color: #FFFFFF; font-weight: 800;">${posicionesObj.festiva}</strong> posiciones de la puerta <strong>festiva</strong>`;
-            }
-            welcomeMsg.appendChild(posicionInfoFest);
-
-            // --- RENDERIZAR LÍNEA DE TRINCA FESTIVA (debajo) ---
-            // Solo mostrar si el usuario tiene la especialidad de trincador
-            if (esTrincador && posicionesTrinca && posicionesTrinca.festiva !== null) {
-              const posicionTrincaFest = document.createElement('span');
-              posicionTrincaFest.style.display = 'block';
-              posicionTrincaFest.style.marginTop = '0.15rem';
-              posicionTrincaFest.style.marginLeft = '1.5rem';
-              posicionTrincaFest.style.fontSize = '0.85rem';
-              posicionTrincaFest.style.color = '#FCD34D'; // Color dorado/amarillo
-              posicionTrincaFest.style.fontWeight = '500';
-              posicionTrincaFest.innerHTML = `⚡ ${Math.round(posicionesTrinca.festiva)} trincadores hasta la puerta <strong>festiva</strong>`;
-              welcomeMsg.appendChild(posicionTrincaFest);
-            }
+          if (posFestivaEl && posicionesObj.festiva !== null) {
+            posFestivaEl.textContent = posicionesObj.festiva;
           }
+
+          // --- ACTUALIZAR POSICIONES DE TRINCADORES (solo si es trincador) ---
+          const trincadoresSection = document.getElementById('trincadores-positions');
+          const trincaLabCount = document.getElementById('trinca-lab-count');
+          const trincaFestCount = document.getElementById('trinca-fest-count');
+
+          if (trincadoresSection && esTrincador && posicionesTrinca) {
+            trincadoresSection.style.display = 'flex';
+
+            if (trincaLabCount && posicionesTrinca.laborable !== null) {
+              trincaLabCount.textContent = Math.round(posicionesTrinca.laborable);
+            }
+
+            if (trincaFestCount && posicionesTrinca.festiva !== null) {
+              trincaFestCount.textContent = Math.round(posicionesTrinca.festiva);
+            }
+          } else if (trincadoresSection) {
+            trincadoresSection.style.display = 'none';
+          }
+
+          // --- ACTUALIZAR ÚLTIMA JORNADA Y NUEVAS ASIGNACIONES ---
+          updateLastInfoSections();
+          checkNewAssignments();
         }
       })
       .catch(error => {
         console.error('Error obteniendo posiciones:', error);
       });
+  }
+}
+
+/**
+ * Actualiza las secciones de "Última Jornada" en Puertas y Tablón
+ */
+async function updateLastInfoSections() {
+  const lastPuertaFecha = document.getElementById('last-puerta-fecha');
+  const lastPuertaHora = document.getElementById('last-puerta-hora');
+  const lastTablonFecha = document.getElementById('last-tablon-fecha');
+  const lastTablonHora = document.getElementById('last-tablon-hora');
+
+  if (!lastPuertaFecha && !lastTablonFecha) {
+    return; // No está en el nuevo diseño
+  }
+
+  try {
+    // Obtener última jornada de puertas
+    if (lastPuertaFecha && lastPuertaHora) {
+      const puertasResult = await SheetsAPI.getPuertas();
+      if (puertasResult && puertasResult.fecha && puertasResult.puertas) {
+        // Obtener la primera jornada que no sea "Festivo"
+        const primeraJornada = puertasResult.puertas.find(p => p.jornada !== 'Festivo');
+
+        // Formatear fecha a DD/MM (sin año)
+        let fechaCorta = puertasResult.fecha;
+        if (puertasResult.fecha.includes('/')) {
+          const partes = puertasResult.fecha.split('/');
+          fechaCorta = `${partes[0]}/${partes[1]}`; // DD/MM
+        }
+
+        // Actualizar fecha y jornada por separado
+        lastPuertaFecha.textContent = fechaCorta;
+        lastPuertaHora.textContent = primeraJornada ? primeraJornada.jornada : '--';
+      }
+    }
+
+    // Obtener última jornada de tablón (contrataciones)
+    if (lastTablonFecha && lastTablonHora) {
+      const contrataciones = await SheetsAPI.getContrataciones();
+      console.log('📋 Contrataciones obtenidas:', contrataciones);
+
+      if (contrataciones && contrataciones.length > 0) {
+        // Obtener la fecha y jornada de la primera contratación
+        const primeraContratacion = contrataciones[0];
+        console.log('📋 Primera contratación:', primeraContratacion);
+
+        if (primeraContratacion.fecha && primeraContratacion.jornada) {
+          // Formatear fecha desde YYYY-MM-DD a DD/MM
+          let fechaCorta = primeraContratacion.fecha;
+          if (primeraContratacion.fecha.includes('-')) {
+            const partes = primeraContratacion.fecha.split('-');
+            fechaCorta = `${partes[2]}/${partes[1]}`; // DD/MM
+          }
+
+          // Actualizar fecha y jornada por separado
+          lastTablonFecha.textContent = fechaCorta;
+          lastTablonHora.textContent = primeraContratacion.jornada;
+        } else {
+          // Fallback: mostrar fecha actual
+          const hoy = new Date();
+          const dia = String(hoy.getDate()).padStart(2, '0');
+          const mes = String(hoy.getMonth() + 1).padStart(2, '0');
+          lastTablonFecha.textContent = `${dia}/${mes}`;
+          lastTablonHora.textContent = '--';
+        }
+      } else {
+        // Si no hay contrataciones, mostrar la fecha de Puertas
+        const puertasResult = await SheetsAPI.getPuertas();
+        if (puertasResult && puertasResult.fecha && puertasResult.puertas) {
+          const primeraJornada = puertasResult.puertas.find(p => p.jornada !== 'Festivo');
+
+          let fechaCorta = puertasResult.fecha;
+          if (puertasResult.fecha.includes('/')) {
+            const partes = puertasResult.fecha.split('/');
+            fechaCorta = `${partes[0]}/${partes[1]}`; // DD/MM
+          }
+
+          // Actualizar fecha y jornada por separado
+          lastTablonFecha.textContent = fechaCorta;
+          lastTablonHora.textContent = primeraJornada ? primeraJornada.jornada : '--';
+        }
+      }
+    }
+  } catch (error) {
+    console.error('Error actualizando última info:', error);
+  }
+}
+
+/**
+ * Verifica si hay nuevas asignaciones y muestra el badge
+ */
+async function checkNewAssignments() {
+  try {
+    const badge = document.getElementById('new-assignment-badge');
+    if (!badge) return;
+
+    // Obtener contrataciones actuales
+    const contrataciones = await SheetsAPI.getContrataciones();
+    if (!contrataciones || contrataciones.length === 0) {
+      badge.style.display = 'none';
+      return;
+    }
+
+    // Verificar si el usuario tiene asignaciones
+    const userAssignments = contrataciones.filter(c =>
+      c.chapa && c.chapa.toString() === AppState.currentUser.toString()
+    );
+
+    if (userAssignments.length === 0) {
+      badge.style.display = 'none';
+      return;
+    }
+
+    // Verificar si ya vio las asignaciones (usar localStorage)
+    const lastViewedKey = `last_viewed_assignments_${AppState.currentUser}`;
+    const lastViewed = localStorage.getItem(lastViewedKey);
+    const currentDate = new Date().toDateString();
+
+    if (lastViewed !== currentDate) {
+      // Mostrar badge si es la primera vez del día
+      badge.style.display = 'inline-block';
+    } else {
+      badge.style.display = 'none';
+    }
+  } catch (error) {
+    console.error('Error verificando nuevas asignaciones:', error);
+  }
+}
+
+/**
+ * Marca las asignaciones como vistas
+ */
+function markAssignmentsAsViewed() {
+  const lastViewedKey = `last_viewed_assignments_${AppState.currentUser}`;
+  const currentDate = new Date().toDateString();
+  localStorage.setItem(lastViewedKey, currentDate);
+
+  // Ocultar el badge
+  const badge = document.getElementById('new-assignment-badge');
+  if (badge) {
+    badge.style.display = 'none';
   }
 }
 
@@ -861,6 +1019,9 @@ function handleLogout() {
   const mainContent = document.getElementById('main-content');
   if (sidebar) sidebar.classList.add('hidden');
   if (mainContent) mainContent.classList.add('no-sidebar');
+
+  // Agregar clase login-active al body
+  document.body.classList.add('login-active');
 
   // Navegar a login (esto activará la limpieza preventiva adicional)
   navigateTo('login');
@@ -1159,6 +1320,8 @@ function navigateTo(pageName) {
       break;
     case 'contratacion':
       loadContratacion();
+      // Marcar asignaciones como vistas cuando entra a la página
+      markAssignmentsAsViewed();
       break;
     case 'jornales':
       loadJornales();
@@ -1217,19 +1380,31 @@ function showPage(pageName) {
     // Ocultar sidebar en login o si no está autenticado
     if (sidebar) sidebar.classList.add('hidden');
     if (mainContent) mainContent.classList.add('no-sidebar');
+    document.body.classList.add('login-active');
   } else if (AppState.isAuthenticated) {
     // Mostrar sidebar si está autenticado
     if (sidebar) sidebar.classList.remove('hidden');
     if (mainContent) mainContent.classList.remove('no-sidebar');
+    document.body.classList.remove('login-active');
   }
 
-  // Actualizar navegación activa
+  // Actualizar navegación activa en sidebar
   const navLinks = document.querySelectorAll('.nav-link');
   navLinks.forEach(link => {
     if (link.dataset.page === pageName) {
       link.classList.add('active');
     } else {
       link.classList.remove('active');
+    }
+  });
+
+  // Actualizar navegación activa en bottom navbar
+  const bottomNavItems = document.querySelectorAll('.bottom-nav-item');
+  bottomNavItems.forEach(item => {
+    if (item.dataset.page === pageName) {
+      item.classList.add('active');
+    } else {
+      item.classList.remove('active');
     }
   });
 
@@ -2813,7 +2988,14 @@ async function loadTablon(options = {}) {
   loading.classList.remove('hidden');
   container.innerHTML = '';
   if (statsContainer) statsContainer.innerHTML = '';
-  if (jornadasTabsContainer) jornadasTabsContainer.innerHTML = '';
+  if (jornadasTabsContainer) {
+    jornadasTabsContainer.innerHTML = `
+      <div style="display: flex; align-items: center; gap: 0.75rem; padding: 1rem; color: var(--text-secondary); font-size: 0.875rem;">
+        <div class="spinner" style="width: 20px; height: 20px;"></div>
+        <span>Cargando jornadas...</span>
+      </div>
+    `;
+  }
 
   // Configurar modal
   if (modal && modalCloseBtn) {
@@ -3139,10 +3321,24 @@ async function loadTablon(options = {}) {
 
     // 6. Función para renderizar tablón para una jornada específica
     const renderTablonParaJornada = (jornada) => {
-      container.innerHTML = '';
+      // Mostrar mensaje de carga mientras se renderiza
+      container.innerHTML = `
+        <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 3rem; gap: 1rem;">
+          <div class="spinner"></div>
+          <p style="color: var(--text-secondary); font-size: 0.95rem;">Cargando datos de la jornada...</p>
+        </div>
+      `;
 
-      const empresasEnJornada = jornadasMap[jornada];
-      if (!empresasEnJornada) return;
+      // Usar setTimeout para que el mensaje de carga se vea antes de procesar
+      setTimeout(() => {
+        const empresasEnJornada = jornadasMap[jornada];
+        if (!empresasEnJornada) {
+          container.innerHTML = '';
+          return;
+        }
+
+        // Limpiar el contenedor ahora que vamos a renderizar
+        container.innerHTML = '';
 
       // Actualizar estadísticas para esta jornada
       const chapasJornada = Object.values(empresasEnJornada).reduce((sum, empresaData) => {
@@ -3612,6 +3808,7 @@ async function loadTablon(options = {}) {
           aplicarFiltros();
         };
       }
+      }, 100); // Delay de 100ms para mostrar el mensaje de carga
     };
 
     // Inicializar

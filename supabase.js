@@ -1296,7 +1296,7 @@ async function getContrataciones(fecha = null) {
     const targetDate = fecha || new Date().toISOString().split('T')[0];
 
     const { data, error } = await supabase
-      .from('contrataciones')
+      .from('tablon_actual')
       .select('*')
       .eq('fecha', targetDate)
       .order('id', { ascending: true });
