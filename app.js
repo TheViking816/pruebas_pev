@@ -899,25 +899,30 @@ async function updateLastInfoSections() {
 
     // Obtener última jornada de tablón (contrataciones)
     if (lastTablonFecha && lastTablonHora) {
-      const contrataciones = await SheetsAPI.getContrataciones();
-      console.log('📋 Contrataciones obtenidas:', contrataciones);
+      // Usar tabla tablon_actual de Supabase para obtener la última contratación real
+      // ordenada por ID descendente (el ID más alto es la última contratación)
+      const { data: contrataciones, error } = await window.supabaseClient
+        .from('tablon_actual')
+        .select('fecha, jornada')
+        .order('id', { ascending: false })
+        .limit(1);
 
-      if (contrataciones && contrataciones.length > 0) {
-        // Obtener la fecha y jornada de la primera contratación
-        const primeraContratacion = contrataciones[0];
-        console.log('📋 Primera contratación:', primeraContratacion);
+      console.log('📋 Última contratación desde Supabase:', contrataciones);
 
-        if (primeraContratacion.fecha && primeraContratacion.jornada) {
+      if (!error && contrataciones && contrataciones.length > 0) {
+        const ultimaContratacion = contrataciones[0];
+
+        if (ultimaContratacion.fecha && ultimaContratacion.jornada) {
           // Formatear fecha desde YYYY-MM-DD a DD/MM
-          let fechaCorta = primeraContratacion.fecha;
-          if (primeraContratacion.fecha.includes('-')) {
-            const partes = primeraContratacion.fecha.split('-');
+          let fechaCorta = ultimaContratacion.fecha;
+          if (ultimaContratacion.fecha.includes('-')) {
+            const partes = ultimaContratacion.fecha.split('-');
             fechaCorta = `${partes[2]}/${partes[1]}`; // DD/MM
           }
 
           // Actualizar fecha y jornada por separado
           lastTablonFecha.textContent = fechaCorta;
-          lastTablonHora.textContent = primeraContratacion.jornada;
+          lastTablonHora.textContent = ultimaContratacion.jornada;
         } else {
           // Fallback: mostrar fecha actual
           const hoy = new Date();
@@ -927,7 +932,7 @@ async function updateLastInfoSections() {
           lastTablonHora.textContent = '--';
         }
       } else {
-        // Si no hay contrataciones, mostrar la fecha de Puertas
+        // Si no hay contrataciones en tablon_actual, mostrar la fecha de Puertas
         const puertasResult = await SheetsAPI.getPuertas();
         if (puertasResult && puertasResult.fecha && puertasResult.puertas) {
           const puertasLaborables = puertasResult.puertas.filter(p => p.jornada !== 'Festivo');
