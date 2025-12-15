@@ -872,8 +872,17 @@ async function updateLastInfoSections() {
     if (lastPuertaFecha && lastPuertaHora) {
       const puertasResult = await SheetsAPI.getPuertas();
       if (puertasResult && puertasResult.fecha && puertasResult.puertas) {
-        // Obtener la primera jornada que no sea "Festivo"
-        const primeraJornada = puertasResult.puertas.find(p => p.jornada !== 'Festivo');
+        // Obtener jornadas laborables
+        const puertasLaborables = puertasResult.puertas.filter(p => p.jornada !== 'Festivo');
+
+        // Detectar la siguiente jornada a contratar
+        const siguienteJornada = detectarSiguienteJornada(puertasLaborables);
+
+        // La última contratada es la ANTERIOR a la siguiente
+        const ordenJornadas = ['02-08', '08-14', '14-20', '20-02'];
+        const indexSiguiente = ordenJornadas.indexOf(siguienteJornada);
+        const indexUltima = indexSiguiente > 0 ? indexSiguiente - 1 : ordenJornadas.length - 1;
+        const ultimaContratada = ordenJornadas[indexUltima];
 
         // Formatear fecha a DD/MM (sin año)
         let fechaCorta = puertasResult.fecha;
@@ -884,7 +893,7 @@ async function updateLastInfoSections() {
 
         // Actualizar fecha y jornada por separado
         lastPuertaFecha.textContent = fechaCorta;
-        lastPuertaHora.textContent = primeraJornada ? primeraJornada.jornada : '--';
+        lastPuertaHora.textContent = ultimaContratada;
       }
     }
 
@@ -921,7 +930,16 @@ async function updateLastInfoSections() {
         // Si no hay contrataciones, mostrar la fecha de Puertas
         const puertasResult = await SheetsAPI.getPuertas();
         if (puertasResult && puertasResult.fecha && puertasResult.puertas) {
-          const primeraJornada = puertasResult.puertas.find(p => p.jornada !== 'Festivo');
+          const puertasLaborables = puertasResult.puertas.filter(p => p.jornada !== 'Festivo');
+
+          // Detectar la siguiente jornada a contratar
+          const siguienteJornada = detectarSiguienteJornada(puertasLaborables);
+
+          // La última contratada es la ANTERIOR a la siguiente
+          const ordenJornadas = ['02-08', '08-14', '14-20', '20-02'];
+          const indexSiguiente = ordenJornadas.indexOf(siguienteJornada);
+          const indexUltima = indexSiguiente > 0 ? indexSiguiente - 1 : ordenJornadas.length - 1;
+          const ultimaContratada = ordenJornadas[indexUltima];
 
           let fechaCorta = puertasResult.fecha;
           if (puertasResult.fecha.includes('/')) {
@@ -931,7 +949,7 @@ async function updateLastInfoSections() {
 
           // Actualizar fecha y jornada por separado
           lastTablonFecha.textContent = fechaCorta;
-          lastTablonHora.textContent = primeraJornada ? primeraJornada.jornada : '--';
+          lastTablonHora.textContent = ultimaContratada;
         }
       }
     }
