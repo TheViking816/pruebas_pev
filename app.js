@@ -189,6 +189,9 @@ function formatearFecha(fecha) {
 /**
  * Inicialización de la aplicación
  */
+// Variable para capturar el evento de instalación de la PWA
+let deferredPrompt;
+
 document.addEventListener('DOMContentLoaded', () => {
   console.log('Portal Estiba VLC - Iniciando aplicación...');
 
@@ -206,6 +209,7 @@ document.addEventListener('DOMContentLoaded', () => {
   initReportJornal();
   initForoEnhanced();
   initSyncJornalesButton();
+  initPWAInstall();
 
   // Luego, inicializar la lógica principal
   initializeApp();
@@ -4049,19 +4053,67 @@ function renderForoMessages(messages) {
     // Obtener nombre del usuario (del cache usando chapa normalizada o fallback a chapa normalizada)
     const nombreUsuario = usuariosCache[chapaNormalizada] || `Chapa ${chapaNormalizada}`;
 
+    // Inicializar reacciones si no existen
+    if (!msg.reactions) {
+      msg.reactions = {};
+    }
+
     const messageDiv = document.createElement('div');
     messageDiv.className = `foro-message ${isOwn ? 'own' : ''}`;
+    messageDiv.dataset.messageId = msg.id;
+
+    // Renderizar contador de reacciones
+    let reactionsHTML = '';
+    const reactions = ['👍', '❤️', '😂', '😮', '😢', '😡'];
+    const reactionCounts = msg.reactions || {};
+
+    // Mostrar reacciones existentes
+    let hasReactions = false;
+    let reactionsDisplay = '<div class="foro-message-reactions-display">';
+    reactions.forEach(emoji => {
+      if (reactionCounts[emoji] && reactionCounts[emoji].count > 0) {
+        hasReactions = true;
+        const userReacted = reactionCounts[emoji].users && reactionCounts[emoji].users.includes(AppState.currentUser);
+        reactionsDisplay += `<span class="reaction-badge ${userReacted ? 'user-reacted' : ''}" data-emoji="${emoji}">${emoji} ${reactionCounts[emoji].count}</span>`;
+      }
+    });
+    reactionsDisplay += '</div>';
+
+    if (!hasReactions) {
+      reactionsDisplay = '';
+    }
+
+    // Renderizar imagen si existe
+    let imageHTML = '';
+    if (msg.image) {
+      imageHTML = `<div class="foro-message-image"><img src="${msg.image}" alt="Imagen del mensaje" loading="lazy"></div>`;
+    }
+
     messageDiv.innerHTML = `
       <div class="foro-message-content">
         <div class="foro-message-header">
           <span class="foro-message-chapa">${nombreUsuario}</span>
           <span class="foro-message-time">${timeAgo}</span>
         </div>
-        <div class="foro-message-text" style="white-space: pre-wrap;">${escapeHtml(msg.texto)}</div>
+        ${msg.texto ? `<div class="foro-message-text" style="white-space: pre-wrap;">${escapeHtml(msg.texto)}</div>` : ''}
+        ${imageHTML}
+        ${reactionsDisplay}
+        <div class="foro-message-reactions">
+          ${reactions.map(emoji => `<button class="reaction-btn" data-emoji="${emoji}" data-message-id="${msg.id}">${emoji}</button>`).join('')}
+        </div>
       </div>
     `;
 
     container.appendChild(messageDiv);
+
+    // Añadir event listeners para las reacciones
+    messageDiv.querySelectorAll('.reaction-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const emoji = btn.dataset.emoji;
+        const messageId = btn.dataset.messageId;
+        handleReaction(messageId, emoji);
+      });
+    });
   });
 
   // Scroll automático al final para ver mensajes recientes (como WhatsApp)
@@ -4075,16 +4127,75 @@ function renderForoMessages(messages) {
 }
 
 /**
+ * Maneja las reacciones de los mensajes del foro
+ */
+async function handleReaction(messageId, emoji) {
+  const messages = getForoMessagesLocal();
+  const messageIndex = messages.findIndex(m => m.id == messageId);
+
+  if (messageIndex === -1) {
+    console.error('Mensaje no encontrado:', messageId);
+    return;
+  }
+
+  const message = messages[messageIndex];
+
+  // Inicializar reacciones si no existen
+  if (!message.reactions) {
+    message.reactions = {};
+  }
+
+  // Inicializar el emoji si no existe
+  if (!message.reactions[emoji]) {
+    message.reactions[emoji] = { count: 0, users: [] };
+  }
+
+  const currentUser = AppState.currentUser;
+  const userIndex = message.reactions[emoji].users.indexOf(currentUser);
+
+  // Si el usuario ya reaccionó, quitar la reacción
+  if (userIndex !== -1) {
+    message.reactions[emoji].users.splice(userIndex, 1);
+    message.reactions[emoji].count--;
+  } else {
+    // Si el usuario no ha reaccionado, añadir la reacción
+    message.reactions[emoji].users.push(currentUser);
+    message.reactions[emoji].count++;
+  }
+
+  // Actualizar localStorage
+  messages[messageIndex] = message;
+  localStorage.setItem('foro_messages', JSON.stringify(messages));
+
+  // Re-renderizar mensajes
+  renderForoMessages(messages);
+
+  // Intentar sincronizar con Supabase
+  try {
+    await SheetsAPI.updateForoMessageReaction(messageId, emoji, currentUser, userIndex === -1 ? 'add' : 'remove');
+    console.log('✅ Reacción sincronizada con Supabase');
+  } catch (error) {
+    console.error('❌ Error sincronizando reacción:', error);
+  }
+}
+
+/**
  * Envía un mensaje al foro - Intenta enviar a Google Sheets si está configurado
  */
 async function sendForoMessage() {
   const input = document.getElementById('foro-input');
   const sendBtn = document.getElementById('foro-send');
+  const imageInput = document.getElementById('foro-image-input');
+  const imagePreview = document.getElementById('foro-image-preview');
+  const previewImg = document.getElementById('foro-preview-img');
 
   if (!input || !sendBtn) return;
 
   const texto = input.value.trim();
-  if (!texto) return;
+  const hasImage = imageInput && imageInput.files && imageInput.files.length > 0;
+
+  // Requiere al menos texto o imagen
+  if (!texto && !hasImage) return;
 
   // Prevenir múltiples envíos
   if (sendBtn.disabled) return;
@@ -4105,11 +4216,28 @@ async function sendForoMessage() {
     <span style="margin-left: 8px;">Enviando...</span>
   `;
 
+  // Procesar imagen si existe
+  let imageData = null;
+  if (hasImage) {
+    const file = imageInput.files[0];
+    try {
+      imageData = await new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = (e) => resolve(e.target.result);
+        reader.onerror = reject;
+        reader.readAsDataURL(file);
+      });
+    } catch (error) {
+      console.error('Error leyendo imagen:', error);
+    }
+  }
+
   const newMessage = {
     id: Date.now(),
     chapa: AppState.currentUser,
     timestamp: new Date().toISOString(),
-    texto: texto
+    texto: texto,
+    image: imageData
   };
 
   // Añadir mensaje inmediatamente a la vista (optimistic update)
@@ -4120,6 +4248,11 @@ async function sendForoMessage() {
 
   // Limpiar input inmediatamente
   input.value = '';
+
+  // Limpiar imagen
+  if (imageInput) imageInput.value = '';
+  if (imagePreview) imagePreview.style.display = 'none';
+  if (previewImg) previewImg.src = '';
 
   // Scroll al final
   const container = document.getElementById('foro-messages');
@@ -7590,6 +7723,11 @@ function initForoEnhanced() {
   const sendBtn = document.getElementById('foro-send');
   const foroInput = document.getElementById('foro-input');
   const charCount = document.getElementById('foro-char-count');
+  const imageBtn = document.getElementById('foro-image-btn');
+  const imageInput = document.getElementById('foro-image-input');
+  const imagePreview = document.getElementById('foro-image-preview');
+  const previewImg = document.getElementById('foro-preview-img');
+  const removeImageBtn = document.getElementById('foro-remove-image');
 
   if (!sendBtn || !foroInput) return;
 
@@ -7624,6 +7762,38 @@ function initForoEnhanced() {
       }
     }
   });
+
+  // Manejar selección de imagen
+  if (imageBtn && imageInput) {
+    imageBtn.addEventListener('click', () => {
+      imageInput.click();
+    });
+
+    imageInput.addEventListener('change', (e) => {
+      const file = e.target.files[0];
+      if (file && file.type.startsWith('image/')) {
+        const reader = new FileReader();
+        reader.onload = (e) => {
+          if (previewImg && imagePreview) {
+            previewImg.src = e.target.result;
+            imagePreview.style.display = 'block';
+          }
+        };
+        reader.readAsDataURL(file);
+      }
+    });
+  }
+
+  // Remover imagen seleccionada
+  if (removeImageBtn && imagePreview && imageInput) {
+    removeImageBtn.addEventListener('click', () => {
+      imageInput.value = '';
+      imagePreview.style.display = 'none';
+      if (previewImg) {
+        previewImg.src = '';
+      }
+    });
+  }
 }
 
 /**
@@ -9276,5 +9446,65 @@ async function loadCalculadora() {
         newBtn.disabled = false;
       }
     });
+  }
+}
+
+/**
+ * Inicializa la funcionalidad de instalación de PWA
+ */
+function initPWAInstall() {
+  const installBtn = document.getElementById('install-app-btn');
+
+  if (!installBtn) {
+    console.warn('Botón de instalación no encontrado');
+    return;
+  }
+
+  // Capturar el evento beforeinstallprompt
+  window.addEventListener('beforeinstallprompt', (e) => {
+    console.log('PWA: beforeinstallprompt event captured');
+    e.preventDefault();
+    deferredPrompt = e;
+    // Mostrar el botón de instalación
+    installBtn.style.display = 'block';
+  });
+
+  // Manejar el clic en el botón de instalación
+  installBtn.addEventListener('click', async () => {
+    if (!deferredPrompt) {
+      console.log('PWA: No hay prompt disponible');
+      return;
+    }
+
+    // Mostrar el prompt de instalación
+    deferredPrompt.prompt();
+
+    // Esperar a que el usuario responda al prompt
+    const { outcome } = await deferredPrompt.userChoice;
+    console.log(`PWA: User response: ${outcome}`);
+
+    if (outcome === 'accepted') {
+      console.log('PWA: Usuario aceptó la instalación');
+    } else {
+      console.log('PWA: Usuario rechazó la instalación');
+    }
+
+    // Limpiar el prompt
+    deferredPrompt = null;
+    // Ocultar el botón
+    installBtn.style.display = 'none';
+  });
+
+  // Detectar si la app ya está instalada
+  window.addEventListener('appinstalled', () => {
+    console.log('PWA: App instalada exitosamente');
+    installBtn.style.display = 'none';
+    deferredPrompt = null;
+  });
+
+  // Si ya está en modo standalone (instalada), ocultar el botón
+  if (window.matchMedia('(display-mode: standalone)').matches) {
+    console.log('PWA: App ya está instalada');
+    installBtn.style.display = 'none';
   }
 }

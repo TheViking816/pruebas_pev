@@ -1134,6 +1134,108 @@ body::before {
   color: white;
 }
 
+.foro-message-image {
+  margin-top: 0.5rem;
+  border-radius: 8px;
+  overflow: hidden;
+  max-width: 300px;
+  cursor: pointer;
+  transition: transform 0.2s ease;
+}
+
+.foro-message-image:hover {
+  transform: scale(1.02);
+}
+
+.foro-message-image img {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+
+/* Reacciones del foro */
+.foro-message-reactions {
+  display: flex;
+  gap: 0.5rem;
+  margin-top: 0.5rem;
+  flex-wrap: wrap;
+  opacity: 0;
+  transition: opacity 0.2s ease;
+}
+
+.foro-message:hover .foro-message-reactions {
+  opacity: 1;
+}
+
+.reaction-btn {
+  background: rgba(0, 0, 0, 0.05);
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  border-radius: 20px;
+  padding: 0.25rem 0.5rem;
+  font-size: 1.2rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.reaction-btn:hover {
+  background: rgba(0, 0, 0, 0.1);
+  transform: scale(1.1);
+}
+
+.foro-message.own .reaction-btn {
+  background: rgba(255, 255, 255, 0.2);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+}
+
+.foro-message.own .reaction-btn:hover {
+  background: rgba(255, 255, 255, 0.3);
+}
+
+.foro-message-reactions-display {
+  display: flex;
+  gap: 0.5rem;
+  margin-top: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.reaction-badge {
+  background: rgba(0, 0, 0, 0.05);
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  border-radius: 20px;
+  padding: 0.25rem 0.5rem;
+  font-size: 0.875rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.reaction-badge:hover {
+  background: rgba(0, 0, 0, 0.1);
+  transform: scale(1.05);
+}
+
+.reaction-badge.user-reacted {
+  background: rgba(20, 184, 166, 0.2);
+  border-color: rgba(20, 184, 166, 0.4);
+  font-weight: 600;
+}
+
+.foro-message.own .reaction-badge {
+  background: rgba(255, 255, 255, 0.2);
+  border-color: rgba(255, 255, 255, 0.3);
+  color: white;
+}
+
+.foro-message.own .reaction-badge.user-reacted {
+  background: rgba(255, 255, 255, 0.3);
+  border-color: rgba(255, 255, 255, 0.5);
+}
+
 /* Foro: estilos toolbar y search removidos para ahorrar espacio */
 
 /* Foro Composer */
@@ -1155,6 +1257,42 @@ body::before {
   display: flex;
   flex-direction: column;
   gap: 0.75rem;
+}
+
+.foro-image-preview {
+  position: relative;
+  max-width: 200px;
+  border-radius: 8px;
+  overflow: hidden;
+  border: 2px solid var(--border-color);
+}
+
+.foro-image-preview img {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+
+.remove-image-btn {
+  position: absolute;
+  top: 0.5rem;
+  right: 0.5rem;
+  background: rgba(239, 68, 68, 0.9);
+  color: white;
+  border: none;
+  border-radius: 50%;
+  width: 2rem;
+  height: 2rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.remove-image-btn:hover {
+  background: rgba(239, 68, 68, 1);
+  transform: scale(1.1);
 }
 
 .foro-composer-actions {
