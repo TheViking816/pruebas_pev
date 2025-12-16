@@ -4074,7 +4074,7 @@ function renderForoMessages(messages) {
       if (reactionCounts[emoji] && reactionCounts[emoji].count > 0) {
         hasReactions = true;
         const userReacted = reactionCounts[emoji].users && reactionCounts[emoji].users.includes(AppState.currentUser);
-        reactionsDisplay += `<span class="reaction-badge ${userReacted ? 'user-reacted' : ''}" data-emoji="${emoji}">${emoji} ${reactionCounts[emoji].count}</span>`;
+        reactionsDisplay += `<span class="reaction-badge ${userReacted ? 'user-reacted' : ''}" data-emoji="${emoji}" data-message-id="${msg.id}" title="${userReacted ? 'Click para quitar tu reacción' : 'Click para reaccionar'}">${emoji} ${reactionCounts[emoji].count}</span>`;
       }
     });
     reactionsDisplay += '</div>';
@@ -4106,11 +4106,20 @@ function renderForoMessages(messages) {
 
     container.appendChild(messageDiv);
 
-    // Añadir event listeners para las reacciones
+    // Añadir event listeners para los botones de reacciones
     messageDiv.querySelectorAll('.reaction-btn').forEach(btn => {
       btn.addEventListener('click', () => {
         const emoji = btn.dataset.emoji;
         const messageId = btn.dataset.messageId;
+        handleReaction(messageId, emoji);
+      });
+    });
+
+    // Añadir event listeners para los badges de reacciones (para eliminar/añadir)
+    messageDiv.querySelectorAll('.reaction-badge').forEach(badge => {
+      badge.addEventListener('click', () => {
+        const emoji = badge.dataset.emoji;
+        const messageId = badge.dataset.messageId;
         handleReaction(messageId, emoji);
       });
     });
