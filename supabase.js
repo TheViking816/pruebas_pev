@@ -1177,12 +1177,35 @@ function parseColorValue(value) {
   return colorMap[val] || 0;
 }
 
+// Cache en memoria para puertas (se resetea al recargar la página)
+let puertasCache = null;
+let puertasCacheTimestamp = 0;
+const PUERTAS_CACHE_DURATION = 60 * 60 * 1000; // 1 hora en memoria
+
+/**
+ * Resetea el cache de puertas (se llama en logout)
+ */
+function resetPuertasCache() {
+  puertasCache = null;
+  puertasCacheTimestamp = 0;
+  console.log('🗑️ Cache de puertas reseteado');
+}
+
 /**
  * [CSV] Obtiene las puertas desde CSV público
  * NOTA: Esta función lee del CSV en lugar de Supabase porque la tabla puertas no existe aún
+ * CON CACHE EN MEMORIA PARA EVITAR LLAMADAS MÚLTIPLES
  */
 async function getPuertas() {
+  // CACHE EN MEMORIA: Si ya tenemos los datos y no han expirado, devolverlos directamente
+  const now = Date.now();
+  if (puertasCache && (now - puertasCacheTimestamp) < PUERTAS_CACHE_DURATION) {
+    console.log('📦 Usando cache en memoria de puertas (edad:', Math.round((now - puertasCacheTimestamp) / 1000), 'segundos)');
+    return puertasCache;
+  }
+
   try {
+    console.log('🌐 Obteniendo puertas desde CSV (sin cache)');
     const puertasURL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQrQ5bGZDNShEWi1lwx_l1EvOxC0si5kbN8GBxj34rF0FkyGVk6IZOiGk5D91_TZXBHO1mchydFvvUl/pub?gid=3770623&single=true&output=csv';
 
     const response = await fetch(puertasURL, {
@@ -1274,10 +1297,17 @@ async function getPuertas() {
 
     console.log('✅ Puertas procesadas:', puertas.length, 'jornadas');
 
-    return {
+    const resultado = {
       fecha: fecha || new Date().toLocaleDateString('es-ES'),
       puertas: puertas
     };
+
+    // Guardar en cache en memoria
+    puertasCache = resultado;
+    puertasCacheTimestamp = Date.now();
+    console.log('💾 Puertas guardadas en cache en memoria');
+
+    return resultado;
 
   } catch (error) {
     console.error('❌ Error obteniendo puertas desde CSV:', error);
@@ -1294,11 +1324,12 @@ async function getPuertas() {
 // ============================================================================
 
 /**
- * Obtiene la tabla de contrataciones diarias
+ * Obtiene la tabla de contrataciones diarias desde tablon_actual
  * Reemplaza: getContrataciones() de sheets.js
+ * NOTA: La tabla se llama 'tablon_actual' en Supabase
  */
 async function getContrataciones(fecha = null) {
-  const cacheKey = 'supabase_contrataciones_' + (fecha || 'hoy');
+  const cacheKey = 'supabase_tablon_actual_' + (fecha || 'hoy');
 
   const cached = getCachedData(cacheKey);
   if (cached) return cached;
@@ -1307,7 +1338,7 @@ async function getContrataciones(fecha = null) {
     const targetDate = fecha || new Date().toISOString().split('T')[0];
 
     const { data, error } = await supabase
-      .from('contrataciones')
+      .from('tablon_actual')
       .select('*')
       .eq('fecha', targetDate)
       .order('id', { ascending: true });

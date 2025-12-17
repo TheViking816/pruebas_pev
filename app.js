@@ -267,24 +267,13 @@ async function initializeApp() {
   renderEnlaces();
   renderNoticias();
 
-  // Verificar si hay sesión guardada
+  // NO verificar sesión aquí - checkStoredSession() ya lo hace
+  // Solo mostrar login si NO hay sesión
   const storedChapa = localStorage.getItem('currentChapa');
-  if (storedChapa) {
-    // Obtener nombre del usuario (ahora desde Supabase)
-    const { data: userData, error } = await supabase
-      .from('usuarios')
-      .select('nombre')
-      .eq('chapa', storedChapa)
-      .single();
-
-    if (error) {
-      console.error('Error obteniendo nombre de usuario desde Supabase:', error.message);
-    }
-    const nombre = userData ? userData.nombre : `Chapa ${storedChapa}`;
-    await loginUser(storedChapa, nombre);
-  } else {
+  if (!storedChapa) {
     showPage('login');
   }
+  // Si hay sesión, checkStoredSession() ya restauró el estado y navegó
 }
 
 // ============================================================================
@@ -582,7 +571,22 @@ function checkStoredSession() {
     AppState.currentUser = storedChapa;
     AppState.currentUserName = storedName || `Chapa ${storedChapa}`;
     AppState.isAuthenticated = true;
-    updateUIForAuthenticatedUser();
+
+    // NO llamar a updateUIForAuthenticatedUser aquí para evitar doble carga
+    // Se llamará automáticamente cuando navigateTo cargue el dashboard
+
+    // Mostrar sidebar y ajustar layout SOLO
+    const userInfo = document.getElementById('user-info');
+    const userChapa = document.getElementById('user-chapa');
+    const sidebar = document.getElementById('sidebar');
+    const mainContent = document.getElementById('main-content');
+    const headerTitle = document.getElementById('header-title');
+
+    if (sidebar) sidebar.classList.remove('hidden');
+    if (mainContent) mainContent.classList.remove('no-sidebar');
+    if (headerTitle) headerTitle.textContent = 'PEV';
+    if (userInfo) userInfo.classList.remove('hidden');
+    if (userChapa) userChapa.textContent = AppState.currentUserName || `Chapa ${AppState.currentUser}`;
 
     // IMPORTANTE: Restaurar la última página visitada si existe, sino ir a dashboard
     const pageToRestore = lastVisitedPage || 'dashboard';
@@ -745,8 +749,21 @@ async function loginUser(chapa, nombre = null) {
       console.warn('⚠️ Error sincronizando censo:', error);
     });
 
-  // Actualizar UI
-  updateUIForAuthenticatedUser();
+  // NO llamar a updateUIForAuthenticatedUser aquí para evitar doble carga
+  // Se llamará automáticamente cuando navigateTo cargue el dashboard
+
+  // Configurar UI básica (sidebar, header, etc)
+  const userInfo = document.getElementById('user-info');
+  const userChapa = document.getElementById('user-chapa');
+  const sidebar = document.getElementById('sidebar');
+  const mainContent = document.getElementById('main-content');
+  const headerTitle = document.getElementById('header-title');
+
+  if (sidebar) sidebar.classList.remove('hidden');
+  if (mainContent) mainContent.classList.remove('no-sidebar');
+  if (headerTitle) headerTitle.textContent = 'PEV';
+  if (userInfo) userInfo.classList.remove('hidden');
+  if (userChapa) userChapa.textContent = AppState.currentUserName || `Chapa ${AppState.currentUser}`;
 
   // Iniciar auto-refresh de primas e IRPF (cada 5 minutos)
   startAutoRefresh();
@@ -763,10 +780,16 @@ async function loginUser(chapa, nombre = null) {
   }
 }
 
+// Flag para evitar actualizaciones simultáneas del dashboard
+let dashboardUpdateInProgress = false;
+let pendingDashboardUpdate = false;
+let dashboardDataLoaded = false; // Nuevo flag para saber si ya se cargó
+let cachedPosiciones = null; // Cache de las posiciones calculadas
+
 /**
  * Actualiza la UI para usuario autenticado
  */
-function updateUIForAuthenticatedUser() {
+async function updateUIForAuthenticatedUser() {
   const userInfo = document.getElementById('user-info');
   const userChapa = document.getElementById('user-chapa');
   const sidebar = document.getElementById('sidebar');
@@ -789,44 +812,109 @@ function updateUIForAuthenticatedUser() {
     const nombreUsuario = AppState.currentUserName || `Chapa ${AppState.currentUser}`;
     welcomeMsg.textContent = `Bienvenido/a, ${nombreUsuario}`;
 
-    // Obtener y mostrar posiciones hasta contratación (laborable y festiva)
-    Promise.all([
-      SheetsAPI.getPosicionesHastaContratacion(AppState.currentUser),
-      SheetsAPI.getPosicionesTrinca(AppState.currentUser),
-      SheetsAPI.getCenso()
-    ])
-      .then(([posicionesObj, posicionesTrinca, censo]) => {
+    // SI YA SE CARGÓ EL DASHBOARD, USAR CACHE Y NO VOLVER A CARGAR
+    if (dashboardDataLoaded && cachedPosiciones) {
+      console.log('✅ Dashboard ya cargado, usando cache:', cachedPosiciones);
 
-        // Limpiar cualquier span de posición anterior
-        const existingSpans = welcomeMsg.querySelectorAll('span');
-        existingSpans.forEach(span => span.remove());
+      // Mostrar valores del cache inmediatamente
+      const posLaborableEl = document.getElementById('pos-laborable');
+      const posFestivaEl = document.getElementById('pos-festiva');
 
-        // Verificar si el usuario actual tiene la especialidad de trincador
-        const userCenso = AppState.currentUser ? censo.find(c => c.chapa === AppState.currentUser.toString()) : null;
-        const esTrincador = userCenso && (userCenso.trincador === true || userCenso.trincador === 'true');
+      if (posLaborableEl && cachedPosiciones.laborable !== null) {
+        posLaborableEl.textContent = cachedPosiciones.laborable;
+      }
 
-        if (posicionesObj) {
+      if (posFestivaEl && cachedPosiciones.festiva !== null) {
+        posFestivaEl.textContent = cachedPosiciones.festiva;
+      }
 
-          // --- ACTUALIZAR NUEVO DISEÑO (si existe) ---
-          const posLaborableEl = document.getElementById('pos-laborable');
-          const posFestivaEl = document.getElementById('pos-festiva');
+      return;
+    }
 
-          if (posLaborableEl && posicionesObj.laborable !== null) {
-            posLaborableEl.textContent = posicionesObj.laborable;
-          }
+    // Evitar actualizaciones simultáneas - si ya hay una en progreso, marcar como pendiente y salir
+    if (dashboardUpdateInProgress) {
+      console.log('⚠️ Actualización del dashboard ya en progreso, omitiendo llamada duplicada');
+      pendingDashboardUpdate = true;
+      return;
+    }
 
-          if (posFestivaEl && posicionesObj.festiva !== null) {
-            posFestivaEl.textContent = posicionesObj.festiva;
-          }
+    // Marcar actualización en progreso
+    console.log('🔄 Iniciando actualización del dashboard...');
+    dashboardUpdateInProgress = true;
+    pendingDashboardUpdate = false;
 
-          // --- ACTUALIZAR ÚLTIMA JORNADA Y NUEVAS ASIGNACIONES ---
-          updateLastInfoSections();
-          checkNewAssignments();
+    try {
+      // IMPORTANTE: Limpiar cache de censo y puertas para obtener datos frescos
+      console.log('🗑️ Limpiando cache antes de actualizar dashboard...');
+      const censoCacheKeys = Object.keys(localStorage).filter(key =>
+        key.startsWith('supabase_censo_') || key.includes('puertas')
+      );
+      censoCacheKeys.forEach(key => localStorage.removeItem(key));
+
+      // CRÍTICO: También resetear cache en memoria de puertas
+      if (typeof resetPuertasCache === 'function') {
+        resetPuertasCache();
+      }
+
+      // Obtener y mostrar posiciones hasta contratación (laborable y festiva)
+      console.log('📡 Obteniendo datos del servidor (sin cache)...');
+      const [posicionesObj, posicionesTrinca, censo] = await Promise.all([
+        SheetsAPI.getPosicionesHastaContratacion(AppState.currentUser),
+        SheetsAPI.getPosicionesTrinca(AppState.currentUser),
+        SheetsAPI.getCenso()
+      ]);
+
+      console.log('✅ Datos obtenidos:', posicionesObj);
+
+      // Limpiar cualquier span de posición anterior
+      const existingSpans = welcomeMsg.querySelectorAll('span');
+      existingSpans.forEach(span => span.remove());
+
+      // Verificar si el usuario actual tiene la especialidad de trincador
+      const userCenso = AppState.currentUser ? censo.find(c => c.chapa === AppState.currentUser.toString()) : null;
+      const esTrincador = userCenso && (userCenso.trincador === true || userCenso.trincador === 'true');
+
+      if (posicionesObj) {
+        // GUARDAR EN CACHE INMEDIATAMENTE
+        cachedPosiciones = posicionesObj;
+        console.log('💾 Posiciones guardadas en cache:', cachedPosiciones);
+
+        // --- ACTUALIZAR NUEVO DISEÑO (si existe) ---
+        const posLaborableEl = document.getElementById('pos-laborable');
+        const posFestivaEl = document.getElementById('pos-festiva');
+
+        if (posLaborableEl && posicionesObj.laborable !== null) {
+          posLaborableEl.textContent = posicionesObj.laborable;
+          console.log('✅ DOM actualizado - Laborable:', posicionesObj.laborable);
         }
-      })
-      .catch(error => {
-        console.error('Error obteniendo posiciones:', error);
-      });
+
+        if (posFestivaEl && posicionesObj.festiva !== null) {
+          posFestivaEl.textContent = posicionesObj.festiva;
+          console.log('✅ DOM actualizado - Festiva:', posicionesObj.festiva);
+        }
+
+        // --- ACTUALIZAR ÚLTIMA JORNADA Y NUEVAS ASIGNACIONES ---
+        await updateLastInfoSections();
+        await checkNewAssignments();
+      }
+
+      // Marcar que ya se cargaron los datos
+      dashboardDataLoaded = true;
+      console.log('✅ Dashboard cargado exitosamente - NO SE VOLVERÁ A CARGAR');
+
+    } catch (error) {
+      console.error('❌ Error obteniendo posiciones:', error);
+    } finally {
+      // Liberar el flag
+      dashboardUpdateInProgress = false;
+
+      // Si hubo una actualización pendiente mientras estábamos procesando, ejecutarla ahora
+      if (pendingDashboardUpdate) {
+        console.log('⚠️ Había una actualización pendiente, pero el dashboard ya se cargó');
+        pendingDashboardUpdate = false;
+        // NO llamar de nuevo porque ya se cargó
+      }
+    }
   }
 }
 
@@ -869,29 +957,35 @@ async function updateLastInfoSections() {
 
     // Obtener última jornada de tablón (contrataciones)
     if (lastTablonInfo) {
-      const contrataciones = await SheetsAPI.getContrataciones();
-      if (contrataciones && contrataciones.length > 0) {
-        const valueElement = lastTablonInfo.querySelector('.last-info-value');
-        if (valueElement) {
-          // Obtener la fecha y jornada de la primera contratación
-          const primeraContratacion = contrataciones[0];
+      const valueElement = lastTablonInfo.querySelector('.last-info-value');
+      if (valueElement) {
+        try {
+          // Obtener la última contratación desde tablon_actual (NO contrataciones)
+          const { data, error } = await supabase
+            .from('tablon_actual')
+            .select('fecha, jornada')
+            .order('fecha', { ascending: false })
+            .limit(1);
 
-          if (primeraContratacion.fecha && primeraContratacion.jornada) {
+          if (error) throw error;
+
+          if (data && data.length > 0) {
+            const ultimaContratacion = data[0];
+
             // Formatear fecha desde YYYY-MM-DD a DD/MM
-            let fechaCorta = primeraContratacion.fecha;
-            if (primeraContratacion.fecha.includes('-')) {
-              const partes = primeraContratacion.fecha.split('-');
+            let fechaCorta = ultimaContratacion.fecha;
+            if (ultimaContratacion.fecha.includes('-')) {
+              const partes = ultimaContratacion.fecha.split('-');
               fechaCorta = `${partes[2]}/${partes[1]}`; // DD/MM
             }
 
-            valueElement.textContent = `${fechaCorta} - ${primeraContratacion.jornada}`;
+            valueElement.textContent = `${fechaCorta} - ${ultimaContratacion.jornada}`;
           } else {
-            // Fallback: mostrar fecha actual
-            const hoy = new Date();
-            const dia = String(hoy.getDate()).padStart(2, '0');
-            const mes = String(hoy.getMonth() + 1).padStart(2, '0');
-            valueElement.textContent = `${dia}/${mes}`;
+            valueElement.textContent = '--';
           }
+        } catch (error) {
+          console.error('Error obteniendo última contratación desde tablon_actual:', error);
+          valueElement.textContent = '--';
         }
       }
     }
@@ -964,6 +1058,19 @@ function handleLogout() {
 
   // Detener auto-refresh
   stopAutoRefresh();
+
+  // Resetear flags del dashboard
+  dashboardDataLoaded = false;
+  dashboardUpdateInProgress = false;
+  pendingDashboardUpdate = false;
+  cachedPosiciones = null;
+
+  // Resetear cache de puertas
+  if (typeof resetPuertasCache === 'function') {
+    resetPuertasCache();
+  }
+
+  console.log('🗑️ Todos los caches y flags reseteados');
 
   // Limpiar estado de la aplicación
   AppState.currentUser = null;
@@ -1281,7 +1388,8 @@ function navigateTo(pageName) {
   // Cargar datos según la página
   switch (pageName) {
     case 'dashboard':
-      // El dashboard se carga con updateUIForAuthenticatedUser
+      // Cargar datos del dashboard
+      updateUIForAuthenticatedUser();
       break;
     case 'contratacion':
       loadContratacion();
