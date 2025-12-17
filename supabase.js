@@ -37,7 +37,10 @@ const SUPABASE_CONFIG = {
 };
 
 // Cliente de Supabase (se inicializa después de cargar la librería)
-let supabase = null;
+// Usar var en lugar de let para evitar conflictos con otros archivos
+if (typeof supabase === 'undefined') {
+  var supabase = null;
+}
 
 console.log('🔵 supabase.js cargado - Iniciando declaraciones');
 
@@ -76,7 +79,9 @@ function initSupabase() {
 
 // Exponer la función globalmente para que app.js pueda llamarla
 console.log('🔵 Exponiendo initSupabase globalmente...');
-window.initSupabase = initSupabase;
+if (!window.initSupabase) {
+  window.initSupabase = initSupabase;
+}
 console.log('✅ window.initSupabase =', typeof window.initSupabase);
 
 // ============================================================================

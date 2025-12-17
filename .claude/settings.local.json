@@ -32,7 +32,10 @@
       "Bash(npm install:*)",
       "Bash(node:*)",
       "Bash(del \"\\?\\C:\\Users\\adria\\Proyectos _IA\\PortalEstibaVLC\\PortalEstibaVLC\\nul\")",
-      "Bash(cat:*)"
+      "Bash(cat:*)",
+      "Bash(netstat:*)",
+      "Bash(findstr:*)",
+      "Bash(dir:*)"
     ],
     "deny": [],
     "ask": []

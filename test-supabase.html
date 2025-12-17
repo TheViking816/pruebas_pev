@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Test Supabase</title>
+</head>
+<body>
+  <h1>Test de Supabase</h1>
+  <div id="status"></div>
+
+  <!-- Supabase Library (CDN) -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+  <!-- Nuestro archivo supabase.js de prueba -->
+  <script src="supabase-test.js"></script>
+
+  <script>
+    const statusDiv = document.getElementById('status');
+
+    // Verificar que la librería de Supabase se cargó
+    if (window.supabase) {
+      statusDiv.innerHTML += '<p>✅ Librería de Supabase cargada</p>';
+    } else {
+      statusDiv.innerHTML += '<p>❌ ERROR: Librería de Supabase NO cargada</p>';
+    }
+
+    // Verificar que initSupabase está disponible
+    if (typeof window.initSupabase === 'function') {
+      statusDiv.innerHTML += '<p>✅ Función initSupabase disponible</p>';
+
+      // Llamar a initSupabase
+      const result = window.initSupabase();
+
+      if (result) {
+        statusDiv.innerHTML += '<p>✅ Supabase inicializado correctamente</p>';
+
+        // Verificar que el cliente tiene el método .from
+        if (typeof window.supabase.from === 'function') {
+          statusDiv.innerHTML += '<p>✅ Cliente Supabase tiene método .from()</p>';
+        } else {
+          statusDiv.innerHTML += '<p>❌ ERROR: Cliente Supabase NO tiene método .from()</p>';
+        }
+      } else {
+        statusDiv.innerHTML += '<p>❌ ERROR: initSupabase() retornó false</p>';
+      }
+    } else {
+      statusDiv.innerHTML += '<p>❌ ERROR: Función initSupabase NO disponible</p>';
+    }
+  </script>
+</body>
+</html>

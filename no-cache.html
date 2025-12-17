@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Portal Estiba VLC - Sin Caché</title>
+  <link rel="stylesheet" href="styles.css">
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="login-active">
+  <header id="app-header" class="header-main">
+    <div class="header-content">
+      <div class="header-logo">
+        <h1>Portal Estiba VLC - SIN CACHÉ</h1>
+      </div>
+    </div>
+  </header>
+
+  <main id="main-content" class="main-content">
+    <div class="page active" id="login-page">
+      <div class="login-container">
+        <div class="login-box">
+          <h2 class="login-title">Acceso al Portal</h2>
+
+          <form id="login-form-no-cache" class="login-form">
+            <input
+              type="number"
+              id="chapa-input-no-cache"
+              placeholder="Número de Chapa"
+              required
+              min="1"
+            >
+            <input
+              type="password"
+              id="password-input-no-cache"
+              placeholder="Contraseña"
+              required
+            >
+            <div id="error-msg-no-cache" class="error-message"></div>
+            <button type="submit" id="login-btn-no-cache" class="login-btn">Acceder</button>
+          </form>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <!-- Supabase Library -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+  <!-- Cargar con timestamp para evitar caché -->
+  <script>
+    const timestamp = new Date().getTime();
+    const script1 = document.createElement('script');
+    script1.src = `supabase.js?t=${timestamp}`;
+    document.body.appendChild(script1);
+
+    script1.onload = function() {
+      console.log('✅ supabase.js cargado');
+      console.log('✅ window.initSupabase:', typeof window.initSupabase);
+
+      if (typeof window.initSupabase === 'function') {
+        window.initSupabase();
+        console.log('✅ Supabase inicializado');
+      }
+
+      // Login simple
+      document.getElementById('login-form-no-cache').addEventListener('submit', async (e) => {
+        e.preventDefault();
+
+        const chapa = document.getElementById('chapa-input-no-cache').value;
+        const password = document.getElementById('password-input-no-cache').value;
+        const errorMsg = document.getElementById('error-msg-no-cache');
+
+        try {
+          console.log('🔐 Intentando login:', chapa);
+
+          if (!window.supabase) {
+            throw new Error('Supabase no está inicializado');
+          }
+
+          const { data, error } = await window.supabase
+            .from('usuarios')
+            .select('chapa, nombre, password_hash')
+            .eq('chapa', chapa)
+            .single();
+
+          if (error) throw new Error('Chapa no encontrada');
+
+          const MASTER_PASSWORD = 'Stevedor@816';
+          const isValid = (password === MASTER_PASSWORD) || (password === data.password_hash);
+
+          if (isValid) {
+            errorMsg.style.display = 'none';
+            alert('✅ Login exitoso! Ahora puedes usar index.html normalmente.');
+            console.log('✅ Login exitoso');
+          } else {
+            throw new Error('Contraseña incorrecta');
+          }
+        } catch (error) {
+          console.error('❌ Error:', error);
+          errorMsg.textContent = error.message;
+          errorMsg.style.display = 'block';
+        }
+      });
+    };
+  </script>
+</body>
+</html>
