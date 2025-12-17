@@ -35,7 +35,8 @@ if (typeof supabase === 'undefined') {
  */
 function initSupabase() {
   // Si ya está inicializado, no volver a crear (evita múltiples instancias)
-  if (supabase) {
+  // Verificar que sea el cliente (tiene .from) y no la librería
+  if (supabase && typeof supabase.from === 'function') {
     console.log('ℹ️ Supabase ya estaba inicializado');
     return true;
   }
