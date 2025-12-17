@@ -51,7 +51,8 @@ console.log('🔵 supabase.js cargado - Iniciando declaraciones');
 function initSupabase() {
   console.log('🔵 initSupabase() ejecutándose');
   // Si ya está inicializado, no volver a crear (evita múltiples instancias)
-  if (supabase) {
+  // Verificar que sea el cliente (tiene .from) y no la librería
+  if (supabase && typeof supabase.from === 'function') {
     console.log('ℹ️ Supabase ya estaba inicializado');
     return true;
   }
