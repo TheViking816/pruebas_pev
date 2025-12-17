@@ -812,6 +812,12 @@ async function updateUIForAuthenticatedUser() {
     const nombreUsuario = AppState.currentUserName || `Chapa ${AppState.currentUser}`;
     welcomeMsg.textContent = `Bienvenido/a, ${nombreUsuario}`;
 
+    // Evitar mostrar valores anteriores (o de ejemplo) mientras se calcula el valor real
+    const posLaborableEl = document.getElementById('pos-laborable');
+    const posFestivaEl = document.getElementById('pos-festiva');
+    if (posLaborableEl) posLaborableEl.textContent = '…';
+    if (posFestivaEl) posFestivaEl.textContent = '…';
+
     // SI YA SE CARGÓ EL DASHBOARD, USAR CACHE Y NO VOLVER A CARGAR
     if (dashboardDataLoaded && cachedPosiciones) {
       console.log('✅ Dashboard ya cargado, usando cache:', cachedPosiciones);
