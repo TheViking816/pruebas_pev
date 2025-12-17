@@ -24,7 +24,10 @@ const SUPABASE_CONFIG = {
 };
 
 // Cliente de Supabase (se inicializa después de cargar la librería)
-let supabase = null;
+// Usar var en lugar de let para evitar conflictos con otros archivos
+if (typeof supabase === 'undefined') {
+  var supabase = null;
+}
 
 /**
  * Inicializa el cliente de Supabase

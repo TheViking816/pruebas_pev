@@ -37,7 +37,10 @@ const SUPABASE_CONFIG = {
 };
 
 // Cliente de Supabase (se inicializa después de cargar la librería)
-let supabase = null;
+// Usar var en lugar de let para evitar conflictos con otros archivos
+if (typeof supabase === 'undefined') {
+  var supabase = null;
+}
 
 /**
  * Inicializa el cliente de Supabase
@@ -72,7 +75,9 @@ function initSupabase() {
 }
 
 // Exponer la función globalmente para que app.js pueda llamarla
-window.initSupabase = initSupabase;
+if (!window.initSupabase) {
+  window.initSupabase = initSupabase;
+}
 
 // ============================================================================
 // SISTEMA DE SEGURIDAD - HASHING DE CONTRASEÑAS
