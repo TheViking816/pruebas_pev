@@ -187,10 +187,31 @@ function formatearFecha(fecha) {
 }
 
 /**
+ * Ajusta una unidad de viewport dinámica para móviles (barra del navegador/teclado).
+ * Evita layouts rotos cuando `100vh` no coincide con el alto visible real.
+ */
+function updateAppViewportUnit() {
+  try {
+    const viewportHeight = window.visualViewport ? window.visualViewport.height : window.innerHeight;
+    document.documentElement.style.setProperty('--app-vh', `${viewportHeight * 0.01}px`);
+  } catch (e) {
+    // Fallback a 1vh en CSS
+  }
+}
+
+/**
  * Inicialización de la aplicación
  */
 document.addEventListener('DOMContentLoaded', () => {
   console.log('Portal Estiba VLC - Iniciando aplicación...');
+
+  // Fix viewport en navegadores móviles (evita scroll extra y composer tapado en el foro)
+  updateAppViewportUnit();
+  window.addEventListener('resize', updateAppViewportUnit, { passive: true });
+  if (window.visualViewport) {
+    window.visualViewport.addEventListener('resize', updateAppViewportUnit, { passive: true });
+    window.visualViewport.addEventListener('scroll', updateAppViewportUnit, { passive: true });
+  }
 
   // CRÍTICO: Inicializar Supabase primero
   if (typeof initSupabase === 'function') {
