@@ -39,11 +39,14 @@ const SUPABASE_CONFIG = {
 // Cliente de Supabase (se inicializa después de cargar la librería)
 let supabase = null;
 
+console.log('🔵 supabase.js cargado - Iniciando declaraciones');
+
 /**
  * Inicializa el cliente de Supabase
  * Debe llamarse después de cargar la librería desde CDN
  */
 function initSupabase() {
+  console.log('🔵 initSupabase() ejecutándose');
   // Si ya está inicializado, no volver a crear (evita múltiples instancias)
   if (supabase) {
     console.log('ℹ️ Supabase ya estaba inicializado');
@@ -70,6 +73,11 @@ function initSupabase() {
   console.log('✅ Supabase inicializado correctamente');
   return true;
 }
+
+// Exponer la función globalmente para que app.js pueda llamarla
+console.log('🔵 Exponiendo initSupabase globalmente...');
+window.initSupabase = initSupabase;
+console.log('✅ window.initSupabase =', typeof window.initSupabase);
 
 // ============================================================================
 // SISTEMA DE SEGURIDAD - HASHING DE CONTRASEÑAS
