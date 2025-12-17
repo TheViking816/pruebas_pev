@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Limpiar Cache - Portal Estiba VLC</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+      margin: 0;
+      color: white;
+    }
+    .container {
+      background: white;
+      color: #333;
+      padding: 40px;
+      border-radius: 20px;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+      max-width: 500px;
+      text-align: center;
+    }
+    h1 { margin: 0 0 20px 0; color: #667eea; }
+    .status {
+      margin: 20px 0;
+      padding: 15px;
+      background: #f5f5f5;
+      border-radius: 10px;
+      font-family: monospace;
+      text-align: left;
+      max-height: 300px;
+      overflow-y: auto;
+    }
+    .log { margin: 5px 0; }
+    .success { color: #4caf50; }
+    .error { color: #f44336; }
+    .info { color: #2196f3; }
+    button {
+      background: #667eea;
+      color: white;
+      border: none;
+      padding: 15px 30px;
+      font-size: 16px;
+      border-radius: 10px;
+      cursor: pointer;
+      margin: 10px;
+    }
+    button:hover { background: #5568d3; }
+    button:disabled {
+      background: #ccc;
+      cursor: not-allowed;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>🧹 Limpiar Cache del Service Worker</h1>
+    <p>Esta herramienta limpiará completamente el cache y los Service Workers de la aplicación.</p>
+
+    <div class="status" id="status">
+      <div class="log info">Esperando acción...</div>
+    </div>
+
+    <button id="clearBtn" onclick="clearAll()">Limpiar Todo</button>
+    <button id="reloadBtn" onclick="goToApp()" disabled>Ir a la App</button>
+  </div>
+
+  <script>
+    const statusDiv = document.getElementById('status');
+    const clearBtn = document.getElementById('clearBtn');
+    const reloadBtn = document.getElementById('reloadBtn');
+
+    function log(message, type = 'info') {
+      const div = document.createElement('div');
+      div.className = `log ${type}`;
+      div.textContent = message;
+      statusDiv.appendChild(div);
+      statusDiv.scrollTop = statusDiv.scrollHeight;
+    }
+
+    async function clearAll() {
+      clearBtn.disabled = true;
+      statusDiv.innerHTML = '';
+
+      log('🧹 Iniciando limpieza completa...', 'info');
+
+      try {
+        // 1. Desregistrar todos los Service Workers
+        log('📋 Buscando Service Workers...', 'info');
+        const registrations = await navigator.serviceWorker.getRegistrations();
+
+        if (registrations.length === 0) {
+          log('ℹ️ No hay Service Workers registrados', 'info');
+        } else {
+          for (let registration of registrations) {
+            await registration.unregister();
+            log(`✅ Service Worker desregistrado: ${registration.scope}`, 'success');
+          }
+        }
+
+        // 2. Limpiar todos los caches
+        log('📋 Buscando caches...', 'info');
+        const cacheNames = await caches.keys();
+
+        if (cacheNames.length === 0) {
+          log('ℹ️ No hay caches almacenados', 'info');
+        } else {
+          for (let cacheName of cacheNames) {
+            await caches.delete(cacheName);
+            log(`✅ Cache eliminado: ${cacheName}`, 'success');
+          }
+        }
+
+        // 3. Limpiar localStorage
+        log('🗑️ Limpiando localStorage...', 'info');
+        localStorage.clear();
+        log('✅ localStorage limpiado', 'success');
+
+        // 4. Limpiar sessionStorage
+        log('🗑️ Limpiando sessionStorage...', 'info');
+        sessionStorage.clear();
+        log('✅ sessionStorage limpiado', 'success');
+
+        log('', 'info');
+        log('🎉 ¡Limpieza completada exitosamente!', 'success');
+        log('', 'info');
+        log('Ahora puedes volver a la aplicación con el botón de abajo.', 'info');
+
+        reloadBtn.disabled = false;
+
+      } catch (error) {
+        log(`❌ Error durante la limpieza: ${error.message}`, 'error');
+        console.error(error);
+        clearBtn.disabled = false;
+      }
+    }
+
+    function goToApp() {
+      window.location.href = './index.html';
+    }
+  </script>
+</body>
+</html>

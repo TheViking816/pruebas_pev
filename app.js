@@ -26,6 +26,8 @@ const AppState = {
   isAuthenticated: false
 };
 
+// La variable supabase está declarada en supabase.js (línea 40) y se inicializa allí
+
 // Datos estáticos - Enlaces actualizados con URLs reales
 const ENLACES_DATA = [
   // Formularios  
@@ -195,6 +197,7 @@ document.addEventListener('DOMContentLoaded', () => {
   // CRÍTICO: Inicializar Supabase primero
   if (typeof initSupabase === 'function') {
     initSupabase();
+    console.log('✅ Cliente Supabase inicializado y disponible globalmente');
   } else {
     console.error('❌ La función initSupabase no está disponible. Verifica que supabase.js esté cargado antes de app.js');
   }

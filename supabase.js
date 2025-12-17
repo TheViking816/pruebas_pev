@@ -60,10 +60,12 @@ function initSupabase() {
     return false;
   }
 
-  supabase = window.supabase.createClient(SUPABASE_CONFIG.URL, SUPABASE_CONFIG.ANON_KEY);
+  const supabaseLib = window.supabase; // Guardar referencia a la librería
+  supabase = supabaseLib.createClient(SUPABASE_CONFIG.URL, SUPABASE_CONFIG.ANON_KEY);
 
-  // Exponer cliente globalmente para que premium.js pueda acceder
+  // Exponer cliente globalmente para que todos los archivos puedan acceder
   window.supabaseClient = supabase;
+  window.supabase = supabase; // Sobrescribir la librería con el cliente (ya no la necesitamos)
 
   console.log('✅ Supabase inicializado correctamente');
   return true;
