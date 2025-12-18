@@ -949,70 +949,103 @@ async function updateUIForAuthenticatedUser() {
  * Actualiza las secciones de "Última Jornada" en Puertas y Tablón
  */
 async function updateLastInfoSections() {
-  const lastPuertaInfo = document.getElementById('last-puerta-info');
-  const lastTablonInfo = document.getElementById('last-tablon-info');
+  const lastPuertaFecha = document.getElementById('last-puerta-fecha');
+  const lastPuertaHora = document.getElementById('last-puerta-hora');
+  const lastTablonFecha = document.getElementById('last-tablon-fecha');
+  const lastTablonHora = document.getElementById('last-tablon-hora');
 
-  if (!lastPuertaInfo && !lastTablonInfo) {
+  if (!lastPuertaFecha && !lastTablonFecha) {
     return; // No está en el nuevo diseño
   }
 
   try {
     // Obtener última jornada de puertas
-    if (lastPuertaInfo) {
+    if (lastPuertaFecha && lastPuertaHora) {
       const puertasResult = await SheetsAPI.getPuertas();
       if (puertasResult && puertasResult.fecha && puertasResult.puertas) {
-        const valueElement = lastPuertaInfo.querySelector('.last-info-value');
-        if (valueElement) {
-          // Obtener la primera jornada que no sea "Festivo"
-          const primeraJornada = puertasResult.puertas.find(p => p.jornada !== 'Festivo');
+        // Obtener jornadas laborables
+        const puertasLaborables = puertasResult.puertas.filter(p => p.jornada !== 'Festivo');
 
-          // Formatear fecha a DD/MM (sin año)
+        // Detectar la siguiente jornada a contratar
+        const siguienteJornada = detectarSiguienteJornada(puertasLaborables);
+
+        // La última contratada es la ANTERIOR a la siguiente
+        const ordenJornadas = ['02-08', '08-14', '14-20', '20-02'];
+        const indexSiguiente = ordenJornadas.indexOf(siguienteJornada);
+        const indexUltima = indexSiguiente > 0 ? indexSiguiente - 1 : ordenJornadas.length - 1;
+        const ultimaContratada = ordenJornadas[indexUltima];
+
+        // Formatear fecha a DD/MM (sin año)
+        let fechaCorta = puertasResult.fecha;
+        if (puertasResult.fecha.includes('/')) {
+          const partes = puertasResult.fecha.split('/');
+          fechaCorta = `${partes[0]}/${partes[1]}`; // DD/MM
+        }
+
+        // Actualizar fecha y jornada por separado
+        lastPuertaFecha.textContent = fechaCorta;
+        lastPuertaHora.textContent = ultimaContratada;
+      }
+    }
+
+    // Obtener última jornada de tablón (contrataciones)
+    if (lastTablonFecha && lastTablonHora) {
+      // Usar tabla tablon_actual de Supabase para obtener la última contratación real
+      // ordenada por ID descendente (el ID más alto es la última contratación)
+      const { data: contrataciones, error } = await window.supabaseClient
+        .from('tablon_actual')
+        .select('fecha, jornada')
+        .order('id', { ascending: false })
+        .limit(1);
+
+      console.log('📋 Última contratación desde Supabase:', contrataciones);
+
+      if (!error && contrataciones && contrataciones.length > 0) {
+        const ultimaContratacion = contrataciones[0];
+
+        if (ultimaContratacion.fecha && ultimaContratacion.jornada) {
+          // Formatear fecha desde YYYY-MM-DD a DD/MM
+          let fechaCorta = ultimaContratacion.fecha;
+          if (ultimaContratacion.fecha.includes('-')) {
+            const partes = ultimaContratacion.fecha.split('-');
+            fechaCorta = `${partes[2]}/${partes[1]}`; // DD/MM
+          }
+
+          // Actualizar fecha y jornada por separado
+          lastTablonFecha.textContent = fechaCorta;
+          lastTablonHora.textContent = ultimaContratacion.jornada;
+        } else {
+          // Fallback: mostrar fecha actual
+          const hoy = new Date();
+          const dia = String(hoy.getDate()).padStart(2, '0');
+          const mes = String(hoy.getMonth() + 1).padStart(2, '0');
+          lastTablonFecha.textContent = `${dia}/${mes}`;
+          lastTablonHora.textContent = '--';
+        }
+      } else {
+        // Si no hay contrataciones en tablon_actual, mostrar la fecha de Puertas
+        const puertasResult = await SheetsAPI.getPuertas();
+        if (puertasResult && puertasResult.fecha && puertasResult.puertas) {
+          const puertasLaborables = puertasResult.puertas.filter(p => p.jornada !== 'Festivo');
+
+          // Detectar la siguiente jornada a contratar
+          const siguienteJornada = detectarSiguienteJornada(puertasLaborables);
+
+          // La última contratada es la ANTERIOR a la siguiente
+          const ordenJornadas = ['02-08', '08-14', '14-20', '20-02'];
+          const indexSiguiente = ordenJornadas.indexOf(siguienteJornada);
+          const indexUltima = indexSiguiente > 0 ? indexSiguiente - 1 : ordenJornadas.length - 1;
+          const ultimaContratada = ordenJornadas[indexUltima];
+
           let fechaCorta = puertasResult.fecha;
           if (puertasResult.fecha.includes('/')) {
             const partes = puertasResult.fecha.split('/');
             fechaCorta = `${partes[0]}/${partes[1]}`; // DD/MM
           }
 
-          if (primeraJornada) {
-            valueElement.textContent = `${fechaCorta} - ${primeraJornada.jornada}`;
-          } else {
-            valueElement.textContent = fechaCorta;
-          }
-        }
-      }
-    }
-
-    // Obtener última jornada de tablón (contrataciones)
-    if (lastTablonInfo) {
-      const valueElement = lastTablonInfo.querySelector('.last-info-value');
-      if (valueElement) {
-        try {
-          // Obtener la última contratación desde tablon_actual (NO contrataciones)
-          const { data, error } = await supabase
-            .from('tablon_actual')
-            .select('fecha, jornada')
-            .order('fecha', { ascending: false })
-            .limit(1);
-
-          if (error) throw error;
-
-          if (data && data.length > 0) {
-            const ultimaContratacion = data[0];
-
-            // Formatear fecha desde YYYY-MM-DD a DD/MM
-            let fechaCorta = ultimaContratacion.fecha;
-            if (ultimaContratacion.fecha.includes('-')) {
-              const partes = ultimaContratacion.fecha.split('-');
-              fechaCorta = `${partes[2]}/${partes[1]}`; // DD/MM
-            }
-
-            valueElement.textContent = `${fechaCorta} - ${ultimaContratacion.jornada}`;
-          } else {
-            valueElement.textContent = '--';
-          }
-        } catch (error) {
-          console.error('Error obteniendo última contratación desde tablon_actual:', error);
-          valueElement.textContent = '--';
+          // Actualizar fecha y jornada por separado
+          lastTablonFecha.textContent = fechaCorta;
+          lastTablonHora.textContent = ultimaContratada;
         }
       }
     }

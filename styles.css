@@ -4966,7 +4966,7 @@ body::before {
 /* Last Info Mini */
 .last-info-mini {
   display: flex;
-  align-items: center;
+  flex-direction: column;
   gap: 0.25rem;
   font-size: 0.6875rem;
   color: var(--text-secondary);
@@ -4983,6 +4983,18 @@ body::before {
 
 .last-info-value {
   font-weight: 500;
+  color: var(--puerto-blue);
+}
+
+.last-info-date {
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+  font-weight: 500;
+}
+
+.last-info-time {
+  font-size: 0.875rem;
+  font-weight: 700;
   color: var(--puerto-blue);
 }
 
