@@ -1,188 +1,255 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Test Oracle Notification</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            max-width: 600px;
-            margin: 50px auto;
-            padding: 20px;
-            background-color: #f5f5f5;
-        }
-        .container {
-            background: white;
-            padding: 30px;
-            border-radius: 8px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-        }
-        h1 {
-            color: #333;
-            margin-bottom: 20px;
-        }
-        button {
-            background-color: #007bff;
-            color: white;
-            border: none;
-            padding: 12px 24px;
-            border-radius: 5px;
-            cursor: pointer;
-            font-size: 16px;
-            margin-top: 20px;
-        }
-        button:hover {
-            background-color: #0056b3;
-        }
-        button:disabled {
-            background-color: #ccc;
-            cursor: not-allowed;
-        }
-        .status {
-            margin-top: 20px;
-            padding: 15px;
-            border-radius: 5px;
-            display: none;
-        }
-        .status.success {
-            background-color: #d4edda;
-            color: #155724;
-            border: 1px solid #c3e6cb;
-        }
-        .status.error {
-            background-color: #f8d7da;
-            color: #721c24;
-            border: 1px solid #f5c6cb;
-        }
-        .status.loading {
-            background-color: #d1ecf1;
-            color: #0c5460;
-            border: 1px solid #bee5eb;
-        }
-        pre {
-            background-color: #f8f9fa;
-            padding: 10px;
-            border-radius: 5px;
-            overflow-x: auto;
-            white-space: pre-wrap;
-            word-wrap: break-word;
-        }
-        .input-group {
-            margin-bottom: 15px;
-        }
-        label {
-            display: block;
-            margin-bottom: 5px;
-            color: #555;
-            font-weight: bold;
-        }
-        input {
-            width: 100%;
-            padding: 8px;
-            border: 1px solid #ddd;
-            border-radius: 4px;
-            font-size: 14px;
-        }
-        .info-box {
-            background-color: #e7f3ff;
-            border-left: 4px solid #2196F3;
-            padding: 15px;
-            margin-bottom: 20px;
-            border-radius: 4px;
-        }
-        .info-box p {
-            margin: 5px 0;
-            color: #1976D2;
-        }
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Test Notificación Oráculo - Chapa 816</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+
+    .container {
+      background: white;
+      border-radius: 20px;
+      padding: 40px;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+      max-width: 500px;
+      width: 100%;
+    }
+
+    h1 {
+      color: #333;
+      margin-bottom: 10px;
+      font-size: 24px;
+      text-align: center;
+    }
+
+    .subtitle {
+      color: #666;
+      text-align: center;
+      margin-bottom: 30px;
+      font-size: 14px;
+    }
+
+    .info-box {
+      background: #f0f4ff;
+      border-left: 4px solid #667eea;
+      padding: 15px;
+      margin-bottom: 25px;
+      border-radius: 8px;
+    }
+
+    .info-box p {
+      color: #555;
+      font-size: 14px;
+      line-height: 1.6;
+      margin-bottom: 8px;
+    }
+
+    .info-box p:last-child {
+      margin-bottom: 0;
+    }
+
+    .info-box strong {
+      color: #667eea;
+    }
+
+    button {
+      width: 100%;
+      padding: 16px;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      border: none;
+      border-radius: 12px;
+      font-size: 16px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: transform 0.2s, box-shadow 0.2s;
+      margin-bottom: 15px;
+    }
+
+    button:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 20px rgba(102, 126, 234, 0.4);
+    }
+
+    button:active {
+      transform: translateY(0);
+    }
+
+    button:disabled {
+      background: #ccc;
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    .spinner {
+      border: 3px solid #f3f3f3;
+      border-top: 3px solid #667eea;
+      border-radius: 50%;
+      width: 30px;
+      height: 30px;
+      animation: spin 1s linear infinite;
+      margin: 20px auto;
+    }
+
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+
+    .result {
+      margin-top: 20px;
+      padding: 15px;
+      border-radius: 10px;
+      font-size: 14px;
+      line-height: 1.6;
+      display: none;
+    }
+
+    .result.success {
+      background: #d4edda;
+      border: 1px solid #c3e6cb;
+      color: #155724;
+      display: block;
+    }
+
+    .result.error {
+      background: #f8d7da;
+      border: 1px solid #f5c6cb;
+      color: #721c24;
+      display: block;
+    }
+
+    .result pre {
+      background: rgba(0, 0, 0, 0.05);
+      padding: 10px;
+      border-radius: 5px;
+      overflow-x: auto;
+      margin-top: 10px;
+      font-size: 12px;
+    }
+
+    .warning {
+      background: #fff3cd;
+      border: 1px solid #ffeaa7;
+      color: #856404;
+      padding: 15px;
+      border-radius: 8px;
+      margin-bottom: 20px;
+      font-size: 14px;
+    }
+
+    .warning strong {
+      display: block;
+      margin-bottom: 5px;
+    }
+  </style>
 </head>
 <body>
-    <div class="container">
-        <h1>🔮 Test Oracle Notification</h1>
-        <p>Enviar notificación de prueba del Oráculo Diario</p>
+  <div class="container">
+    <h1>🔮 Test Oráculo</h1>
+    <p class="subtitle">Prueba de notificación diaria</p>
 
-        <div class="info-box">
-            <p><strong>ℹ️ Información:</strong></p>
-            <p>Esta prueba invocará la Edge Function <code>daily-oracle-notifications</code> en modo de prueba.</p>
-            <p>La función calculará automáticamente la distancia a la puerta y enviará la notificación.</p>
-        </div>
-
-        <div class="input-group">
-            <label for="chapa">Chapa del usuario (para prueba):</label>
-            <input type="text" id="chapa" value="816" placeholder="816">
-        </div>
-
-        <button id="sendBtn" onclick="sendOracleNotification()">Enviar Notificación del Oráculo</button>
-
-        <div id="status" class="status"></div>
+    <div class="info-box">
+      <p><strong>Chapa de prueba:</strong> 816</p>
+      <p><strong>Función:</strong> daily-oracle-notifications</p>
+      <p>Esta prueba enviará una notificación del Oráculo SOLO a la chapa 816.</p>
     </div>
 
-    <script>
-        const SUPABASE_URL = 'https://gzhvvulohkhtqxomzfps.supabase.co';
-        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imd6aHZ2dWxvaGtodHF4b216ZnBzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzM4NDY3MzIsImV4cCI6MjA0OTQyMjczMn0.VJBE3CZuIAFy9EfFNBbwNqnXZqoCgEBWbAKWKa8s3oE';
+    <div class="warning">
+      <strong>⚠️ Importante:</strong>
+      Para recibir la notificación, debes estar suscrito a las notificaciones push desde la app principal.
+    </div>
 
-        async function sendOracleNotification() {
-            const sendBtn = document.getElementById('sendBtn');
-            const statusDiv = document.getElementById('status');
+    <button id="testBtn" onclick="testOracleNotification()">
+      🚀 Enviar notificación de prueba
+    </button>
 
-            const chapa = document.getElementById('chapa').value;
+    <div id="loading" style="display: none;">
+      <div class="spinner"></div>
+      <p style="text-align: center; color: #666;">Enviando notificación...</p>
+    </div>
 
-            // Validar que se ingresó una chapa
-            if (!chapa || chapa.trim() === '') {
-                statusDiv.className = 'status error';
-                statusDiv.style.display = 'block';
-                statusDiv.innerHTML = '❌ Por favor ingresa un número de chapa';
-                return;
-            }
+    <div id="result" class="result"></div>
+  </div>
 
-            // Mostrar estado de carga
-            statusDiv.className = 'status loading';
-            statusDiv.style.display = 'block';
-            statusDiv.innerHTML = `⏳ Enviando notificación del Oráculo a chapa ${chapa}...<br><small>Esto puede tardar unos segundos...</small>`;
-            sendBtn.disabled = true;
+  <script>
+    async function testOracleNotification() {
+      const btn = document.getElementById('testBtn');
+      const loading = document.getElementById('loading');
+      const result = document.getElementById('result');
 
-            try {
-                // Invocar la Edge Function con el parámetro test_chapa
-                const response = await fetch(`${SUPABASE_URL}/functions/v1/daily-oracle-notifications`, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${SUPABASE_ANON_KEY}`
-                    },
-                    body: JSON.stringify({
-                        test_chapa: chapa
-                    })
-                });
+      btn.disabled = true;
+      loading.style.display = 'block';
+      result.style.display = 'none';
+      result.className = 'result';
 
-                const responseData = await response.json();
+      try {
+        // Anon key necesaria para autenticar con Supabase
+        const ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imljc3p6eGtkeGF0Znl0cG1vdmlxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjI2Mzk2NjUsImV4cCI6MjA3ODIxNTY2NX0.hmQWNB3sCyBh39gdNgQLjjlIvliwJje-OYf0kkPObVA';
 
-                if (response.ok) {
-                    statusDiv.className = 'status success';
-                    statusDiv.innerHTML = `
-                        <strong>✅ Notificación del Oráculo enviada exitosamente</strong>
-                        <p>Se ha enviado la notificación a la chapa <strong>${chapa}</strong></p>
-                        <pre>${JSON.stringify(responseData, null, 2)}</pre>
-                    `;
-                } else {
-                    statusDiv.className = 'status error';
-                    statusDiv.innerHTML = `
-                        <strong>❌ Error al enviar la notificación</strong>
-                        <p>Status: ${response.status}</p>
-                        <pre>${JSON.stringify(responseData, null, 2)}</pre>
-                    `;
-                }
-            } catch (error) {
-                statusDiv.className = 'status error';
-                statusDiv.innerHTML = `
-                    <strong>❌ Error de conexión</strong>
-                    <p>${error.message}</p>
-                `;
-                console.error('Error:', error);
-            } finally {
-                sendBtn.disabled = false;
-            }
+        const response = await fetch('https://icszzxkdxatfytpmoviq.supabase.co/functions/v1/daily-oracle-notifications', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${ANON_KEY}`,
+            'apikey': ANON_KEY
+          },
+          body: JSON.stringify({
+            test_chapa: '816'
+          })
+        });
+
+        const data = await response.json();
+
+        loading.style.display = 'none';
+
+        if (response.ok) {
+          result.className = 'result success';
+          result.innerHTML = `
+            <strong>✅ Notificación enviada exitosamente</strong>
+            <p style="margin-top: 10px;">Deberías recibir una notificación en tu dispositivo en unos segundos.</p>
+            <pre>${JSON.stringify(data, null, 2)}</pre>
+          `;
+        } else {
+          result.className = 'result error';
+          result.innerHTML = `
+            <strong>❌ Error al enviar la notificación</strong>
+            <p style="margin-top: 10px;">Código: ${response.status}</p>
+            <pre>${JSON.stringify(data, null, 2)}</pre>
+          `;
         }
-    </script>
+      } catch (error) {
+        loading.style.display = 'none';
+        result.className = 'result error';
+        result.innerHTML = `
+          <strong>❌ Error de conexión</strong>
+          <p style="margin-top: 10px;">${error.message}</p>
+          <p style="margin-top: 10px; font-size: 12px;">Verifica que:</p>
+          <ul style="margin-left: 20px; margin-top: 5px; font-size: 12px;">
+            <li>La Edge Function está desplegada</li>
+            <li>La URL es correcta</li>
+            <li>Tienes conexión a internet</li>
+          </ul>
+        `;
+      } finally {
+        btn.disabled = false;
+      }
+    }
+  </script>
 </body>
 </html>

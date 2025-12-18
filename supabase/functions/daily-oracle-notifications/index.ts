@@ -5,23 +5,53 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.7.1';
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+  'Access-Control-Allow-Methods': 'POST, GET, OPTIONS',
 };
 
-console.log("daily-oracle-notifications Edge Function started!");
-serve(async (req)=>{
+console.log("🚀 daily-oracle-notifications Edge Function iniciada");
+
+serve(async (req) => {
   // Manejar solicitudes OPTIONS para CORS
   if (req.method === 'OPTIONS') {
     return new Response('ok', { headers: corsHeaders });
   }
 
+  console.log(`📨 Solicitud recibida: ${req.method} ${req.url}`);
+
   try {
-    // Inicializar cliente de Supabase
+    // 1. VALIDAR VARIABLES DE ENTORNO
     const supabaseUrl = Deno.env.get('SUPABASE_URL');
     const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
-    const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
-    // Leer parámetro de prueba (si existe)
-    const body = await req.json().catch(() => ({}));
+    if (!supabaseUrl || !supabaseServiceKey) {
+      console.error('❌ CRITICAL: Variables de entorno no configuradas');
+      console.error(`SUPABASE_URL: ${supabaseUrl ? 'OK' : 'MISSING'}`);
+      console.error(`SUPABASE_SERVICE_ROLE_KEY: ${supabaseServiceKey ? 'OK' : 'MISSING'}`);
+      return new Response(JSON.stringify({
+        error: 'Variables de entorno no configuradas correctamente'
+      }), {
+        status: 500,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+      });
+    }
+
+    console.log('✅ Variables de entorno validadas');
+
+    // 2. INICIALIZAR CLIENTE DE SUPABASE
+    const supabase = createClient(supabaseUrl, supabaseServiceKey);
+    console.log('✅ Cliente Supabase creado');
+
+    // 3. LEER PARÁMETRO DE PRUEBA (si existe)
+    let body = {};
+    try {
+      const text = await req.text();
+      if (text && text.trim() !== '') {
+        body = JSON.parse(text);
+      }
+    } catch (e) {
+      console.log('⚠️ No se pudo parsear el body, usando objeto vacío:', e.message);
+    }
+
     const testChapa = body.test_chapa || null;
 
     if (testChapa) {
@@ -30,17 +60,23 @@ serve(async (req)=>{
 
     console.log('🔔 Iniciando envío de notificaciones diarias del Oráculo...');
 
-    // 1. Obtener usuarios suscritos a notificaciones
+    // 4. OBTENER USUARIOS SUSCRITOS
+    console.log('📋 Consultando suscripciones push...');
     const { data: subscriptions, error: subsError } = await supabase.from('push_subscriptions').select('*');
+
     if (subsError) {
-      console.error('Error obteniendo suscripciones:', subsError);
+      console.error('❌ Error obteniendo suscripciones:', subsError);
+      console.error('Detalles del error:', JSON.stringify(subsError));
       return new Response(JSON.stringify({
-        error: subsError.message
+        error: subsError.message,
+        details: subsError
       }), {
         status: 500,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' }
       });
     }
+
+    console.log(`✅ Query de suscripciones exitoso`);
     if (!subscriptions || subscriptions.length === 0) {
       console.log('⚠️ No hay usuarios suscritos a notificaciones');
       return new Response(JSON.stringify({
@@ -105,24 +141,67 @@ serve(async (req)=>{
 
     console.log(`📋 Suscripciones válidas: ${validSubscriptions.length}`);
 
-    // 3. Obtener datos del censo con colores para calcular distancia efectiva
-    const { data: censoData, error: censoError } = await supabase.from('censo').select('chapa, posicion, color').order('posicion', {
-      ascending: true
-    });
-    if (censoError) {
-      console.error('Error obteniendo censo:', censoError);
+    if (validSubscriptions.length === 0) {
+      console.warn('⚠️ No hay suscripciones válidas después del filtrado');
       return new Response(JSON.stringify({
-        error: censoError.message
+        success: false,
+        message: 'No hay suscripciones válidas para procesar'
+      }), {
+        status: 200,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+      });
+    }
+
+    // 5. OBTENER DATOS DEL CENSO
+    console.log('📊 Consultando censo...');
+    const { data: censoData, error: censoError } = await supabase
+      .from('censo')
+      .select('chapa, posicion, color')
+      .order('posicion', { ascending: true });
+
+    if (censoError) {
+      console.error('❌ Error obteniendo censo:', censoError);
+      console.error('Detalles del error:', JSON.stringify(censoError));
+      return new Response(JSON.stringify({
+        error: censoError.message,
+        details: censoError
       }), {
         status: 500,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' }
       });
     }
-    console.log(`📊 Censo cargado: ${censoData.length} trabajadores`);
-    // 4. Obtener puertas reales desde CSV
+
+    if (!censoData || censoData.length === 0) {
+      console.error('❌ CRITICAL: No hay datos en el censo');
+      return new Response(JSON.stringify({
+        error: 'No hay datos en el censo'
+      }), {
+        status: 500,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+      });
+    }
+
+    console.log(`✅ Censo cargado: ${censoData.length} trabajadores`);
+
+    // 6. OBTENER PUERTAS DESDE CSV
+    console.log('🚪 Obteniendo puertas desde Google Sheets...');
     const puertasURL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQrQ5bGZDNShEWi1lwx_l1EvOxC0si5kbN8GBxj34rF0FkyGVk6IZOiGk5D91_TZXBHO1mchydFvvUl/pub?gid=3770623&single=true&output=csv';
+
     const puertasResponse = await fetch(puertasURL);
+
+    if (!puertasResponse.ok) {
+      console.error(`❌ Error obteniendo puertas: ${puertasResponse.status} ${puertasResponse.statusText}`);
+      return new Response(JSON.stringify({
+        error: 'Error obteniendo puertas desde Google Sheets',
+        status: puertasResponse.status
+      }), {
+        status: 500,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+      });
+    }
+
     const puertasText = await puertasResponse.text();
+    console.log(`✅ CSV de puertas obtenido (${puertasText.length} caracteres)`);
     // Parsear CSV de puertas (formato complejo)
     const lines = puertasText.split('\n').map((l)=>l.trim()).filter((l)=>l !== '');
     const jornadasOrdenadas = [
@@ -156,11 +235,12 @@ serve(async (req)=>{
     }
     // Convertir a array
     const puertas = jornadasOrdenadas.map((j)=>puertasPorJornada[j]).filter((p)=>p);
-    console.log('🚪 Puertas obtenidas:', puertas);
-    // 5. IMPORTANTE: Las notificaciones del Oráculo SIEMPRE usan la jornada 08-14
-    // porque es la jornada del día siguiente que más importa a los trabajadores
+    console.log(`✅ Puertas parseadas: ${puertas.length} jornadas`);
+    console.log('Puertas detalle:', JSON.stringify(puertas, null, 2));
+
+    // 7. VALIDAR JORNADA DEL ORÁCULO
     const jornadaOraculo = '08-14';
-    console.log('📍 Jornada del Oráculo (siempre 08-14):', jornadaOraculo);
+    console.log(`📍 Buscando jornada del Oráculo: ${jornadaOraculo}`);
     // Constantes
     const LIMITE_SP = 443;
     const INICIO_OC = 444;
@@ -254,17 +334,24 @@ serve(async (req)=>{
       });
     }
 
-    // Preparar todas las notificaciones y enviarlas EN PARALELO
-    console.log('📤 Enviando notificaciones en paralelo...');
-    const notificationPromises = validSubscriptions.map(async (subscription) => {
+    // 8. ENVIAR NOTIFICACIONES
+    console.log(`📤 Preparando envío de ${validSubscriptions.length} notificaciones...`);
+    console.log(`🎯 URL del servidor push: ${nodePushServerUrl}`);
+    console.log(`🚪 Puerta SP: ${puertaData.puertaSP}, Puerta OC: ${puertaData.puertaOC}`);
+
+    const notificationPromises = validSubscriptions.map(async (subscription, index) => {
       try {
         const userChapa = String(subscription.user_chapa);
+        console.log(`[${index + 1}/${validSubscriptions.length}] Procesando chapa ${userChapa}...`);
+
         const userData = censoData.find((u)=>String(u.chapa) === userChapa);
 
         if (!userData) {
-          console.warn(`⚠️ Usuario ${userChapa} no encontrado en censo`);
+          console.warn(`⚠️ [${userChapa}] No encontrado en censo`);
           return { success: false, chapa: userChapa, reason: 'not_in_censo' };
         }
+
+        console.log(`✅ [${userChapa}] Encontrado en censo (posición: ${userData.posicion})`);
 
         const userPosition = userData.posicion;
         const esUsuarioSP = userPosition <= LIMITE_SP;
@@ -282,6 +369,8 @@ serve(async (req)=>{
         const distanciaEfectiva = calcularDistanciaEfectiva(puertaActual, userPosition, censoActual, limiteInicio, limiteFin);
         const distanciaPuerta = Math.round(distanciaEfectiva);
 
+        console.log(`📏 [${userChapa}] Distancia a la puerta: ${distanciaPuerta} posiciones`);
+
         // Construir mensaje
         const title = '🔮 Previsión para mañana';
         const body = `Estás a ${distanciaPuerta} posiciones de la puerta! Entra al Oráculo para ver en qué jornada trabajas.`;
@@ -296,6 +385,8 @@ serve(async (req)=>{
           chapa_target: userChapa
         };
 
+        console.log(`📲 [${userChapa}] Enviando notificación a ${nodePushServerUrl}/api/push/notify-oracle...`);
+
         const pushResponse = await fetch(`${nodePushServerUrl}/api/push/notify-oracle`, {
           method: 'POST',
           headers: {
@@ -305,26 +396,32 @@ serve(async (req)=>{
         });
 
         if (pushResponse.ok) {
-          console.log(`✅ Notificación enviada a chapa ${userChapa}`);
+          console.log(`✅ [${userChapa}] Notificación enviada exitosamente`);
           return { success: true, chapa: userChapa };
         } else {
           const errorText = await pushResponse.text();
-          console.error(`❌ Error enviando a ${userChapa}: ${pushResponse.status} - ${errorText}`);
+          console.error(`❌ [${userChapa}] Error del servidor push: ${pushResponse.status} - ${errorText}`);
 
           // Si el servidor devuelve 410 (Gone) o 404, marcar para eliminar
           if (pushResponse.status === 410 || pushResponse.status === 404) {
+            console.warn(`🗑️ [${userChapa}] Suscripción marcada para eliminar (${pushResponse.status})`);
             return { success: false, chapa: userChapa, removeSubscription: true, subscriptionId: subscription.id };
           }
-          return { success: false, chapa: userChapa };
+          return { success: false, chapa: userChapa, error: errorText };
         }
       } catch (userError) {
-        console.error(`❌ Error procesando usuario ${subscription.user_chapa}:`, userError);
-        return { success: false, chapa: subscription.user_chapa };
+        console.error(`❌ [${subscription.user_chapa}] Excepción al procesar:`, userError.message);
+        console.error(`Stack:`, userError.stack);
+        return { success: false, chapa: subscription.user_chapa, error: userError.message };
       }
     });
 
+    console.log(`⏳ Esperando resultados de ${notificationPromises.length} notificaciones...`);
+
     // Esperar a que todas las notificaciones se envíen
     const results = await Promise.all(notificationPromises);
+
+    console.log(`✅ Todas las notificaciones procesadas`);
 
     // Contar resultados
     const notificationsSent = results.filter(r => r.success).length;
@@ -332,6 +429,8 @@ serve(async (req)=>{
     const subscriptionsToRemove = results
       .filter(r => r.removeSubscription)
       .map(r => r.subscriptionId);
+
+    console.log(`📊 Resultados: ${notificationsSent} exitosas, ${notificationsFailed} fallidas`);
 
     // Eliminar suscripciones que fallaron con 410/404 EN PARALELO
     if (subscriptionsToRemove.length > 0) {
@@ -370,9 +469,15 @@ serve(async (req)=>{
       status: 200
     });
   } catch (error) {
-    console.error('❌ Error en Edge Function:', error.message);
+    console.error('❌ ERROR CRÍTICO en Edge Function:');
+    console.error('Mensaje:', error.message);
+    console.error('Stack:', error.stack);
+    console.error('Error completo:', JSON.stringify(error, Object.getOwnPropertyNames(error)));
+
     return new Response(JSON.stringify({
-      error: error.message
+      error: error.message,
+      stack: error.stack,
+      type: error.name
     }), {
       status: 500,
       headers: { ...corsHeaders, 'Content-Type': 'application/json' }

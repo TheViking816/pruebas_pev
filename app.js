@@ -3121,7 +3121,15 @@ async function loadTablon(options = {}) {
   loading.classList.remove('hidden');
   container.innerHTML = '';
   if (statsContainer) statsContainer.innerHTML = '';
-  if (jornadasTabsContainer) jornadasTabsContainer.innerHTML = '';
+  if (jornadasTabsContainer) {
+    // Mostrar placeholder de carga mientras se obtienen las jornadas
+    jornadasTabsContainer.innerHTML = `
+      <div style="text-align: center; padding: 1rem; color: var(--text-secondary); font-size: 0.9rem;">
+        <div class="spinner" style="width: 20px; height: 20px; margin: 0 auto 0.5rem;"></div>
+        Cargando jornadas...
+      </div>
+    `;
+  }
 
   // Configurar modal
   if (modal && modalCloseBtn) {
