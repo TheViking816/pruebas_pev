@@ -199,6 +199,42 @@ function updateAppViewportUnit() {
   }
 }
 
+function initShipImageModal() {
+  const modal = document.getElementById('ship-image-modal');
+  const closeBtn = document.getElementById('ship-image-modal-close');
+  const titleEl = document.getElementById('ship-image-modal-title');
+  const imgEl = document.getElementById('ship-image-modal-img');
+  if (!modal || !closeBtn || !titleEl || !imgEl) return;
+
+  let previousBodyOverflow = '';
+
+  const close = () => {
+    modal.style.display = 'none';
+    imgEl.removeAttribute('src');
+    imgEl.alt = '';
+    titleEl.textContent = 'Imagen del barco';
+    document.body.style.overflow = previousBodyOverflow;
+  };
+
+  window.openShipImageModal = (src, title) => {
+    if (!src) return;
+    previousBodyOverflow = document.body.style.overflow || '';
+    document.body.style.overflow = 'hidden';
+    imgEl.src = src;
+    imgEl.alt = title || 'Imagen del barco';
+    titleEl.textContent = title || 'Imagen del barco';
+    modal.style.display = 'flex';
+  };
+
+  closeBtn.addEventListener('click', close);
+  modal.addEventListener('click', (e) => {
+    if (e.target === modal) close();
+  });
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && modal.style.display === 'flex') close();
+  });
+}
+
 /**
  * Inicialización de la aplicación
  */
@@ -227,6 +263,7 @@ document.addEventListener('DOMContentLoaded', () => {
   initReportJornal();
   initForoEnhanced();
   initSyncJornalesButton();
+  initShipImageModal();
 
   // Luego, inicializar la lógica principal
   initializeApp();
@@ -3705,7 +3742,7 @@ async function loadTablon(options = {}) {
             : 'https://i.imgur.com/guKCoFy.jpeg'; // Imagen de barco con grúas (original)
 
           panelHeader.innerHTML = `
-            <div class="tablon-buque-image">
+            <div class="tablon-buque-image" title="Ver imagen en grande">
               <img src="${imagenPersonalizada}" alt="${nombre}" onerror="this.src='${imagenFallback}'">
             </div>
             <div class="tablon-buque-info-panel">
@@ -3717,6 +3754,18 @@ async function loadTablon(options = {}) {
               </div>
             </div>
           `;
+
+          const imagenEl = panelHeader.querySelector('.tablon-buque-image img');
+          if (imagenEl) {
+            imagenEl.addEventListener('click', (e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              const src = imagenEl.currentSrc || imagenEl.src;
+              if (typeof window.openShipImageModal === 'function') {
+                window.openShipImageModal(src, etiqueta || nombre);
+              }
+            });
+          }
 
           buquePanel.appendChild(panelHeader);
 
