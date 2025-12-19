@@ -1518,6 +1518,7 @@ function navigateTo(pageName) {
       renderNoticias(); // Se renderiza estáticamente, pero aseguramos llamada
       break;
     case 'calculadora':
+    case 'oraculo':
       loadCalculadora();
       break;
     case 'push-notifications':
@@ -1535,11 +1536,14 @@ function showPage(pageName) {
   const allPages = document.querySelectorAll('.page');
   allPages.forEach(page => page.classList.remove('active'));
 
-  const targetPage = document.getElementById(`page-${pageName}`);
+  // Mapeo especial: 'oraculo' usa la misma página que 'calculadora'
+  const pageId = pageName === 'oraculo' ? 'calculadora' : pageName;
+
+  const targetPage = document.getElementById(`page-${pageId}`);
   if (targetPage) {
     targetPage.classList.add('active');
   } else {
-    console.warn(`⚠️ Página con ID 'page-${pageName}' no encontrada.`);
+    console.warn(`⚠️ Página con ID 'page-${pageId}' no encontrada.`);
   }
 
   // Controlar visibilidad del sidebar basado en autenticación
