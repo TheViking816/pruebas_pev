@@ -3513,18 +3513,30 @@ async function loadTablon(options = {}) {
         statsContainer.innerHTML = `
           <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(${minWidth}px, 1fr)); gap: ${gap}rem;">
             <div style="background: linear-gradient(135deg, #3b82f6, #2563eb); color: white; padding: ${padding}rem; border-radius: ${borderRadius}px; text-align: center; box-shadow: 0 ${shadowSize}px ${shadowSize * 2}px rgba(59, 130, 246, 0.3);">
+              <svg xmlns="http://www.w3.org/2000/svg" style="width: 32px; height: 32px; margin: 0 auto 0.5rem; opacity: 0.9;" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+              </svg>
               <div style="font-size: ${numberSize}rem; font-weight: 700; margin-bottom: 0.25rem;">${chapasJornada}</div>
               <div style="font-size: ${labelSize}rem; opacity: 0.95;">Asignaciones</div>
             </div>
             <div style="background: linear-gradient(135deg, #10b981, #059669); color: white; padding: ${padding}rem; border-radius: ${borderRadius}px; text-align: center; box-shadow: 0 ${shadowSize}px ${shadowSize * 2}px rgba(16, 185, 129, 0.3);">
+              <svg xmlns="http://www.w3.org/2000/svg" style="width: 32px; height: 32px; margin: 0 auto 0.5rem; opacity: 0.9;" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+              </svg>
               <div style="font-size: ${numberSize}rem; font-weight: 700; margin-bottom: 0.25rem;">${empresasJornada}</div>
               <div style="font-size: ${labelSize}rem; opacity: 0.95;">Empresas</div>
             </div>
             <div style="background: linear-gradient(135deg, #f59e0b, #d97706); color: white; padding: ${padding}rem; border-radius: ${borderRadius}px; text-align: center; box-shadow: 0 ${shadowSize}px ${shadowSize * 2}px rgba(245, 158, 11, 0.3);">
+              <svg xmlns="http://www.w3.org/2000/svg" style="width: 32px; height: 32px; margin: 0 auto 0.5rem; opacity: 0.9;" fill="currentColor" viewBox="0 0 640 512">
+                <path d="M192 32c0-17.7 14.3-32 32-32H288c17.7 0 32 14.3 32 32V64h48c26.5 0 48 21.5 48 48V240c0 26.5-21.5 48-48 48H368v64h72c22.1 0 40 17.9 40 40v40c0 13.3-10.7 24-24 24H24c-13.3 0-24-10.7-24-24V392c0-22.1 17.9-40 40-40h72V288H80c-26.5 0-48-21.5-48-48V112c0-26.5 21.5-48 48-48h48V32zM80 240H368V160H80v80zm96 112H272V288H176v64z"/>
+              </svg>
               <div style="font-size: ${numberSize}rem; font-weight: 700; margin-bottom: 0.25rem;">${barcosJornada.size}</div>
               <div style="font-size: ${labelSize}rem; opacity: 0.95;">Barcos</div>
             </div>
             <div style="background: linear-gradient(135deg, #8b5cf6, #7c3aed); color: white; padding: ${padding}rem; border-radius: ${borderRadius}px; text-align: center; box-shadow: 0 ${shadowSize}px ${shadowSize * 2}px rgba(139, 92, 246, 0.3);">
+              <svg xmlns="http://www.w3.org/2000/svg" style="width: 32px; height: 32px; margin: 0 auto 0.5rem; opacity: 0.9;" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+              </svg>
               <div style="font-size: ${numberSize}rem; font-weight: 700; margin-bottom: 0.25rem;">${especialidadesJornada.size}</div>
               <div style="font-size: ${labelSize}rem; opacity: 0.95;">Especialidades</div>
             </div>
@@ -3736,12 +3748,6 @@ async function loadTablon(options = {}) {
 
               chapaCompact.innerHTML = `
                 <div class="tablon-chapa-compact-numero">${chapaData.chapa}</div>
-                <div class="tablon-chapa-compact-jornada">
-                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                  </svg>
-                  ${chapaData.jornada || jornada}
-                </div>
               `;
 
               chapaCompact.onclick = () => {
@@ -3768,7 +3774,24 @@ async function loadTablon(options = {}) {
 
         // 1. Renderizar barcos reales
         Object.keys(empresaData.barcos).sort().forEach(buque => {
-          const iconoBarco = '<svg class="tablon-buque-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 21v-4m0 0V5a2 2 0 012-2h6.5l1 1H21l-3 6 3 6h-8.5l-1-1H5a2 2 0 00-2 2zm9-13.5V9" /></svg>';
+          // Determinar si es barco de coches o contenedores
+          const especialidades = Object.keys(empresaData.barcos[buque]);
+          const esBarcoCoche = especialidades.some(esp =>
+            esp.toLowerCase().includes('conductor de 2') ||
+            esp.toLowerCase().includes('conductor de 2a') ||
+            esp.toLowerCase().includes('conductor de 2ª')
+          );
+
+          // Usar imagen correspondiente
+          let iconoBarco;
+          if (esBarcoCoche) {
+            // Icono para barco de coches
+            iconoBarco = '<img src="https://i.imgur.com/UQpyAGs.png" alt="Barco coches" class="tablon-buque-icon" style="width: 40px; height: 40px; object-fit: contain;">';
+          } else {
+            // Icono para barco de contenedores
+            iconoBarco = '<img src="https://i.imgur.com/epGGUIC.png" alt="Barco contenedores" class="tablon-buque-icon" style="width: 40px; height: 40px; object-fit: contain;">';
+          }
+
           renderGrupo(buque, empresaData.barcos[buque], iconoBarco);
         });
 
@@ -3838,44 +3861,161 @@ async function loadTablon(options = {}) {
         });
       });
 
+      // Variables para almacenar filtros activos
+      let empresaFilterActive = '';
+      let buqueFilterActive = '';
+      let especialidadFilterActive = '';
+
+      // Hacer filtros colapsables
+      const empresaHeader = document.getElementById('tablon-empresa-header');
+      const barcoHeader = document.getElementById('tablon-barco-header');
+      const especialidadHeader = document.getElementById('tablon-especialidad-header');
+
+      if (empresaHeader) {
+        empresaHeader.onclick = () => {
+          const content = filterEmpresa;
+          const arrow = empresaHeader.querySelector('svg:last-child');
+          if (content.style.display === 'none' || content.style.display === '') {
+            content.style.display = 'flex';
+            arrow.style.transform = 'rotate(180deg)';
+            empresaHeader.style.background = '#f3f4f6';
+          } else {
+            content.style.display = 'none';
+            arrow.style.transform = 'rotate(0deg)';
+            empresaHeader.style.background = 'transparent';
+          }
+        };
+      }
+
+      if (barcoHeader) {
+        barcoHeader.onclick = () => {
+          const content = filterBuque;
+          const arrow = barcoHeader.querySelector('svg:last-child');
+          if (content.style.display === 'none' || content.style.display === '') {
+            content.style.display = 'flex';
+            arrow.style.transform = 'rotate(180deg)';
+            barcoHeader.style.background = '#f3f4f6';
+          } else {
+            content.style.display = 'none';
+            arrow.style.transform = 'rotate(0deg)';
+            barcoHeader.style.background = 'transparent';
+          }
+        };
+      }
+
+      if (especialidadHeader) {
+        especialidadHeader.onclick = () => {
+          const content = filterEspecialidad;
+          const arrow = especialidadHeader.querySelector('svg:last-child');
+          if (content.style.display === 'none' || content.style.display === '') {
+            content.style.display = 'flex';
+            arrow.style.transform = 'rotate(180deg)';
+            especialidadHeader.style.background = '#f3f4f6';
+          } else {
+            content.style.display = 'none';
+            arrow.style.transform = 'rotate(0deg)';
+            especialidadHeader.style.background = 'transparent';
+          }
+        };
+      }
+
+      // Poblar filtros con chips
       if (filterEmpresa) {
-        filterEmpresa.innerHTML = '<option value="">Todas las empresas</option>';
+        filterEmpresa.innerHTML = '';
+
+        // Chip "Todas"
+        const chipTodas = document.createElement('button');
+        chipTodas.className = 'tablon-filter-chip empresa active';
+        chipTodas.textContent = 'Todas';
+        chipTodas.dataset.value = '';
+        chipTodas.onclick = () => {
+          empresaFilterActive = '';
+          document.querySelectorAll('.tablon-filter-chip.empresa').forEach(c => c.classList.remove('active'));
+          chipTodas.classList.add('active');
+          aplicarFiltros();
+        };
+        filterEmpresa.appendChild(chipTodas);
+
         Array.from(empresasSet).sort().forEach(empresa => {
-          const option = document.createElement('option');
-          option.value = empresa.toLowerCase();
-          option.textContent = empresa;
-          filterEmpresa.appendChild(option);
+          const chip = document.createElement('button');
+          chip.className = 'tablon-filter-chip empresa';
+          chip.textContent = empresa;
+          chip.dataset.value = empresa.toLowerCase();
+          chip.onclick = () => {
+            empresaFilterActive = empresa.toLowerCase();
+            document.querySelectorAll('.tablon-filter-chip.empresa').forEach(c => c.classList.remove('active'));
+            chip.classList.add('active');
+            aplicarFiltros();
+          };
+          filterEmpresa.appendChild(chip);
         });
       }
 
       if (filterBuque) {
-        filterBuque.innerHTML = '<option value="">Todos los barcos</option>';
+        filterBuque.innerHTML = '';
+
+        // Chip "Todos"
+        const chipTodos = document.createElement('button');
+        chipTodos.className = 'tablon-filter-chip barco active';
+        chipTodos.textContent = 'Todos';
+        chipTodos.dataset.value = '';
+        chipTodos.onclick = () => {
+          buqueFilterActive = '';
+          document.querySelectorAll('.tablon-filter-chip.barco').forEach(c => c.classList.remove('active'));
+          chipTodos.classList.add('active');
+          aplicarFiltros();
+        };
+        filterBuque.appendChild(chipTodos);
+
         Array.from(buquesSet).sort().forEach(buque => {
-          const option = document.createElement('option');
-          option.value = buque.toLowerCase();
-          option.textContent = buque;
-          filterBuque.appendChild(option);
+          const chip = document.createElement('button');
+          chip.className = 'tablon-filter-chip barco';
+          chip.textContent = buque;
+          chip.dataset.value = buque.toLowerCase();
+          chip.onclick = () => {
+            buqueFilterActive = buque.toLowerCase();
+            document.querySelectorAll('.tablon-filter-chip.barco').forEach(c => c.classList.remove('active'));
+            chip.classList.add('active');
+            aplicarFiltros();
+          };
+          filterBuque.appendChild(chip);
         });
       }
 
       if (filterEspecialidad) {
-        filterEspecialidad.innerHTML = '<option value="">Todas las especialidades</option>';
+        filterEspecialidad.innerHTML = '';
+
+        // Chip "Todas"
+        const chipTodas = document.createElement('button');
+        chipTodas.className = 'tablon-filter-chip especialidad active';
+        chipTodas.textContent = 'Todas';
+        chipTodas.dataset.value = '';
+        chipTodas.onclick = () => {
+          especialidadFilterActive = '';
+          document.querySelectorAll('.tablon-filter-chip.especialidad').forEach(c => c.classList.remove('active'));
+          chipTodas.classList.add('active');
+          aplicarFiltros();
+        };
+        filterEspecialidad.appendChild(chipTodas);
+
         Array.from(especialidadesSet).sort().forEach(especialidad => {
-          const option = document.createElement('option');
-          option.value = especialidad.toLowerCase();
-          // Primera letra en mayúscula
-          option.textContent = especialidad.charAt(0).toUpperCase() + especialidad.slice(1).toLowerCase();
-          filterEspecialidad.appendChild(option);
+          const chip = document.createElement('button');
+          chip.className = 'tablon-filter-chip especialidad';
+          chip.textContent = especialidad.charAt(0).toUpperCase() + especialidad.slice(1).toLowerCase();
+          chip.dataset.value = especialidad.toLowerCase();
+          chip.onclick = () => {
+            especialidadFilterActive = especialidad.toLowerCase();
+            document.querySelectorAll('.tablon-filter-chip.especialidad').forEach(c => c.classList.remove('active'));
+            chip.classList.add('active');
+            aplicarFiltros();
+          };
+          filterEspecialidad.appendChild(chip);
         });
       }
 
       // Función de filtrado combinado
       const aplicarFiltros = () => {
         const searchTerm = searchInput ? searchInput.value.toLowerCase().trim() : '';
-        const empresaFilter = filterEmpresa ? filterEmpresa.value : '';
-        const buqueFilter = filterBuque ? filterBuque.value : '';
-        const especialidadFilter = filterEspecialidad ? filterEspecialidad.value : '';
-
         const empresaCards = container.querySelectorAll('.tablon-empresa-card');
 
         empresaCards.forEach(empresaCard => {
@@ -3894,9 +4034,9 @@ async function loadTablon(options = {}) {
 
               // Aplicar todos los filtros
               const matchChapa = !searchTerm || chapa.includes(searchTerm);
-              const matchEmpresa = !empresaFilter || empresa === empresaFilter;
-              const matchBuque = !buqueFilter || buque === buqueFilter;
-              const matchEspecialidad = !especialidadFilter || especialidad === especialidadFilter;
+              const matchEmpresa = !empresaFilterActive || empresa === empresaFilterActive;
+              const matchBuque = !buqueFilterActive || buque === buqueFilterActive;
+              const matchEspecialidad = !especialidadFilterActive || especialidad === especialidadFilterActive;
 
               const matches = matchChapa && matchEmpresa && matchBuque && matchEspecialidad;
 
@@ -3912,19 +4052,25 @@ async function loadTablon(options = {}) {
         });
       };
 
-      // Event listeners para filtros
+      // Event listeners para búsqueda
       if (searchInput) searchInput.oninput = aplicarFiltros;
-      if (filterEmpresa) filterEmpresa.onchange = aplicarFiltros;
-      if (filterBuque) filterBuque.onchange = aplicarFiltros;
-      if (filterEspecialidad) filterEspecialidad.onchange = aplicarFiltros;
 
       // Botón limpiar filtros
       if (clearFiltersBtn) {
         clearFiltersBtn.onclick = () => {
           if (searchInput) searchInput.value = '';
-          if (filterEmpresa) filterEmpresa.value = '';
-          if (filterBuque) filterBuque.value = '';
-          if (filterEspecialidad) filterEspecialidad.value = '';
+          empresaFilterActive = '';
+          buqueFilterActive = '';
+          especialidadFilterActive = '';
+
+          // Resetear todos los chips a "Todas/Todos"
+          document.querySelectorAll('.tablon-filter-chip').forEach(chip => {
+            chip.classList.remove('active');
+            if (chip.dataset.value === '') {
+              chip.classList.add('active');
+            }
+          });
+
           aplicarFiltros();
         };
       }

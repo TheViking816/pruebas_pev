@@ -4044,6 +4044,54 @@ body::before {
   opacity: 0.8;
 }
 
+/* Chips de filtros */
+.tablon-filter-chip {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.5rem 1rem;
+  background: #f3f4f6;
+  border: 1px solid #e5e7eb;
+  border-radius: 20px;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: #374151;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  user-select: none;
+}
+
+.tablon-filter-chip:hover {
+  background: #e5e7eb;
+  border-color: #d1d5db;
+  transform: translateY(-1px);
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.tablon-filter-chip.active {
+  background: linear-gradient(135deg, var(--puerto-blue), #1e40af);
+  color: white;
+  border-color: var(--puerto-blue);
+  box-shadow: 0 2px 8px rgba(10, 46, 92, 0.3);
+}
+
+.tablon-filter-chip.empresa.active {
+  background: linear-gradient(135deg, #10b981, #059669);
+  border-color: #10b981;
+  box-shadow: 0 2px 8px rgba(16, 185, 129, 0.3);
+}
+
+.tablon-filter-chip.barco.active {
+  background: linear-gradient(135deg, #f59e0b, #d97706);
+  border-color: #f59e0b;
+  box-shadow: 0 2px 8px rgba(245, 158, 11, 0.3);
+}
+
+.tablon-filter-chip.especialidad.active {
+  background: linear-gradient(135deg, #8b5cf6, #7c3aed);
+  border-color: #8b5cf6;
+  box-shadow: 0 2px 8px rgba(139, 92, 246, 0.3);
+}
+
 /* Buque panel especial */
 .tablon-buque-panel {
   background: white;
@@ -4135,15 +4183,15 @@ body::before {
 
 .tablon-chapas-compact-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
-  gap: 0.75rem;
+  grid-template-columns: repeat(auto-fill, minmax(60px, 1fr));
+  gap: 0.5rem;
 }
 
 .tablon-chapa-compact {
   background: white;
-  border: 2px solid var(--border-color);
-  border-radius: 8px;
-  padding: 0.75rem;
+  border: 1.5px solid var(--border-color);
+  border-radius: 6px;
+  padding: 0.4rem 0.5rem;
   text-align: center;
   cursor: pointer;
   transition: all 0.2s ease;
@@ -4151,31 +4199,16 @@ body::before {
 }
 
 .tablon-chapa-compact:hover {
-  transform: translateY(-3px);
-  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.12);
   border-color: var(--puerto-blue);
   background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%);
 }
 
 .tablon-chapa-compact-numero {
-  font-size: 1.3rem;
-  font-weight: 700;
+  font-size: 0.9rem;
+  font-weight: 600;
   color: var(--puerto-blue);
-  margin-bottom: 0.25rem;
-}
-
-.tablon-chapa-compact-jornada {
-  font-size: 0.7rem;
-  color: var(--text-secondary);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.25rem;
-}
-
-.tablon-chapa-compact-jornada svg {
-  width: 12px;
-  height: 12px;
 }
 
 /* Modal */
