@@ -3681,8 +3681,24 @@ async function loadTablon(options = {}) {
           const panelHeader = document.createElement('div');
           panelHeader.className = 'tablon-buque-header-panel';
 
-          // Imagen del grupo (diferente para cada tipo)
-          const grupoImage = nombre === 'Trincadores'
+          // Función para normalizar nombre de barco a nombre de archivo
+          const normalizarNombreBarco = (nombreBarco) => {
+            return nombreBarco
+              .toLowerCase()
+              .normalize('NFD').replace(/[\u0300-\u036f]/g, '') // Eliminar acentos
+              .replace(/[^a-z0-9]+/g, '-') // Reemplazar caracteres especiales por guiones
+              .replace(/^-+|-+$/g, ''); // Eliminar guiones al inicio/final
+          };
+
+          // Imagen del grupo (intenta cargar imagen personalizada, sino usa fallback)
+          const nombreArchivo = normalizarNombreBarco(nombre);
+          const imagenPersonalizada = `assets/barcos/${nombreArchivo}.jpg`;
+
+          // Log para debugging (puedes ver en consola qué nombre de archivo se espera)
+          console.log(`📸 Barco: "${nombre}" → Buscando imagen: "${imagenPersonalizada}"`);
+
+          // Imagen por defecto según tipo
+          const imagenFallback = nombre === 'Trincadores'
             ? 'https://images.unsplash.com/photo-1578575437130-527eed3abbec?w=400&h=300&fit=crop' // Imagen de trincado
             : nombre === 'R/E'
             ? 'https://i.imgur.com/d4sdfOn.jpeg' // Imagen personalizada R/E
@@ -3690,7 +3706,7 @@ async function loadTablon(options = {}) {
 
           panelHeader.innerHTML = `
             <div class="tablon-buque-image">
-              <img src="${grupoImage}" alt="${nombre}">
+              <img src="${imagenPersonalizada}" alt="${nombre}" onerror="this.src='${imagenFallback}'">
             </div>
             <div class="tablon-buque-info-panel">
               <div class="tablon-buque-nombre-panel">${etiqueta || nombre}</div>
