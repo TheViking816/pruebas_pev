@@ -8,7 +8,7 @@
  * También cachea recursos de Supabase y sus APIs.
  */
 
-const CACHE_NAME = 'estiba-vlc-v15'; // Actualizado: fix viewport foro en navegador móvil
+const CACHE_NAME = 'estiba-vlc-v16'; // Actualizado: fix redirect notificaciones a dominio Vercel
 
 // Recursos locales que SIEMPRE deben cachearse (fallarán la instalación si no existen)
 const localResources = [
@@ -279,9 +279,12 @@ self.addEventListener('notificationclick', (event) => {
   // Abre una nueva ventana o enfoca una existente
   event.waitUntil(
     clients.matchAll({ type: 'window', includeUncontrolled: true }).then((clientList) => {
-      // Si ya hay una ventana abierta a tu dominio, intenta enfocarla
+      // Dominio de producción
+      const PRODUCTION_DOMAIN = 'https://portal-estiba-vlc.vercel.app';
+
+      // Si hay una ventana abierta en el dominio de producción, enfocarla y navegar
       for (const client of clientList) {
-        if (client.url.startsWith(self.location.origin) && 'focus' in client) {
+        if (client.url.startsWith(PRODUCTION_DOMAIN) && 'focus' in client) {
           // Enviar mensaje al cliente para que navegue a la página correcta
           client.postMessage({
             type: 'NAVIGATE_TO_PAGE',
@@ -290,8 +293,10 @@ self.addEventListener('notificationclick', (event) => {
           return client.focus(); // Enfoca la ventana existente
         }
       }
-      // Si no hay ninguna ventana abierta, abre una nueva con el query parameter
-      return clients.openWindow(targetUrl);
+      // Si no hay ninguna ventana abierta en producción, abrir con URL completa
+      // Asegurarse de que targetUrl tenga el dominio completo
+      const fullUrl = targetUrl.startsWith('http') ? targetUrl : `${PRODUCTION_DOMAIN}${targetUrl}`;
+      return clients.openWindow(fullUrl);
     })
   );
 });
