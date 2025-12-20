@@ -763,21 +763,21 @@
           <h3 class="section-title" style="font-size: 1rem; margin-bottom: 1rem;">Datos Cargados</h3>
 
           <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 0.75rem; margin-bottom: 1rem;">
-            <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 1rem; border-radius: 0.75rem; color: white;">
-              <div style="font-size: 0.75rem; opacity: 0.9; margin-bottom: 0.25rem;">Fijos Disponibles</div>
-              <div style="font-size: 1.5rem; font-weight: 700;" id="summary-fijos">-</div>
+            <div style="background: var(--bg-card); border: 2px solid var(--puerto-teal); padding: 1rem; border-radius: 0.75rem;">
+              <div style="font-size: 0.7rem; color: var(--text-secondary); margin-bottom: 0.25rem;">Fijos Disponibles</div>
+              <div style="font-size: 1.5rem; font-weight: 700; color: var(--puerto-teal);" id="summary-fijos">-</div>
             </div>
-            <div style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); padding: 1rem; border-radius: 0.75rem; color: white;">
-              <div style="font-size: 0.75rem; opacity: 0.9; margin-bottom: 0.25rem;">Mañana (08-14)</div>
-              <div style="font-size: 1.5rem; font-weight: 700;"><span id="summary-g1">-</span>G / <span id="summary-c1">-</span>C</div>
+            <div style="background: var(--bg-card); border: 2px solid var(--puerto-yellow); padding: 1rem; border-radius: 0.75rem;">
+              <div style="font-size: 0.7rem; color: var(--text-secondary); margin-bottom: 0.25rem;">Mañana (08-14)</div>
+              <div style="font-size: 1.5rem; font-weight: 700; color: var(--puerto-yellow);"><span id="summary-g1">-</span>G / <span id="summary-c1">-</span>C</div>
             </div>
-            <div style="background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%); padding: 1rem; border-radius: 0.75rem; color: white;">
-              <div style="font-size: 0.75rem; opacity: 0.9; margin-bottom: 0.25rem;">Tarde (14-20)</div>
-              <div style="font-size: 1.5rem; font-weight: 700;"><span id="summary-g2">-</span>G / <span id="summary-c2">-</span>C</div>
+            <div style="background: var(--bg-card); border: 2px solid var(--puerto-blue-light); padding: 1rem; border-radius: 0.75rem;">
+              <div style="font-size: 0.7rem; color: var(--text-secondary); margin-bottom: 0.25rem;">Tarde (14-20)</div>
+              <div style="font-size: 1.5rem; font-weight: 700; color: var(--puerto-blue-light);"><span id="summary-g2">-</span>G / <span id="summary-c2">-</span>C</div>
             </div>
-            <div style="background: linear-gradient(135deg, #fa709a 0%, #fee140 100%); padding: 1rem; border-radius: 0.75rem; color: white;">
-              <div style="font-size: 0.75rem; opacity: 0.9; margin-bottom: 0.25rem;">Noche (20-02)</div>
-              <div style="font-size: 1.5rem; font-weight: 700;"><span id="summary-g3">-</span>G / <span id="summary-c3">-</span>C</div>
+            <div style="background: var(--bg-card); border: 2px solid var(--puerto-orange); padding: 1rem; border-radius: 0.75rem;">
+              <div style="font-size: 0.7rem; color: var(--text-secondary); margin-bottom: 0.25rem;">Noche (20-02)</div>
+              <div style="font-size: 1.5rem; font-weight: 700; color: var(--puerto-orange);"><span id="summary-g3">-</span>G / <span id="summary-c3">-</span>C</div>
             </div>
           </div>
 
@@ -812,8 +812,9 @@
     </section>
 
     <!-- Modal para Edición Manual de Datos -->
-    <div id="oracle-manual-modal" class="modal" style="display: none;">
-      <div class="modal-content" style="max-width: 500px; max-height: 90vh; overflow-y: auto;">
+    <div id="oracle-manual-modal" onclick="if(event.target === this) closeOracleManualModal()" style="display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0, 0, 0, 0.7); z-index: 10000; overflow-y: auto; padding: 1rem;">
+      <div style="min-height: 100%; display: flex; align-items: center; justify-content: center;" onclick="event.stopPropagation()">
+        <div class="modal-content" style="max-width: 500px; width: 100%; margin: auto;">
         <div class="modal-header">
           <h3 style="margin: 0;">✏️ Ajustar Datos Manualmente</h3>
           <button onclick="closeOracleManualModal()" class="modal-close">&times;</button>
@@ -917,6 +918,7 @@
               ✅ Guardar Cambios
             </button>
           </div>
+        </div>
         </div>
       </div>
     </div>

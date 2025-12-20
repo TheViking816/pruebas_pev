@@ -8710,7 +8710,7 @@ window.updateOracleSummary = function() {
 window.openOracleManualModal = function() {
   const modal = document.getElementById('oracle-manual-modal');
   if (modal) {
-    modal.style.display = 'flex';
+    modal.style.display = 'block';
     document.body.style.overflow = 'hidden';
   }
 };
