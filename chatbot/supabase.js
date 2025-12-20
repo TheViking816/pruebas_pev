@@ -295,7 +295,17 @@ function convertirFechaEspañolAISO(fechaEspañol) {
 
   // Convertir español a ISO
   if (fechaEspañol.includes('/')) {
-    const [day, month, year] = fechaEspañol.split('/');
+    let [day, month, year] = fechaEspañol.split('/');
+
+    // Manejar años de 2 dígitos (ej: 25 → 2025)
+    if (year.length === 2) {
+      year = '20' + year;
+    }
+
+    // Asegurar formato con ceros a la izquierda
+    day = day.padStart(2, '0');
+    month = month.padStart(2, '0');
+
     return `${year}-${month}-${day}`;
   }
 

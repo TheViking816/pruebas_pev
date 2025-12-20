@@ -315,7 +315,17 @@ function convertirFechaEspañolAISO(fechaEspañol) {
 
   // Convertir español a ISO
   if (fechaEspañol.includes('/')) {
-    const [day, month, year] = fechaEspañol.split('/');
+    let [day, month, year] = fechaEspañol.split('/');
+
+    // Manejar años de 2 dígitos (ej: 25 → 2025)
+    if (year.length === 2) {
+      year = '20' + year;
+    }
+
+    // Asegurar formato con ceros a la izquierda
+    day = day.padStart(2, '0');
+    month = month.padStart(2, '0');
+
     return `${year}-${month}-${day}`;
   }
 
@@ -701,11 +711,14 @@ async function syncTablonActualFromCSV() {
           const fechaISO = convertirFechaEspañolAISO(fecha);
           if (!fechaISO || fechaISO === fecha) return;
 
+          // Normalizar jornada: "14 a 20" → "14-20"
+          const jornadaNormalizada = jornada.replace(/\s+a\s+/g, '-').replace(/\s+/g, '').trim();
+
           const registro = {
             fecha: fechaISO,
             chapa: chapa.trim(),
             puesto: nombrePuesto,
-            jornada: jornada,
+            jornada: jornadaNormalizada,
             empresa: empresa,
             buque: buque,
             parte: parte

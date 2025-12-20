@@ -1951,7 +1951,57 @@ async function mostrarChapasDelParte(parteInfo) {
 
   // Actualizar título
   titulo.textContent = `Parte ${parteInfo.parte}`;
-  subtitulo.textContent = `${parteInfo.empresa} • ${parteInfo.buque} • ${parteInfo.fecha} • ${parteInfo.jornada}`;
+
+  // Función para normalizar nombre de barco (misma lógica que el tablón)
+  const normalizarNombreBarco = (nombreBarco) => {
+    return nombreBarco
+      .toLowerCase()
+      .normalize('NFD').replace(/[\u0300-\u036f]/g, '') // Eliminar acentos
+      .replace(/[^a-z0-9]+/g, '-') // Reemplazar caracteres especiales por guiones
+      .replace(/^-+|-+$/g, ''); // Eliminar guiones al inicio/final
+  };
+
+  // Añadir imagen del barco
+  let imagenBarco, imagenFallback;
+
+  if (parteInfo.buque && parteInfo.buque !== '--' && parteInfo.buque !== '—') {
+    // Barco real: buscar imagen personalizada
+    const nombreArchivo = normalizarNombreBarco(parteInfo.buque);
+    imagenBarco = `assets/barcos/${nombreArchivo}.jpg`;
+    imagenFallback = 'https://i.imgur.com/guKCoFy.jpeg'; // Imagen genérica de barco
+  } else {
+    // Sin barco (Trincadores o R/E): usar imagen según puesto
+    const esTrincador = parteInfo.puesto && parteInfo.puesto.toLowerCase().includes('trincador');
+    imagenBarco = esTrincador
+      ? 'https://images.unsplash.com/photo-1578575437130-527eed3abbec?w=400&h=300&fit=crop' // Trincadores
+      : 'https://i.imgur.com/d4sdfOn.jpeg'; // R/E
+    imagenFallback = imagenBarco;
+  }
+
+  subtitulo.innerHTML = `
+    <div style="display: flex; align-items: center; gap: 1rem; flex-wrap: wrap;">
+      <img id="modal-barco-img" src="${imagenBarco}" alt="${parteInfo.buque}"
+           style="width: 80px; height: 60px; object-fit: cover; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); cursor: pointer;"
+           onerror="this.src='${imagenFallback}'">
+      <div>
+        <div style="font-weight: 600; color: var(--puerto-blue);">${parteInfo.buque}</div>
+        <div style="font-size: 0.9rem; color: #666;">${parteInfo.empresa} • ${parteInfo.fecha} • ${parteInfo.jornada}</div>
+      </div>
+    </div>
+  `;
+
+  // Hacer la imagen clicable para ampliarla
+  const imgElement = document.getElementById('modal-barco-img');
+  if (imgElement) {
+    imgElement.addEventListener('click', (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      const src = imgElement.currentSrc || imgElement.src;
+      if (typeof window.openShipImageModal === 'function') {
+        window.openShipImageModal(src, parteInfo.buque);
+      }
+    });
+  }
 
   try {
     console.log('🔍 Buscando chapas para el parte desde Supabase:', parteInfo.parte);
@@ -2038,9 +2088,11 @@ async function mostrarChapasDelParte(parteInfo) {
       chapas.forEach(chapa => {
         const badge = document.createElement('div');
         badge.className = 'chapa-badge';
+        // Estilos inline para hacer las chapas más pequeñas (como en el tablón)
+        badge.style.padding = '0.5rem';
+        badge.style.minWidth = '60px';
         badge.innerHTML = `
-          <div class="chapa-numero">${chapa}</div>
-          <div class="chapa-label">Chapa</div>
+          <div class="chapa-numero" style="font-size: 1.25rem;">${chapa}</div>
         `;
         grid.appendChild(badge);
       });
@@ -3320,20 +3372,28 @@ async function loadTablon(options = {}) {
       }
     }
 
-    // 3. Agrupar por jornada → empresa → [barcos | trincadores | re] → especialidad
+    // 3. Agrupar por fecha+jornada → empresa → [barcos | trincadores | re] → especialidad
     const jornadasMap = {};
 
     contrataciones.forEach(item => {
       const jornada = item.jornada || 'Sin jornada';
+      const fecha = item.fecha || '';
       const empresa = item.empresa || 'Sin empresa';
       const buque = item.buque || 'Sin barco';
       const especialidad = item.puesto || 'Sin especialidad';
 
-      if (!jornadasMap[jornada]) {
-        jornadasMap[jornada] = {};
+      // Crear clave única: fecha + jornada para separar días diferentes
+      const claveJornadaFecha = `${fecha}|${jornada}`;
+
+      if (!jornadasMap[claveJornadaFecha]) {
+        jornadasMap[claveJornadaFecha] = {
+          fecha: fecha,
+          jornada: jornada,
+          empresas: {}
+        };
       }
-      if (!jornadasMap[jornada][empresa]) {
-        jornadasMap[jornada][empresa] = {
+      if (!jornadasMap[claveJornadaFecha].empresas[empresa]) {
+        jornadasMap[claveJornadaFecha].empresas[empresa] = {
           barcos: {},       // Barcos reales (buque != "--")
           trincadores: {},  // Trincadores sin barco (buque = "--" y puesto = "Trincador")
           re: {}            // Personal OC/R/E sin barco (buque = "--" y puesto != "Trincador")
@@ -3345,26 +3405,26 @@ async function loadTablon(options = {}) {
         // Sin barco asignado
         if (especialidad.toLowerCase().includes('trincador')) {
           // Grupo especial: Trincadores
-          if (!jornadasMap[jornada][empresa].trincadores[especialidad]) {
-            jornadasMap[jornada][empresa].trincadores[especialidad] = [];
+          if (!jornadasMap[claveJornadaFecha].empresas[empresa].trincadores[especialidad]) {
+            jornadasMap[claveJornadaFecha].empresas[empresa].trincadores[especialidad] = [];
           }
-          jornadasMap[jornada][empresa].trincadores[especialidad].push(item);
+          jornadasMap[claveJornadaFecha].empresas[empresa].trincadores[especialidad].push(item);
         } else {
           // Grupo especial: R/E (personal OC)
-          if (!jornadasMap[jornada][empresa].re[especialidad]) {
-            jornadasMap[jornada][empresa].re[especialidad] = [];
+          if (!jornadasMap[claveJornadaFecha].empresas[empresa].re[especialidad]) {
+            jornadasMap[claveJornadaFecha].empresas[empresa].re[especialidad] = [];
           }
-          jornadasMap[jornada][empresa].re[especialidad].push(item);
+          jornadasMap[claveJornadaFecha].empresas[empresa].re[especialidad].push(item);
         }
       } else {
         // Barco real
-        if (!jornadasMap[jornada][empresa].barcos[buque]) {
-          jornadasMap[jornada][empresa].barcos[buque] = {};
+        if (!jornadasMap[claveJornadaFecha].empresas[empresa].barcos[buque]) {
+          jornadasMap[claveJornadaFecha].empresas[empresa].barcos[buque] = {};
         }
-        if (!jornadasMap[jornada][empresa].barcos[buque][especialidad]) {
-          jornadasMap[jornada][empresa].barcos[buque][especialidad] = [];
+        if (!jornadasMap[claveJornadaFecha].empresas[empresa].barcos[buque][especialidad]) {
+          jornadasMap[claveJornadaFecha].empresas[empresa].barcos[buque][especialidad] = [];
         }
-        jornadasMap[jornada][empresa].barcos[buque][especialidad].push(item);
+        jornadasMap[claveJornadaFecha].empresas[empresa].barcos[buque][especialidad].push(item);
       }
     });
 
@@ -3374,21 +3434,12 @@ async function loadTablon(options = {}) {
     const totalBarcos = new Set(contrataciones.map(c => c.buque)).size;
     const totalEspecialidades = new Set(contrataciones.map(c => c.puesto)).size;
 
-    // 4.1. Crear mapa de jornadas con su fecha más antigua para ordenamiento cronológico
-    const jornadaFechaMap = {};
-    contrataciones.forEach(item => {
-      const jornada = item.jornada || 'Sin jornada';
-      const fecha = item.fecha;
-      if (!jornadaFechaMap[jornada] || fecha < jornadaFechaMap[jornada]) {
-        jornadaFechaMap[jornada] = fecha;
-      }
-    });
-
-    // 4.2. Función para ordenar jornadas cronológicamente
-    const ordenarJornadasCronologicamente = (jornadas) => {
-      return jornadas.sort((a, b) => {
-        const fechaA = jornadaFechaMap[a];
-        const fechaB = jornadaFechaMap[b];
+    // 4.1. Función para ordenar jornadas cronológicamente (ahora con claves compuestas fecha|jornada)
+    const ordenarJornadasCronologicamente = (clavesCompuestas) => {
+      return clavesCompuestas.sort((a, b) => {
+        // Extraer fecha y jornada de cada clave compuesta
+        const [fechaA, jornadaA] = a.split('|');
+        const [fechaB, jornadaB] = b.split('|');
 
         // Primero ordenar por fecha
         if (fechaA !== fechaB) {
@@ -3396,8 +3447,8 @@ async function loadTablon(options = {}) {
         }
 
         // Si la fecha es la misma, ordenar por hora de inicio de la jornada
-        const horaInicioA = parseInt(a.split(' ')[0]);
-        const horaInicioB = parseInt(b.split(' ')[0]);
+        const horaInicioA = parseInt(jornadaA.split('-')[0]);
+        const horaInicioB = parseInt(jornadaB.split('-')[0]);
 
         // Las jornadas nocturnas (>= 12) van antes que las de madrugada (< 12)
         const esNocturnaA = horaInicioA >= 12;
@@ -3410,6 +3461,15 @@ async function loadTablon(options = {}) {
       });
     };
 
+    // 4.2. Función para formatear fecha en español (para mostrar en las tabs)
+    const formatearFechaEspanol = (fechaISO) => {
+      if (!fechaISO) return '';
+      const [year, month, day] = fechaISO.split('-');
+      const fecha = new Date(year, month - 1, day);
+      const dias = ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'];
+      return `${dias[fecha.getDay()]} ${day}/${month}`;
+    };
+
     // 5. Crear tabs de jornadas
     let jornadaActual = ordenarJornadasCronologicamente(Object.keys(jornadasMap))[0]; // Primera jornada cronológica por defecto
 
@@ -3419,8 +3479,12 @@ async function loadTablon(options = {}) {
       jornadasTabsContainer.className = 'tablon-jornadas-tabs';
       jornadasTabsContainer.innerHTML = '';
 
-      ordenarJornadasCronologicamente(Object.keys(jornadasMap)).forEach(jornada => {
-        const chapasEnJornada = Object.values(jornadasMap[jornada]).reduce((sum, empresaData) => {
+      ordenarJornadasCronologicamente(Object.keys(jornadasMap)).forEach(claveCompuesta => {
+        const jornadaData = jornadasMap[claveCompuesta];
+        const [fecha, jornada] = claveCompuesta.split('|');
+
+        // Contar chapas en esta jornada específica
+        const chapasEnJornada = Object.values(jornadaData.empresas).reduce((sum, empresaData) => {
           // Contar chapas en barcos
           const chapasBarcos = Object.values(empresaData.barcos).reduce((s, buque) => {
             return s + Object.values(buque).reduce((ss, especialidades) => {
@@ -3442,15 +3506,19 @@ async function loadTablon(options = {}) {
         }, 0);
 
         const tab = document.createElement('div');
-        tab.className = `tablon-jornada-tab ${jornada === jornadaActual ? 'active' : ''}`;
+        tab.className = `tablon-jornada-tab ${claveCompuesta === jornadaActual ? 'active' : ''}`;
+
+        // Mostrar jornada con fecha formateada
+        const fechaFormateada = formatearFechaEspanol(fecha);
         tab.innerHTML = `
           <div>${jornada}</div>
+          <div style="font-size: 0.7rem; opacity: 0.8; margin-top: 2px;">${fechaFormateada}</div>
           <div class="tablon-jornada-count">${chapasEnJornada} asignaciones</div>
         `;
         tab.onclick = () => {
-          jornadaActual = jornada;
+          jornadaActual = claveCompuesta;
           renderJornadasTabs();
-          renderTablonParaJornada(jornada);
+          renderTablonParaJornada(claveCompuesta);
         };
         jornadasTabsContainer.appendChild(tab);
       });
@@ -3495,11 +3563,16 @@ async function loadTablon(options = {}) {
     };
 
     // 6. Función para renderizar tablón para una jornada específica
-    const renderTablonParaJornada = (jornada) => {
+    const renderTablonParaJornada = (claveCompuesta) => {
       container.innerHTML = '';
 
-      const empresasEnJornada = jornadasMap[jornada];
-      if (!empresasEnJornada) return;
+      const jornadaData = jornadasMap[claveCompuesta];
+      if (!jornadaData) return;
+
+      // Extraer fecha y jornada de la clave compuesta
+      const [fecha, jornada] = claveCompuesta.split('|');
+
+      const empresasEnJornada = jornadaData.empresas;
 
       // Actualizar estadísticas para esta jornada
       const chapasJornada = Object.values(empresasEnJornada).reduce((sum, empresaData) => {
