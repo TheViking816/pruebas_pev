@@ -745,63 +745,100 @@
         </div>
       </div>
       <div class="container">
-        <!-- Enlaces Rápidos -->
-        <div class="quick-links-card">
-          <h3 style="color: white; margin-bottom: 1rem;">Consulta los datos oficiales:</h3>
-          <div class="quick-links-buttons">
-            <a href="https://noray.cpevalencia.com/PrevisionDemanda.asp" target="_blank" class="btn-glass">Ver Demanda (Gruas)</a>
-            <a href="https://noray.cpevalencia.com/Chapero.asp" target="_blank" class="btn-glass">Ver Turno (No Contratados)</a>
+        <!-- Estado de Carga Automática -->
+        <div id="oracle-auto-load-status" class="calculator-card" style="margin-bottom: 1rem;">
+          <div style="display: flex; align-items: center; gap: 0.75rem;">
+            <div id="oracle-loading-spinner" class="loading-spinner" style="display: none;"></div>
+            <div style="flex: 1;">
+              <div id="oracle-status-text" style="font-size: 0.9rem; font-weight: 500; color: #64748b;">
+                ⏳ Cargando datos automáticamente...
+              </div>
+              <div id="oracle-status-detail" style="font-size: 0.75rem; color: #94a3b8; margin-top: 0.25rem;"></div>
+            </div>
           </div>
         </div>
 
-        <!-- Formulario con todas las jornadas -->
-        <div class="calculator-card">
-          <h3 class="section-title">Introduce los datos de cada jornada</h3>
+        <!-- Resumen de Datos Cargados -->
+        <div id="oracle-data-summary" class="calculator-card" style="margin-bottom: 1.5rem; display: none;">
+          <h3 class="section-title" style="font-size: 1rem; margin-bottom: 1rem;">Datos Cargados</h3>
 
-          <!-- Botones para cargar datos por separado (evita bloqueo de Cloudflare) -->
-          <div class="calc-form-group" style="margin-bottom: 1.5rem;">
-            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem;">
-              <button id="btn-cargar-prevision" onclick="cargarPrevisionNoray()" class="btn-secondary">
-                📊 Cargar Previsión
-              </button>
-              <button id="btn-cargar-fijos" onclick="cargarFijosNoray()" class="btn-secondary">
-                👥 Cargar Fijos
-              </button>
+          <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 0.75rem; margin-bottom: 1rem;">
+            <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 1rem; border-radius: 0.75rem; color: white;">
+              <div style="font-size: 0.75rem; opacity: 0.9; margin-bottom: 0.25rem;">Fijos Disponibles</div>
+              <div style="font-size: 1.5rem; font-weight: 700;" id="summary-fijos">-</div>
             </div>
-
-            <!-- Mensaje informativo cuando un botón está bloqueado -->
-            <div id="noray-loading-info" style="display: none; font-size: 0.75rem; text-align: center; margin-top: 0.5rem; padding: 0.5rem; background-color: rgba(59, 130, 246, 0.1); border-radius: 0.5rem; color: #3b82f6;">
-              ⏳ Espera a que termine la carga actual antes de usar el otro botón
+            <div style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); padding: 1rem; border-radius: 0.75rem; color: white;">
+              <div style="font-size: 0.75rem; opacity: 0.9; margin-bottom: 0.25rem;">Mañana (08-14)</div>
+              <div style="font-size: 1.5rem; font-weight: 700;"><span id="summary-g1">-</span>G / <span id="summary-c1">-</span>C</div>
             </div>
-
-            <div id="noray-status-prevision" style="display: none; font-size: 0.75rem; text-align: center; margin-top: 0.5rem; color: #4ade80;"></div>
-            <div id="noray-status-fijos" style="display: none; font-size: 0.75rem; text-align: center; margin-top: 0.5rem; color: #4ade80;"></div>
-
-            <p class="help-text" style="margin-top: 0.5rem; font-size: 0.7rem; text-align: center; color: #94a3b8;">
-              ℹ️ Carga los datos de uno en uno para evitar bloqueos de Cloudflare
-            </p>
+            <div style="background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%); padding: 1rem; border-radius: 0.75rem; color: white;">
+              <div style="font-size: 0.75rem; opacity: 0.9; margin-bottom: 0.25rem;">Tarde (14-20)</div>
+              <div style="font-size: 1.5rem; font-weight: 700;"><span id="summary-g2">-</span>G / <span id="summary-c2">-</span>C</div>
+            </div>
+            <div style="background: linear-gradient(135deg, #fa709a 0%, #fee140 100%); padding: 1rem; border-radius: 0.75rem; color: white;">
+              <div style="font-size: 0.75rem; opacity: 0.9; margin-bottom: 0.25rem;">Noche (20-02)</div>
+              <div style="font-size: 1.5rem; font-weight: 700;"><span id="summary-g3">-</span>G / <span id="summary-c3">-</span>C</div>
+            </div>
           </div>
 
-          <!-- Fijos disponibles (comun para todas) -->
-          <div class="calc-form-group">
+          <button onclick="openOracleManualModal()" class="btn-secondary" style="width: 100%; font-size: 0.85rem;">
+            ✏️ Ajustar datos manualmente
+          </button>
+        </div>
+
+        <!-- Botón Principal -->
+        <button id="btn-calcular-probabilidad" class="btn-primary btn-large pulsate" style="width: 100%; margin-bottom: 1.5rem;">
+          ¿Cuándo voy a trabajar?
+        </button>
+
+        <!-- Enlaces Rápidos -->
+        <div class="quick-links-card" style="margin-bottom: 1rem;">
+          <div class="quick-links-buttons">
+            <a href="https://noray.cpevalencia.com/PrevisionDemanda.asp" target="_blank" class="btn-glass">📊 Ver Demanda</a>
+            <a href="https://noray.cpevalencia.com/Chapero.asp" target="_blank" class="btn-glass">👥 Ver Turno</a>
+          </div>
+        </div>
+
+        <!-- Disclaimer -->
+        <div style="margin-bottom: 1.5rem; padding: 1rem; background: rgba(251, 191, 36, 0.1); border-left: 4px solid #fbbf24; border-radius: 8px;">
+          <p style="margin: 0; font-size: 0.85rem; color: #92400e; line-height: 1.5;">
+            <strong>⚠️ Aviso importante:</strong> Los cálculos mostrados son aproximaciones basadas en previsiones y disponibilidad actual. La realidad puede variar debido a factores imprevistos.
+          </p>
+        </div>
+
+        <!-- Resultados -->
+        <div id="calc-resultado" class="calc-resultados-container hidden"></div>
+      </div>
+    </section>
+
+    <!-- Modal para Edición Manual de Datos -->
+    <div id="oracle-manual-modal" class="modal" style="display: none;">
+      <div class="modal-content" style="max-width: 500px; max-height: 90vh; overflow-y: auto;">
+        <div class="modal-header">
+          <h3 style="margin: 0;">✏️ Ajustar Datos Manualmente</h3>
+          <button onclick="closeOracleManualModal()" class="modal-close">&times;</button>
+        </div>
+        <div class="modal-body" style="padding: 1rem;">
+          <!-- Fijos disponibles -->
+          <div class="calc-form-group" style="margin-bottom: 1.5rem;">
             <label>Fijos Disponibles (Chapero)</label>
             <div class="stepper full-width">
               <button class="step-btn minus" onclick="updateStepper('calc-fijos', -5)">-5</button>
               <input type="number" id="calc-fijos" value="100" min="0">
               <button class="step-btn plus" onclick="updateStepper('calc-fijos', 5)">+5</button>
             </div>
-            <p class="help-text">Numero entre parentesis en "no contratado (X)"</p>
+            <p class="help-text" style="margin-top: 0.25rem; font-size: 0.7rem;">Número entre paréntesis en "no contratado (X)"</p>
           </div>
 
           <!-- Jornada Mañana 08-14 -->
-          <div class="jornada-input-card">
+          <div class="jornada-input-card" style="margin-bottom: 1rem;">
             <div class="jornada-header">
               <span class="jornada-badge manana">08:00 - 14:00</span>
-              <span class="jornada-label">Manana</span>
+              <span class="jornada-label">Mañana</span>
             </div>
             <div class="calc-grid">
               <div class="calc-input-wrapper">
-                <label>Gruas</label>
+                <label>Grúas</label>
                 <div class="stepper">
                   <button class="step-btn minus" onclick="updateStepper('calc-gruas-1', -1)">-</button>
                   <input type="number" id="calc-gruas-1" value="0" min="0">
@@ -820,14 +857,14 @@
           </div>
 
           <!-- Jornada Tarde 14-20 -->
-          <div class="jornada-input-card">
+          <div class="jornada-input-card" style="margin-bottom: 1rem;">
             <div class="jornada-header">
               <span class="jornada-badge tarde">14:00 - 20:00</span>
               <span class="jornada-label">Tarde</span>
             </div>
             <div class="calc-grid">
               <div class="calc-input-wrapper">
-                <label>Gruas</label>
+                <label>Grúas</label>
                 <div class="stepper">
                   <button class="step-btn minus" onclick="updateStepper('calc-gruas-2', -1)">-</button>
                   <input type="number" id="calc-gruas-2" value="0" min="0">
@@ -846,14 +883,14 @@
           </div>
 
           <!-- Jornada Noche 20-02 -->
-          <div class="jornada-input-card">
+          <div class="jornada-input-card" style="margin-bottom: 1rem;">
             <div class="jornada-header">
               <span class="jornada-badge noche">20:00 - 02:00</span>
               <span class="jornada-label">Noche</span>
             </div>
             <div class="calc-grid">
               <div class="calc-input-wrapper">
-                <label>Gruas</label>
+                <label>Grúas</label>
                 <div class="stepper">
                   <button class="step-btn minus" onclick="updateStepper('calc-gruas-3', -1)">-</button>
                   <input type="number" id="calc-gruas-3" value="0" min="0">
@@ -871,28 +908,18 @@
             </div>
           </div>
 
-          <button id="btn-calcular-probabilidad" class="btn-primary btn-large pulsate" style="margin-top: 2rem;">
-            ¿Cuándo voy a trabajar?
-          </button>
-
-      <!-- Disclaimer -->
-             <div style="margin-top: 1.5rem; padding: 1rem; background: rgba(251, 191, 36, 0.1);
-       border-left: 4px solid #fbbf24; border-radius: 8px;">
-                    <p style="margin: 0; font-size: 0.85rem; color: #92400e; line-height: 1.5;">
-                      <strong>⚠️ Aviso importante:</strong> Los cálculos mostrados son aproximaciones
-       basadas en previsiones y disponibilidad actual.
-                     La realidad puede variar debido a factores imprevistos como cambios de última hora,
-        ausencias no programadas o variaciones en la demanda.
-                    Usa esta herramienta como referencia orientativa.
-                 </p>
-            </div>
-
+          <!-- Botones de Acción -->
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem; margin-top: 1rem;">
+            <button onclick="reloadOracleData()" class="btn-secondary" style="padding: 0.75rem;">
+              🔄 Recargar Automático
+            </button>
+            <button onclick="saveManualOracleData()" class="btn-primary" style="padding: 0.75rem;">
+              ✅ Guardar Cambios
+            </button>
+          </div>
         </div>
-
-        <!-- Resultados -->
-        <div id="calc-resultado" class="calc-resultados-container hidden"></div>
       </div>
-    </section>
+    </div>
 
     <!-- INICIO DE LA SECCIÓN AÑADIDA: PÁGINA PARA GESTIONAR NOTIFICACIONES PUSH -->
     <section id="page-push-notifications" class="page">

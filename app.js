@@ -8550,6 +8550,234 @@ window.cargarFijosNoray = async function() {
 };
 
 // ============================================================================
+// FUNCIONES PARA DISEÑO COMPACTO DEL ORÁCULO CON CARGA AUTOMÁTICA
+// ============================================================================
+
+// Función para cargar datos automáticamente de forma secuencial
+window.autoLoadOracleData = async function() {
+  const statusDiv = document.getElementById('oracle-auto-load-status');
+  const statusText = document.getElementById('oracle-status-text');
+  const statusDetail = document.getElementById('oracle-status-detail');
+  const spinner = document.getElementById('oracle-loading-spinner');
+  const summaryDiv = document.getElementById('oracle-data-summary');
+  const btnCalcular = document.getElementById('btn-calcular-probabilidad');
+
+  if (spinner) spinner.style.display = 'block';
+
+  let previsionSuccess = false;
+  let fijosSuccess = false;
+
+  try {
+    // PASO 1: Cargar Previsión
+    if (statusText) statusText.textContent = '⏳ Cargando previsión de demanda...';
+    if (statusDetail) statusDetail.textContent = 'Consultando datos de grúas y coches...';
+
+    console.log('📊 Auto-cargando previsión...');
+    const previsionUrl = 'https://noray-scraper.onrender.com/api/prevision?t=' + Date.now();
+    const previsionResponse = await fetch(previsionUrl, {
+      cache: 'no-store',
+      headers: {
+        'Cache-Control': 'no-cache, no-store, must-revalidate',
+        'Pragma': 'no-cache',
+        'Expires': '0'
+      }
+    });
+    const previsionData = await previsionResponse.json();
+
+    if (previsionData.success && previsionData.demandas) {
+      console.log('✅ Previsión auto-cargada:', previsionData.demandas);
+
+      // Rellenar gruas y coches por jornada
+      if (previsionData.demandas['08-14']) {
+        const gruas1 = document.getElementById('calc-gruas-1');
+        const coches1 = document.getElementById('calc-coches-1');
+        if (gruas1) gruas1.value = previsionData.demandas['08-14'].gruas || 0;
+        if (coches1) coches1.value = previsionData.demandas['08-14'].coches || 0;
+      }
+      if (previsionData.demandas['14-20']) {
+        const gruas2 = document.getElementById('calc-gruas-2');
+        const coches2 = document.getElementById('calc-coches-2');
+        if (gruas2) gruas2.value = previsionData.demandas['14-20'].gruas || 0;
+        if (coches2) coches2.value = previsionData.demandas['14-20'].coches || 0;
+      }
+      if (previsionData.demandas['20-02']) {
+        const gruas3 = document.getElementById('calc-gruas-3');
+        const coches3 = document.getElementById('calc-coches-3');
+        if (gruas3) gruas3.value = previsionData.demandas['20-02'].gruas || 0;
+        if (coches3) coches3.value = previsionData.demandas['20-02'].coches || 0;
+      }
+
+      previsionSuccess = true;
+    }
+
+    // Pequeña pausa entre peticiones para evitar Cloudflare
+    await new Promise(resolve => setTimeout(resolve, 1000));
+
+    // PASO 2: Cargar Fijos
+    if (statusText) statusText.textContent = '⏳ Cargando fijos disponibles...';
+    if (statusDetail) statusDetail.textContent = 'Consultando trabajadores no contratados...';
+
+    console.log('👥 Auto-cargando fijos...');
+    const fijosUrl = 'https://noray-scraper.onrender.com/api/chapero?t=' + Date.now();
+    const fijosResponse = await fetch(fijosUrl, {
+      cache: 'no-store',
+      headers: {
+        'Cache-Control': 'no-cache, no-store, must-revalidate',
+        'Pragma': 'no-cache',
+        'Expires': '0'
+      }
+    });
+    const fijosData = await fijosResponse.json();
+
+    if (fijosData.success && fijosData.fijos !== undefined) {
+      console.log('✅ Fijos auto-cargados:', fijosData.fijos);
+
+      const fijosInput = document.getElementById('calc-fijos');
+      if (fijosInput) {
+        fijosInput.value = fijosData.fijos;
+      }
+
+      fijosSuccess = true;
+    }
+
+    // PASO 3: Mostrar resultado de la carga
+    if (previsionSuccess && fijosSuccess) {
+      if (statusText) statusText.textContent = '✅ Datos cargados correctamente';
+      if (statusDetail) statusDetail.textContent = 'Ya puedes calcular tu predicción';
+      if (statusDiv) {
+        statusDiv.style.background = 'rgba(74, 222, 128, 0.1)';
+        statusDiv.style.borderLeft = '3px solid #4ade80';
+      }
+
+      // Actualizar resumen y mostrarlo
+      updateOracleSummary();
+      if (summaryDiv) summaryDiv.style.display = 'block';
+
+      // Ocultar el status después de 2 segundos
+      setTimeout(() => {
+        if (statusDiv) statusDiv.style.display = 'none';
+      }, 2000);
+
+    } else {
+      throw new Error('No se pudieron cargar todos los datos');
+    }
+
+  } catch (error) {
+    console.error('❌ Error en auto-carga:', error);
+    if (statusText) statusText.textContent = '⚠️ Error al cargar datos automáticamente';
+    if (statusDetail) statusDetail.innerHTML = 'Puedes <button onclick="reloadOracleData()" class="btn-glass" style="padding: 0.25rem 0.5rem; font-size: 0.75rem; margin: 0 0.25rem;">reintentar</button> o <button onclick="openOracleManualModal()" class="btn-glass" style="padding: 0.25rem 0.5rem; font-size: 0.75rem; margin: 0 0.25rem;">introducir datos manualmente</button>';
+    if (statusDiv) {
+      statusDiv.style.background = 'rgba(251, 146, 60, 0.1)';
+      statusDiv.style.borderLeft = '3px solid #fb923c';
+    }
+  } finally {
+    if (spinner) spinner.style.display = 'none';
+  }
+};
+
+// Función para actualizar el resumen de datos cargados
+window.updateOracleSummary = function() {
+  // Obtener valores de los inputs
+  const fijos = document.getElementById('calc-fijos')?.value || '-';
+  const g1 = document.getElementById('calc-gruas-1')?.value || '-';
+  const c1 = document.getElementById('calc-coches-1')?.value || '-';
+  const g2 = document.getElementById('calc-gruas-2')?.value || '-';
+  const c2 = document.getElementById('calc-coches-2')?.value || '-';
+  const g3 = document.getElementById('calc-gruas-3')?.value || '-';
+  const c3 = document.getElementById('calc-coches-3')?.value || '-';
+
+  // Actualizar valores en las tarjetas de resumen
+  const summaryFijos = document.getElementById('summary-fijos');
+  if (summaryFijos) summaryFijos.textContent = fijos;
+
+  const summaryG1 = document.getElementById('summary-g1');
+  const summaryC1 = document.getElementById('summary-c1');
+  if (summaryG1) summaryG1.textContent = g1;
+  if (summaryC1) summaryC1.textContent = c1;
+
+  const summaryG2 = document.getElementById('summary-g2');
+  const summaryC2 = document.getElementById('summary-c2');
+  if (summaryG2) summaryG2.textContent = g2;
+  if (summaryC2) summaryC2.textContent = c2;
+
+  const summaryG3 = document.getElementById('summary-g3');
+  const summaryC3 = document.getElementById('summary-c3');
+  if (summaryG3) summaryG3.textContent = g3;
+  if (summaryC3) summaryC3.textContent = c3;
+};
+
+// Función para abrir el modal de edición manual
+window.openOracleManualModal = function() {
+  const modal = document.getElementById('oracle-manual-modal');
+  if (modal) {
+    modal.style.display = 'flex';
+    document.body.style.overflow = 'hidden';
+  }
+};
+
+// Función para cerrar el modal de edición manual
+window.closeOracleManualModal = function() {
+  const modal = document.getElementById('oracle-manual-modal');
+  if (modal) {
+    modal.style.display = 'none';
+    document.body.style.overflow = '';
+  }
+};
+
+// Función para guardar cambios manuales
+window.saveManualOracleData = function() {
+  // Actualizar el resumen con los nuevos valores
+  updateOracleSummary();
+
+  // Mostrar el resumen
+  const summaryDiv = document.getElementById('oracle-data-summary');
+  if (summaryDiv) summaryDiv.style.display = 'block';
+
+  // Actualizar el estado de carga
+  const statusDiv = document.getElementById('oracle-auto-load-status');
+  const statusText = document.getElementById('oracle-status-text');
+  const statusDetail = document.getElementById('oracle-status-detail');
+
+  if (statusText) statusText.textContent = '✅ Datos actualizados manualmente';
+  if (statusDetail) statusDetail.textContent = 'Ya puedes calcular tu predicción';
+  if (statusDiv) {
+    statusDiv.style.display = 'block';
+    statusDiv.style.background = 'rgba(74, 222, 128, 0.1)';
+    statusDiv.style.borderLeft = '3px solid #4ade80';
+
+    // Ocultar después de 2 segundos
+    setTimeout(() => {
+      statusDiv.style.display = 'none';
+    }, 2000);
+  }
+
+  // Cerrar el modal
+  closeOracleManualModal();
+};
+
+// Función para recargar datos automáticos
+window.reloadOracleData = function() {
+  // Cerrar el modal si está abierto
+  closeOracleManualModal();
+
+  // Mostrar el status de carga y ocultar el resumen
+  const statusDiv = document.getElementById('oracle-auto-load-status');
+  const summaryDiv = document.getElementById('oracle-data-summary');
+
+  if (statusDiv) statusDiv.style.display = 'block';
+  if (summaryDiv) summaryDiv.style.display = 'none';
+
+  // Reiniciar el estado visual
+  if (statusDiv) {
+    statusDiv.style.background = '';
+    statusDiv.style.borderLeft = '';
+  }
+
+  // Iniciar la carga automática
+  autoLoadOracleData();
+};
+
+// ============================================================================
 // FIN NUEVAS FUNCIONES
 // ============================================================================
 
@@ -8627,60 +8855,12 @@ async function loadCalculadora() {
   // ============================================================================
 
   // ============================================================================
-  // AUTO-CARGA DE DATOS DE NORAY AL ABRIR EL ORÁCULO (DESHABILITADO)
+  // AUTO-CARGA DE DATOS DE NORAY AL ABRIR EL ORÁCULO
   // ============================================================================
-  // NOTA: Auto-carga deshabilitada para evitar bloqueos de Cloudflare
-  // Los usuarios ahora deben usar los botones separados "Cargar Previsión" y "Cargar Fijos"
-  // Esto evita que Cloudflare bloquee la segunda navegación en el scraper
-  /*
-  try {
-    console.log('🔄 Auto-cargando datos de Noray desde scraper...');
-    var autoLoadUrl = 'https://noray-scraper.onrender.com/api/all';
-    var autoLoadResponse = await fetch(autoLoadUrl);
-    var autoLoadData = await autoLoadResponse.json();
-
-    if (autoLoadData.success && autoLoadData.demandas) {
-      console.log('✅ Datos de Noray cargados automáticamente:', autoLoadData);
-
-      // Aplicar datos automáticamente a los campos del formulario
-      var demandas = autoLoadData.demandas;
-      var fijos = autoLoadData.fijos || 0;
-
-      // Actualizar campo de fijos
-      var fijosInput = document.getElementById('calc-fijos');
-      if (fijosInput) {
-        fijosInput.value = fijos;
-      }
-
-      // Actualizar demandas de cada jornada (grúas y coches)
-      if (demandas['08-14']) {
-        var gruas1 = document.getElementById('calc-gruas-1');
-        var coches1 = document.getElementById('calc-coches-1');
-        if (gruas1) gruas1.value = demandas['08-14'].gruas || 0;
-        if (coches1) coches1.value = demandas['08-14'].coches || 0;
-      }
-      if (demandas['14-20']) {
-        var gruas2 = document.getElementById('calc-gruas-2');
-        var coches2 = document.getElementById('calc-coches-2');
-        if (gruas2) gruas2.value = demandas['14-20'].gruas || 0;
-        if (coches2) coches2.value = demandas['14-20'].coches || 0;
-      }
-      if (demandas['20-02']) {
-        var gruas3 = document.getElementById('calc-gruas-3');
-        var coches3 = document.getElementById('calc-coches-3');
-        if (gruas3) gruas3.value = demandas['20-02'].gruas || 0;
-        if (coches3) coches3.value = demandas['20-02'].coches || 0;
-      }
-
-      console.log('✅ Datos aplicados automáticamente a los campos del formulario');
-    }
-  } catch (autoLoadError) {
-    console.warn('⚠️ No se pudieron cargar automáticamente los datos de Noray:', autoLoadError.message);
-    // No mostrar error al usuario, solo continuar normalmente
-    // El usuario aún puede usar el botón "Cargar desde Noray" manualmente
+  // Iniciar la carga automática de datos (secuencial para evitar bloqueos de Cloudflare)
+  if (window.autoLoadOracleData) {
+    autoLoadOracleData();
   }
-  */
-  console.log('ℹ️ Auto-carga deshabilitada. Usa los botones "📊 Cargar Previsión" y "👥 Cargar Fijos" por separado.');
   // ============================================================================
 
   // Constantes del censo
@@ -9492,7 +9672,7 @@ async function loadCalculadora() {
           var datos = item.datos;
 
           if (item.sinDatos) {
-            resultadosHTML += '<div class="calc-resultado-item probability-none"><div class="resultado-header"><span class="resultado-jornada">' + datos.jornada.nombre + '</span></div><div class="resultado-mensaje">Sin datos</div><div class="resultado-detalle">Introduce la demanda</div></div>';
+            resultadosHTML += '<div class="calc-resultado-item probability-none" style="padding: 0.75rem;"><div style="display: flex; justify-content: space-between; align-items: center;"><span class="resultado-jornada" style="font-size: 0.9rem; font-weight: 600;">' + datos.jornada.nombre + '</span><span style="font-size: 0.75rem; color: #94a3b8;">Sin datos</span></div></div>';
             continue;
           }
 
@@ -9531,16 +9711,21 @@ async function loadCalculadora() {
             mejorJornada = datos.jornada.nombre;
           }
 
-          // Mostrar info
-          var infoPos = 'Puerta: ' + datos.puertaAntes + ' -> ' + datos.puertaDespues + ' | Tu pos: ' + posUsuarioCalc;
-          // Mostrar (v2) solo si es segunda vuelta del DIA (no solo del censo)
-          if (datos.esSegundaVueltaDia) {
-            infoPos += ' (v2)';
-          }
-          // Redondear distanciaNecesaria para mostrar numero entero de personas
-          infoPos += ' | Faltan: ' + Math.round(datos.distanciaNecesaria);
+          // Crear HTML compacto del resultado
+          var v2Badge = datos.esSegundaVueltaDia ? '<span style="background: rgba(139, 92, 246, 0.2); color: #8b5cf6; padding: 0.125rem 0.375rem; border-radius: 0.25rem; font-size: 0.65rem; font-weight: 600; margin-left: 0.25rem;">2ª V</span>' : '';
 
-          resultadosHTML += '<div class="calc-resultado-item ' + clase + '"><div class="resultado-header"><span class="resultado-jornada">' + datos.jornada.nombre + '</span><span class="resultado-prob">' + probabilidad + '%</span></div><div class="resultado-mensaje">' + mensaje + '</div><div class="resultado-posicion">' + infoPos + ' | Demanda: ' + datos.demandaEventuales + '</div></div>';
+          resultadosHTML += '<div class="calc-resultado-item ' + clase + '" style="padding: 0.75rem; margin-bottom: 0.5rem;">';
+          resultadosHTML += '<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">';
+          resultadosHTML += '<div style="display: flex; align-items: center;"><span class="resultado-jornada" style="font-size: 0.95rem; font-weight: 600;">' + datos.jornada.nombre + '</span>' + v2Badge + '</div>';
+          resultadosHTML += '<div style="display: flex; align-items: center; gap: 0.5rem;"><span class="resultado-mensaje" style="font-size: 0.8rem; color: inherit; opacity: 0.9;">' + mensaje + '</span><span class="resultado-prob" style="font-size: 1.1rem; font-weight: 700;">' + probabilidad + '%</span></div>';
+          resultadosHTML += '</div>';
+          resultadosHTML += '<div style="font-size: 0.7rem; color: rgba(255, 255, 255, 0.7); display: flex; flex-wrap: wrap; gap: 0.75rem;">';
+          resultadosHTML += '<span>🚪 ' + datos.puertaAntes + '→' + datos.puertaDespues + '</span>';
+          resultadosHTML += '<span>👤 Pos: ' + posUsuarioCalc + '</span>';
+          resultadosHTML += '<span>📊 Faltan: ' + Math.round(datos.distanciaNecesaria) + '</span>';
+          resultadosHTML += '<span>🏗️ Dem: ' + datos.demandaEventuales + '</span>';
+          resultadosHTML += '</div>';
+          resultadosHTML += '</div>';
         }
 
         // Calcular probabilidad de no trabajar (ya calculada arriba, convertir a porcentaje)
@@ -9549,18 +9734,32 @@ async function loadCalculadora() {
         // Asegurar que el porcentaje de no trabajar este en rango valido [0, 100]
         probNoTrabajarPct = Math.max(0, Math.min(100, probNoTrabajarPct));
 
-        // Resumen del dia
+        // Resumen del dia compacto
         var resumenMensaje = '';
+        var resumenIcon = '';
         if (mejorProbabilidad >= 35) {
-          resumenMensaje = 'Mejor opcion: ' + mejorJornada + ' (' + mejorProbabilidad + '%)';
+          resumenMensaje = 'Mejor opción: <strong>' + mejorJornada + '</strong> (' + mejorProbabilidad + '%)';
+          resumenIcon = '🎯';
         } else if (mejorProbabilidad >= 15) {
-          resumenMensaje = 'Posibilidades en: ' + mejorJornada + ' (' + mejorProbabilidad + '%)';
+          resumenMensaje = 'Posibilidades en: <strong>' + mejorJornada + '</strong> (' + mejorProbabilidad + '%)';
+          resumenIcon = '🤞';
         } else {
-          resumenMensaje = 'Hoy lo tienes dificil (' + probNoTrabajarPct + '% no trabajar)';
+          resumenMensaje = 'Hoy lo tienes difícil (' + probNoTrabajarPct + '% no trabajar)';
+          resumenIcon = '😔';
         }
 
-        // Mostrar posicion REAL del usuario (no relativa)
-        var resumenHTML = '<div class="calc-resumen-dia"><div class="resumen-titulo">Resumen del dia</div><div class="resumen-mensaje">' + resumenMensaje + '</div><div class="resumen-posicion">Tu posicion: ' + posicionUsuario + ' | Puerta actual: ' + puertaActual + ' | No trabajar: ' + probNoTrabajarPct + '%</div></div>';
+        // HTML compacto del resumen
+        var resumenHTML = '<div class="calc-resumen-dia" style="padding: 1.25rem; margin-bottom: 1rem;">';
+        resumenHTML += '<div style="text-align: center; margin-bottom: 1rem;">';
+        resumenHTML += '<div style="font-size: 3rem; margin-bottom: 0.5rem;">' + resumenIcon + '</div>';
+        resumenHTML += '<div style="font-size: 1.1rem; font-weight: 600; line-height: 1.4;">' + resumenMensaje + '</div>';
+        resumenHTML += '</div>';
+        resumenHTML += '<div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.5rem; font-size: 0.75rem;">';
+        resumenHTML += '<div style="background: rgba(139, 92, 246, 0.15); padding: 0.5rem; border-radius: 0.5rem; text-align: center;"><div style="color: rgba(255, 255, 255, 0.7); font-size: 0.65rem; margin-bottom: 0.125rem;">Tu Posición</div><div style="font-weight: 700; font-size: 0.9rem;">' + posicionUsuario + '</div></div>';
+        resumenHTML += '<div style="background: rgba(59, 130, 246, 0.15); padding: 0.5rem; border-radius: 0.5rem; text-align: center;"><div style="color: rgba(255, 255, 255, 0.7); font-size: 0.65rem; margin-bottom: 0.125rem;">Puerta</div><div style="font-weight: 700; font-size: 0.9rem;">' + puertaActual + '</div></div>';
+        resumenHTML += '<div style="background: rgba(239, 68, 68, 0.15); padding: 0.5rem; border-radius: 0.5rem; text-align: center;"><div style="color: rgba(255, 255, 255, 0.7); font-size: 0.65rem; margin-bottom: 0.125rem;">No Trabajar</div><div style="font-weight: 700; font-size: 0.9rem;">' + probNoTrabajarPct + '%</div></div>';
+        resumenHTML += '</div>';
+        resumenHTML += '</div>';
 
         resultadoDiv.innerHTML = resumenHTML + resultadosHTML;
         resultadoDiv.classList.remove('hidden');

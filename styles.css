@@ -619,6 +619,16 @@ body::before {
   to { transform: rotate(360deg); }
 }
 
+.loading-spinner {
+  width: 20px;
+  height: 20px;
+  border: 2px solid rgba(148, 163, 184, 0.3);
+  border-top-color: var(--puerto-teal);
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+  flex-shrink: 0;
+}
+
 .loading-state p {
   color: var(--text-secondary);
   font-size: 0.95rem;
