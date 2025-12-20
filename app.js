@@ -8550,31 +8550,82 @@ window.cargarFijosNoray = async function() {
 };
 
 // ============================================================================
-// FUNCIONES PARA DISEÑO COMPACTO DEL ORÁCULO CON CARGA AUTOMÁTICA
+// FUNCIONES PARA DISEÑO COMPACTO DEL ORÁCULO CON CARGA MANUAL
 // ============================================================================
 
-// Función para cargar datos automáticamente de forma secuencial
+// Función para iniciar la carga de datos manualmente
+window.startOracleDataLoad = function() {
+  // Ocultar botón de inicio y mostrar sección de carga
+  const startSection = document.getElementById('oracle-start-section');
+  const loadingSection = document.getElementById('oracle-loading-section');
+
+  if (startSection) startSection.style.display = 'none';
+  if (loadingSection) loadingSection.style.display = 'block';
+
+  // Cerrar modal si está abierto
+  closeOracleManualModal();
+
+  // Iniciar carga
+  autoLoadOracleData();
+};
+
+// Función para cargar datos con barra de progreso fluida
 window.autoLoadOracleData = async function() {
-  const statusDiv = document.getElementById('oracle-auto-load-status');
   const statusText = document.getElementById('oracle-status-text');
   const statusDetail = document.getElementById('oracle-status-detail');
-  const spinner = document.getElementById('oracle-loading-spinner');
+  const progressBar = document.getElementById('oracle-progress-bar');
+  const progressText = document.getElementById('oracle-progress-text');
+  const loadingSection = document.getElementById('oracle-loading-section');
   const summaryDiv = document.getElementById('oracle-data-summary');
-  const btnCalcular = document.getElementById('btn-calcular-probabilidad');
-
-  if (spinner) spinner.style.display = 'block';
 
   let previsionSuccess = false;
   let fijosSuccess = false;
+  let currentProgress = 0;
+  let progressInterval = null;
+
+  // Función para animar el progreso suavemente
+  const animateProgress = (targetPercent, duration) => {
+    return new Promise((resolve) => {
+      const startPercent = currentProgress;
+      const diff = targetPercent - startPercent;
+      const startTime = Date.now();
+
+      clearInterval(progressInterval);
+      progressInterval = setInterval(() => {
+        const elapsed = Date.now() - startTime;
+        const progress = Math.min(elapsed / duration, 1);
+
+        currentProgress = startPercent + (diff * progress);
+
+        if (progressBar) progressBar.style.width = currentProgress + '%';
+        if (progressText) progressText.textContent = Math.round(currentProgress) + '%';
+
+        if (progress >= 1) {
+          clearInterval(progressInterval);
+          resolve();
+        }
+      }, 50);
+    });
+  };
+
+  // Función para actualizar progreso con texto
+  const updateProgress = async (percent, text, duration = 1000) => {
+    if (statusDetail) statusDetail.textContent = text;
+    await animateProgress(percent, duration);
+  };
 
   try {
-    // PASO 1: Cargar Previsión
-    if (statusText) statusText.textContent = '⏳ Cargando previsión de demanda...';
-    if (statusDetail) statusDetail.textContent = 'Consultando datos de grúas y coches...';
+    // PASO 1: Inicio (0% - 10%)
+    await updateProgress(5, 'Conectando con Noray...', 500);
+    if (statusText) statusText.textContent = 'Cargando previsión de demanda';
 
-    console.log('📊 Auto-cargando previsión...');
+    console.log('📊 Cargando previsión...');
     const previsionUrl = 'https://noray-scraper.onrender.com/api/prevision?t=' + Date.now();
-    const previsionResponse = await fetch(previsionUrl, {
+
+    await updateProgress(10, 'Consultando datos de demanda...', 500);
+
+    // Iniciar fetch y simular progreso continuo mientras espera (10% - 45%)
+    const previsionPromise = fetch(previsionUrl, {
       cache: 'no-store',
       headers: {
         'Cache-Control': 'no-cache, no-store, must-revalidate',
@@ -8582,10 +8633,16 @@ window.autoLoadOracleData = async function() {
         'Expires': '0'
       }
     });
+
+    // Animar progreso mientras espera respuesta
+    const progressAnimation1 = updateProgress(45, 'Esperando respuesta del servidor...', 8000);
+    const previsionResponse = await Promise.race([previsionPromise, progressAnimation1]).then(() => previsionPromise);
+
+    await updateProgress(48, 'Procesando datos de grúas y coches...', 500);
     const previsionData = await previsionResponse.json();
 
     if (previsionData.success && previsionData.demandas) {
-      console.log('✅ Previsión auto-cargada:', previsionData.demandas);
+      console.log('✅ Previsión cargada:', previsionData.demandas);
 
       // Rellenar gruas y coches por jornada
       if (previsionData.demandas['08-14']) {
@@ -8608,18 +8665,23 @@ window.autoLoadOracleData = async function() {
       }
 
       previsionSuccess = true;
+      await updateProgress(50, 'Previsión cargada correctamente ✓', 800);
     }
 
-    // Pequeña pausa entre peticiones para evitar Cloudflare
-    await new Promise(resolve => setTimeout(resolve, 1000));
+    // Pequeña pausa
+    await new Promise(resolve => setTimeout(resolve, 300));
 
-    // PASO 2: Cargar Fijos
-    if (statusText) statusText.textContent = '⏳ Cargando fijos disponibles...';
-    if (statusDetail) statusDetail.textContent = 'Consultando trabajadores no contratados...';
+    // PASO 2: Cargar Fijos (50% - 100%)
+    await updateProgress(52, 'Conectando con sistema de fijos...', 500);
+    if (statusText) statusText.textContent = 'Cargando fijos disponibles';
 
-    console.log('👥 Auto-cargando fijos...');
+    console.log('👥 Cargando fijos...');
     const fijosUrl = 'https://noray-scraper.onrender.com/api/chapero?t=' + Date.now();
-    const fijosResponse = await fetch(fijosUrl, {
+
+    await updateProgress(55, 'Consultando trabajadores no contratados...', 500);
+
+    // Iniciar fetch y simular progreso continuo mientras espera (55% - 90%)
+    const fijosPromise = fetch(fijosUrl, {
       cache: 'no-store',
       headers: {
         'Cache-Control': 'no-cache, no-store, must-revalidate',
@@ -8627,10 +8689,16 @@ window.autoLoadOracleData = async function() {
         'Expires': '0'
       }
     });
+
+    // Animar progreso mientras espera respuesta
+    const progressAnimation2 = updateProgress(90, 'Esperando respuesta del servidor...', 8000);
+    const fijosResponse = await Promise.race([fijosPromise, progressAnimation2]).then(() => fijosPromise);
+
+    await updateProgress(93, 'Procesando datos de fijos...', 500);
     const fijosData = await fijosResponse.json();
 
     if (fijosData.success && fijosData.fijos !== undefined) {
-      console.log('✅ Fijos auto-cargados:', fijosData.fijos);
+      console.log('✅ Fijos cargados:', fijosData.fijos);
 
       const fijosInput = document.getElementById('calc-fijos');
       if (fijosInput) {
@@ -8638,40 +8706,34 @@ window.autoLoadOracleData = async function() {
       }
 
       fijosSuccess = true;
+      await updateProgress(96, 'Fijos cargados correctamente ✓', 400);
     }
 
-    // PASO 3: Mostrar resultado de la carga
+    // PASO 3: Finalizar
     if (previsionSuccess && fijosSuccess) {
-      if (statusText) statusText.textContent = '✅ Datos cargados correctamente';
-      if (statusDetail) statusDetail.textContent = 'Ya puedes calcular tu predicción';
-      if (statusDiv) {
-        statusDiv.style.background = 'rgba(74, 222, 128, 0.1)';
-        statusDiv.style.borderLeft = '3px solid #4ade80';
-      }
+      await updateProgress(100, '¡Datos cargados con éxito!', 500);
+      if (statusText) statusText.textContent = '✅ Carga completada';
 
       // Actualizar resumen y mostrarlo
       updateOracleSummary();
-      if (summaryDiv) summaryDiv.style.display = 'block';
 
-      // Ocultar el status después de 2 segundos
-      setTimeout(() => {
-        if (statusDiv) statusDiv.style.display = 'none';
-      }, 2000);
+      // Esperar un momento para que se vea el 100%
+      await new Promise(resolve => setTimeout(resolve, 600));
+
+      if (summaryDiv) summaryDiv.style.display = 'block';
+      if (loadingSection) loadingSection.style.display = 'none';
 
     } else {
       throw new Error('No se pudieron cargar todos los datos');
     }
 
   } catch (error) {
-    console.error('❌ Error en auto-carga:', error);
-    if (statusText) statusText.textContent = '⚠️ Error al cargar datos automáticamente';
-    if (statusDetail) statusDetail.innerHTML = 'Puedes <button onclick="reloadOracleData()" class="btn-glass" style="padding: 0.25rem 0.5rem; font-size: 0.75rem; margin: 0 0.25rem;">reintentar</button> o <button onclick="openOracleManualModal()" class="btn-glass" style="padding: 0.25rem 0.5rem; font-size: 0.75rem; margin: 0 0.25rem;">introducir datos manualmente</button>';
-    if (statusDiv) {
-      statusDiv.style.background = 'rgba(251, 146, 60, 0.1)';
-      statusDiv.style.borderLeft = '3px solid #fb923c';
-    }
-  } finally {
-    if (spinner) spinner.style.display = 'none';
+    console.error('❌ Error en carga:', error);
+    clearInterval(progressInterval);
+    if (progressBar) progressBar.style.width = '0%';
+    if (progressText) progressText.textContent = '0%';
+    if (statusText) statusText.textContent = '⚠️ Error en la carga';
+    if (statusDetail) statusDetail.innerHTML = '<button onclick="startOracleDataLoad()" class="btn-glass" style="padding: 0.4rem 0.8rem; font-size: 0.8rem; margin: 0.5rem 0.25rem;">🔄 Reintentar</button><button onclick="openOracleManualModal()" class="btn-glass" style="padding: 0.4rem 0.8rem; font-size: 0.8rem; margin: 0.5rem 0.25rem;">✏️ Introducir manualmente</button>';
   }
 };
 
@@ -8729,52 +8791,24 @@ window.saveManualOracleData = function() {
   // Actualizar el resumen con los nuevos valores
   updateOracleSummary();
 
-  // Mostrar el resumen
+  // Ocultar secciones de inicio y carga
+  const startSection = document.getElementById('oracle-start-section');
+  const loadingSection = document.getElementById('oracle-loading-section');
   const summaryDiv = document.getElementById('oracle-data-summary');
+
+  if (startSection) startSection.style.display = 'none';
+  if (loadingSection) loadingSection.style.display = 'none';
   if (summaryDiv) summaryDiv.style.display = 'block';
-
-  // Actualizar el estado de carga
-  const statusDiv = document.getElementById('oracle-auto-load-status');
-  const statusText = document.getElementById('oracle-status-text');
-  const statusDetail = document.getElementById('oracle-status-detail');
-
-  if (statusText) statusText.textContent = '✅ Datos actualizados manualmente';
-  if (statusDetail) statusDetail.textContent = 'Ya puedes calcular tu predicción';
-  if (statusDiv) {
-    statusDiv.style.display = 'block';
-    statusDiv.style.background = 'rgba(74, 222, 128, 0.1)';
-    statusDiv.style.borderLeft = '3px solid #4ade80';
-
-    // Ocultar después de 2 segundos
-    setTimeout(() => {
-      statusDiv.style.display = 'none';
-    }, 2000);
-  }
 
   // Cerrar el modal
   closeOracleManualModal();
+
+  console.log('✅ Datos manuales guardados');
 };
 
-// Función para recargar datos automáticos
+// Función para recargar datos (simplemente llama a startOracleDataLoad)
 window.reloadOracleData = function() {
-  // Cerrar el modal si está abierto
-  closeOracleManualModal();
-
-  // Mostrar el status de carga y ocultar el resumen
-  const statusDiv = document.getElementById('oracle-auto-load-status');
-  const summaryDiv = document.getElementById('oracle-data-summary');
-
-  if (statusDiv) statusDiv.style.display = 'block';
-  if (summaryDiv) summaryDiv.style.display = 'none';
-
-  // Reiniciar el estado visual
-  if (statusDiv) {
-    statusDiv.style.background = '';
-    statusDiv.style.borderLeft = '';
-  }
-
-  // Iniciar la carga automática
-  autoLoadOracleData();
+  startOracleDataLoad();
 };
 
 // ============================================================================
@@ -8855,12 +8889,10 @@ async function loadCalculadora() {
   // ============================================================================
 
   // ============================================================================
-  // AUTO-CARGA DE DATOS DE NORAY AL ABRIR EL ORÁCULO
+  // CARGA MANUAL DE DATOS (El usuario debe hacer clic en "Cargar Datos")
   // ============================================================================
-  // Iniciar la carga automática de datos (secuencial para evitar bloqueos de Cloudflare)
-  if (window.autoLoadOracleData) {
-    autoLoadOracleData();
-  }
+  // Ya no se carga automáticamente, el usuario inicia la carga manualmente
+  console.log('ℹ️ Esperando a que el usuario inicie la carga de datos...');
   // ============================================================================
 
   // Constantes del censo

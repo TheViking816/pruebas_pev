@@ -745,64 +745,109 @@
         </div>
       </div>
       <div class="container">
-        <!-- Estado de Carga Automática -->
-        <div id="oracle-auto-load-status" class="calculator-card" style="margin-bottom: 1rem;">
-          <div style="display: flex; align-items: center; gap: 0.75rem;">
-            <div id="oracle-loading-spinner" class="loading-spinner" style="display: none;"></div>
-            <div style="flex: 1;">
-              <div id="oracle-status-text" style="font-size: 0.9rem; font-weight: 500; color: #64748b;">
-                ⏳ Cargando datos automáticamente...
-              </div>
-              <div id="oracle-status-detail" style="font-size: 0.75rem; color: #94a3b8; margin-top: 0.25rem;"></div>
+        <!-- Enlaces Rápidos Arriba -->
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem; margin-bottom: 1.5rem;">
+          <a href="https://noray.cpevalencia.com/PrevisionDemanda.asp" target="_blank" style="background: white; border: 2px solid var(--puerto-teal); padding: 0.75rem; font-size: 0.85rem; font-weight: 600; text-align: center; display: flex; align-items: center; justify-content: center; gap: 0.5rem; color: var(--puerto-teal); text-decoration: none; border-radius: 0.75rem; transition: all 0.3s ease; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+            <span style="font-size: 1.2rem;">📊</span> Ver Demanda
+          </a>
+          <a href="https://noray.cpevalencia.com/Chapero.asp" target="_blank" style="background: white; border: 2px solid var(--puerto-blue); padding: 0.75rem; font-size: 0.85rem; font-weight: 600; text-align: center; display: flex; align-items: center; justify-content: center; gap: 0.5rem; color: var(--puerto-blue); text-decoration: none; border-radius: 0.75rem; transition: all 0.3s ease; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+            <span style="font-size: 1.2rem;">👥</span> Ver Turno
+          </a>
+        </div>
+
+        <!-- Botón de Inicio de Carga -->
+        <div id="oracle-start-section" class="calculator-card" style="margin-bottom: 1rem; text-align: center;">
+          <div style="margin-bottom: 1rem;">
+            <div style="font-size: 2.5rem; margin-bottom: 0.5rem;">🔮</div>
+            <h3 style="margin: 0; font-size: 1.1rem; color: var(--text-primary); margin-bottom: 0.5rem;">Consulta tu predicción</h3>
+            <p style="margin: 0; font-size: 0.85rem; color: var(--text-secondary);">Carga los datos de Noray para calcular tus probabilidades</p>
+          </div>
+          <button onclick="startOracleDataLoad()" class="btn-primary" style="padding: 1rem 2rem; font-size: 1rem; font-weight: 600;">
+            🚀 Cargar Datos
+          </button>
+          <div style="margin-top: 1rem;">
+            <button onclick="openOracleManualModal()" class="btn-glass" style="padding: 0.6rem 1.2rem; font-size: 0.85rem; font-weight: 600; color: var(--text-primary);">
+              ✏️ Introducir datos manualmente
+            </button>
+          </div>
+        </div>
+
+        <!-- Estado de Carga con Barra de Progreso -->
+        <div id="oracle-loading-section" class="calculator-card" style="margin-bottom: 1rem; display: none;">
+          <div style="text-align: center; margin-bottom: 1rem;">
+            <div style="font-size: 2rem; margin-bottom: 0.5rem;">⏳</div>
+            <div id="oracle-status-text" style="font-size: 1rem; font-weight: 600; color: var(--text-primary); margin-bottom: 0.25rem;">
+              Cargando datos...
+            </div>
+            <div id="oracle-status-detail" style="font-size: 0.85rem; color: var(--text-secondary);"></div>
+          </div>
+
+          <!-- Barra de Progreso -->
+          <div style="background: var(--border-color); border-radius: 1rem; height: 2rem; overflow: hidden; position: relative; margin-bottom: 0.5rem;">
+            <div id="oracle-progress-bar" style="background: linear-gradient(90deg, var(--puerto-blue) 0%, var(--puerto-teal) 100%); height: 100%; width: 0%; transition: width 0.3s ease; display: flex; align-items: center; justify-content: center; color: white; font-weight: 600; font-size: 0.85rem;">
+              <span id="oracle-progress-text">0%</span>
             </div>
           </div>
         </div>
 
         <!-- Resumen de Datos Cargados -->
-        <div id="oracle-data-summary" class="calculator-card" style="margin-bottom: 1.5rem; display: none;">
-          <h3 class="section-title" style="font-size: 1rem; margin-bottom: 1rem;">Datos Cargados</h3>
+        <div id="oracle-data-summary" style="margin-bottom: 1.5rem; display: none;">
+          <div class="calculator-card" style="padding: 1.25rem; margin-bottom: 1rem;">
+            <div style="text-align: center; margin-bottom: 1.25rem;">
+              <div style="display: inline-flex; align-items: center; gap: 0.5rem; background: linear-gradient(135deg, var(--puerto-blue) 0%, var(--puerto-teal) 100%); color: white; padding: 0.5rem 1rem; border-radius: 2rem; font-size: 0.85rem; font-weight: 600; box-shadow: 0 4px 12px rgba(10, 46, 92, 0.3);">
+                ✅ Datos Cargados
+              </div>
+            </div>
 
-          <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 0.75rem; margin-bottom: 1rem;">
-            <div style="background: var(--bg-card); border: 2px solid var(--puerto-teal); padding: 1rem; border-radius: 0.75rem;">
-              <div style="font-size: 0.7rem; color: var(--text-secondary); margin-bottom: 0.25rem;">Fijos Disponibles</div>
-              <div style="font-size: 1.5rem; font-weight: 700; color: var(--puerto-teal);" id="summary-fijos">-</div>
+            <!-- Fijos Destacado -->
+            <div style="background: linear-gradient(135deg, rgba(20, 184, 166, 0.1) 0%, rgba(16, 185, 129, 0.1) 100%); border: 2px solid var(--puerto-teal); border-radius: 1rem; padding: 1.25rem; margin-bottom: 1rem; text-align: center;">
+              <div style="font-size: 2.5rem; margin-bottom: 0.25rem;">👥</div>
+              <div style="font-size: 0.75rem; color: var(--text-secondary); margin-bottom: 0.5rem; font-weight: 500;">Fijos Disponibles</div>
+              <div style="font-size: 2.5rem; font-weight: 800; color: var(--puerto-teal); line-height: 1;" id="summary-fijos">-</div>
             </div>
-            <div style="background: var(--bg-card); border: 2px solid var(--puerto-yellow); padding: 1rem; border-radius: 0.75rem;">
-              <div style="font-size: 0.7rem; color: var(--text-secondary); margin-bottom: 0.25rem;">Mañana (08-14)</div>
-              <div style="font-size: 1.5rem; font-weight: 700; color: var(--puerto-yellow);"><span id="summary-g1">-</span>G / <span id="summary-c1">-</span>C</div>
+
+            <!-- Jornadas en Grid -->
+            <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.75rem; margin-bottom: 1rem;">
+              <!-- Mañana -->
+              <div style="background: white; border-radius: 0.75rem; padding: 1rem; text-align: center; box-shadow: 0 2px 8px rgba(0,0,0,0.08); border-bottom: 3px solid var(--puerto-yellow);">
+                <div style="font-size: 1.75rem; margin-bottom: 0.25rem;">🌅</div>
+                <div style="font-size: 0.65rem; color: var(--text-secondary); margin-bottom: 0.5rem; font-weight: 600;">MAÑANA</div>
+                <div style="font-size: 0.7rem; color: var(--text-secondary); margin-bottom: 0.25rem;">08-14</div>
+                <div style="font-size: 1.1rem; font-weight: 700; color: var(--puerto-yellow);"><span id="summary-g1">-</span><span style="font-size: 0.7rem;">G</span> / <span id="summary-c1">-</span><span style="font-size: 0.7rem;">C</span></div>
+              </div>
+
+              <!-- Tarde -->
+              <div style="background: white; border-radius: 0.75rem; padding: 1rem; text-align: center; box-shadow: 0 2px 8px rgba(0,0,0,0.08); border-bottom: 3px solid var(--puerto-blue-light);">
+                <div style="font-size: 1.75rem; margin-bottom: 0.25rem;">🌆</div>
+                <div style="font-size: 0.65rem; color: var(--text-secondary); margin-bottom: 0.5rem; font-weight: 600;">TARDE</div>
+                <div style="font-size: 0.7rem; color: var(--text-secondary); margin-bottom: 0.25rem;">14-20</div>
+                <div style="font-size: 1.1rem; font-weight: 700; color: var(--puerto-blue-light);"><span id="summary-g2">-</span><span style="font-size: 0.7rem;">G</span> / <span id="summary-c2">-</span><span style="font-size: 0.7rem;">C</span></div>
+              </div>
+
+              <!-- Noche -->
+              <div style="background: white; border-radius: 0.75rem; padding: 1rem; text-align: center; box-shadow: 0 2px 8px rgba(0,0,0,0.08); border-bottom: 3px solid var(--puerto-orange);">
+                <div style="font-size: 1.75rem; margin-bottom: 0.25rem;">🌙</div>
+                <div style="font-size: 0.65rem; color: var(--text-secondary); margin-bottom: 0.5rem; font-weight: 600;">NOCHE</div>
+                <div style="font-size: 0.7rem; color: var(--text-secondary); margin-bottom: 0.25rem;">20-02</div>
+                <div style="font-size: 1.1rem; font-weight: 700; color: var(--puerto-orange);"><span id="summary-g3">-</span><span style="font-size: 0.7rem;">G</span> / <span id="summary-c3">-</span><span style="font-size: 0.7rem;">C</span></div>
+              </div>
             </div>
-            <div style="background: var(--bg-card); border: 2px solid var(--puerto-blue-light); padding: 1rem; border-radius: 0.75rem;">
-              <div style="font-size: 0.7rem; color: var(--text-secondary); margin-bottom: 0.25rem;">Tarde (14-20)</div>
-              <div style="font-size: 1.5rem; font-weight: 700; color: var(--puerto-blue-light);"><span id="summary-g2">-</span>G / <span id="summary-c2">-</span>C</div>
-            </div>
-            <div style="background: var(--bg-card); border: 2px solid var(--puerto-orange); padding: 1rem; border-radius: 0.75rem;">
-              <div style="font-size: 0.7rem; color: var(--text-secondary); margin-bottom: 0.25rem;">Noche (20-02)</div>
-              <div style="font-size: 1.5rem; font-weight: 700; color: var(--puerto-orange);"><span id="summary-g3">-</span>G / <span id="summary-c3">-</span>C</div>
-            </div>
+
+            <button onclick="openOracleManualModal()" class="btn-secondary" style="width: 100%; font-size: 0.85rem;">
+              ✏️ Ajustar datos manualmente
+            </button>
           </div>
-
-          <button onclick="openOracleManualModal()" class="btn-secondary" style="width: 100%; font-size: 0.85rem;">
-            ✏️ Ajustar datos manualmente
-          </button>
         </div>
 
         <!-- Botón Principal -->
         <button id="btn-calcular-probabilidad" class="btn-primary btn-large pulsate" style="width: 100%; margin-bottom: 1.5rem;">
-          ¿Cuándo voy a trabajar?
+          🎯 ¿Cuándo voy a trabajar?
         </button>
 
-        <!-- Enlaces Rápidos -->
-        <div class="quick-links-card" style="margin-bottom: 1rem;">
-          <div class="quick-links-buttons">
-            <a href="https://noray.cpevalencia.com/PrevisionDemanda.asp" target="_blank" class="btn-glass">📊 Ver Demanda</a>
-            <a href="https://noray.cpevalencia.com/Chapero.asp" target="_blank" class="btn-glass">👥 Ver Turno</a>
-          </div>
-        </div>
-
         <!-- Disclaimer -->
-        <div style="margin-bottom: 1.5rem; padding: 1rem; background: rgba(251, 191, 36, 0.1); border-left: 4px solid #fbbf24; border-radius: 8px;">
-          <p style="margin: 0; font-size: 0.85rem; color: #92400e; line-height: 1.5;">
-            <strong>⚠️ Aviso importante:</strong> Los cálculos mostrados son aproximaciones basadas en previsiones y disponibilidad actual. La realidad puede variar debido a factores imprevistos.
+        <div style="margin-bottom: 1.5rem; padding: 0.75rem 1rem; background: rgba(251, 191, 36, 0.1); border-left: 4px solid #fbbf24; border-radius: 8px;">
+          <p style="margin: 0; font-size: 0.8rem; color: #92400e; line-height: 1.4;">
+            <strong>⚠️</strong> Los cálculos son aproximaciones basadas en previsiones. La realidad puede variar.
           </p>
         </div>
 
@@ -812,110 +857,85 @@
     </section>
 
     <!-- Modal para Edición Manual de Datos -->
-    <div id="oracle-manual-modal" onclick="if(event.target === this) closeOracleManualModal()" style="display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0, 0, 0, 0.7); z-index: 10000; overflow-y: auto; padding: 1rem;">
-      <div style="min-height: 100%; display: flex; align-items: center; justify-content: center;" onclick="event.stopPropagation()">
-        <div class="modal-content" style="max-width: 500px; width: 100%; margin: auto;">
-        <div class="modal-header">
-          <h3 style="margin: 0;">✏️ Ajustar Datos Manualmente</h3>
+    <div id="oracle-manual-modal" onclick="if(event.target === this) closeOracleManualModal()" style="display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0, 0, 0, 0.7); z-index: 10000; overflow-y: auto; padding: 0.5rem;">
+      <div style="min-height: 100%; display: flex; align-items: center; justify-content: center; padding: 1rem 0;" onclick="event.stopPropagation()">
+        <div class="modal-content" style="max-width: 450px; width: 100%; margin: auto;">
+        <div class="modal-header" style="padding: 1rem;">
+          <h3 style="margin: 0; font-size: 1.1rem;">✏️ Introducir Datos</h3>
           <button onclick="closeOracleManualModal()" class="modal-close">&times;</button>
         </div>
-        <div class="modal-body" style="padding: 1rem;">
+        <div class="modal-body" style="padding: 0.75rem 1rem 1rem 1rem;">
           <!-- Fijos disponibles -->
-          <div class="calc-form-group" style="margin-bottom: 1.5rem;">
-            <label>Fijos Disponibles (Chapero)</label>
+          <div style="margin-bottom: 1rem;">
+            <label style="font-size: 0.85rem; font-weight: 600; color: var(--text-primary); margin-bottom: 0.5rem; display: block;">👥 Fijos Disponibles</label>
             <div class="stepper full-width">
               <button class="step-btn minus" onclick="updateStepper('calc-fijos', -5)">-5</button>
-              <input type="number" id="calc-fijos" value="100" min="0">
+              <input type="number" id="calc-fijos" value="100" min="0" style="font-size: 0.95rem;">
               <button class="step-btn plus" onclick="updateStepper('calc-fijos', 5)">+5</button>
             </div>
-            <p class="help-text" style="margin-top: 0.25rem; font-size: 0.7rem;">Número entre paréntesis en "no contratado (X)"</p>
           </div>
 
-          <!-- Jornada Mañana 08-14 -->
-          <div class="jornada-input-card" style="margin-bottom: 1rem;">
-            <div class="jornada-header">
-              <span class="jornada-badge manana">08:00 - 14:00</span>
-              <span class="jornada-label">Mañana</span>
-            </div>
-            <div class="calc-grid">
-              <div class="calc-input-wrapper">
-                <label>Grúas</label>
-                <div class="stepper">
-                  <button class="step-btn minus" onclick="updateStepper('calc-gruas-1', -1)">-</button>
-                  <input type="number" id="calc-gruas-1" value="0" min="0">
-                  <button class="step-btn plus" onclick="updateStepper('calc-gruas-1', 1)">+</button>
-                </div>
+          <!-- Jornadas en Grid Compacto -->
+          <div style="display: grid; gap: 0.75rem; margin-bottom: 1rem;">
+            <!-- Mañana -->
+            <div style="background: var(--bg-main); padding: 0.75rem; border-radius: 0.5rem; border: 1px solid var(--border-color);">
+              <div style="font-size: 0.8rem; font-weight: 600; color: var(--puerto-yellow); margin-bottom: 0.5rem; display: flex; align-items: center; gap: 0.5rem;">
+                🌅 Mañana (08-14)
               </div>
-              <div class="calc-input-wrapper">
-                <label>Coches</label>
-                <div class="stepper">
-                  <button class="step-btn minus" onclick="updateStepper('calc-coches-1', -1)">-</button>
-                  <input type="number" id="calc-coches-1" value="0" min="0">
-                  <button class="step-btn plus" onclick="updateStepper('calc-coches-1', 1)">+</button>
+              <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem;">
+                <div>
+                  <label style="font-size: 0.75rem; color: var(--text-secondary); margin-bottom: 0.25rem; display: block;">Grúas</label>
+                  <input type="number" id="calc-gruas-1" value="0" min="0" style="width: 100%; padding: 0.5rem; border: 1px solid var(--border-color); border-radius: 0.375rem; font-size: 0.9rem; text-align: center;">
+                </div>
+                <div>
+                  <label style="font-size: 0.75rem; color: var(--text-secondary); margin-bottom: 0.25rem; display: block;">Coches</label>
+                  <input type="number" id="calc-coches-1" value="0" min="0" style="width: 100%; padding: 0.5rem; border: 1px solid var(--border-color); border-radius: 0.375rem; font-size: 0.9rem; text-align: center;">
                 </div>
               </div>
             </div>
-          </div>
 
-          <!-- Jornada Tarde 14-20 -->
-          <div class="jornada-input-card" style="margin-bottom: 1rem;">
-            <div class="jornada-header">
-              <span class="jornada-badge tarde">14:00 - 20:00</span>
-              <span class="jornada-label">Tarde</span>
-            </div>
-            <div class="calc-grid">
-              <div class="calc-input-wrapper">
-                <label>Grúas</label>
-                <div class="stepper">
-                  <button class="step-btn minus" onclick="updateStepper('calc-gruas-2', -1)">-</button>
-                  <input type="number" id="calc-gruas-2" value="0" min="0">
-                  <button class="step-btn plus" onclick="updateStepper('calc-gruas-2', 1)">+</button>
-                </div>
+            <!-- Tarde -->
+            <div style="background: var(--bg-main); padding: 0.75rem; border-radius: 0.5rem; border: 1px solid var(--border-color);">
+              <div style="font-size: 0.8rem; font-weight: 600; color: var(--puerto-blue-light); margin-bottom: 0.5rem; display: flex; align-items: center; gap: 0.5rem;">
+                🌆 Tarde (14-20)
               </div>
-              <div class="calc-input-wrapper">
-                <label>Coches</label>
-                <div class="stepper">
-                  <button class="step-btn minus" onclick="updateStepper('calc-coches-2', -1)">-</button>
-                  <input type="number" id="calc-coches-2" value="0" min="0">
-                  <button class="step-btn plus" onclick="updateStepper('calc-coches-2', 1)">+</button>
+              <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem;">
+                <div>
+                  <label style="font-size: 0.75rem; color: var(--text-secondary); margin-bottom: 0.25rem; display: block;">Grúas</label>
+                  <input type="number" id="calc-gruas-2" value="0" min="0" style="width: 100%; padding: 0.5rem; border: 1px solid var(--border-color); border-radius: 0.375rem; font-size: 0.9rem; text-align: center;">
+                </div>
+                <div>
+                  <label style="font-size: 0.75rem; color: var(--text-secondary); margin-bottom: 0.25rem; display: block;">Coches</label>
+                  <input type="number" id="calc-coches-2" value="0" min="0" style="width: 100%; padding: 0.5rem; border: 1px solid var(--border-color); border-radius: 0.375rem; font-size: 0.9rem; text-align: center;">
                 </div>
               </div>
             </div>
-          </div>
 
-          <!-- Jornada Noche 20-02 -->
-          <div class="jornada-input-card" style="margin-bottom: 1rem;">
-            <div class="jornada-header">
-              <span class="jornada-badge noche">20:00 - 02:00</span>
-              <span class="jornada-label">Noche</span>
-            </div>
-            <div class="calc-grid">
-              <div class="calc-input-wrapper">
-                <label>Grúas</label>
-                <div class="stepper">
-                  <button class="step-btn minus" onclick="updateStepper('calc-gruas-3', -1)">-</button>
-                  <input type="number" id="calc-gruas-3" value="0" min="0">
-                  <button class="step-btn plus" onclick="updateStepper('calc-gruas-3', 1)">+</button>
-                </div>
+            <!-- Noche -->
+            <div style="background: var(--bg-main); padding: 0.75rem; border-radius: 0.5rem; border: 1px solid var(--border-color);">
+              <div style="font-size: 0.8rem; font-weight: 600; color: var(--puerto-orange); margin-bottom: 0.5rem; display: flex; align-items: center; gap: 0.5rem;">
+                🌙 Noche (20-02)
               </div>
-              <div class="calc-input-wrapper">
-                <label>Coches</label>
-                <div class="stepper">
-                  <button class="step-btn minus" onclick="updateStepper('calc-coches-3', -1)">-</button>
-                  <input type="number" id="calc-coches-3" value="0" min="0">
-                  <button class="step-btn plus" onclick="updateStepper('calc-coches-3', 1)">+</button>
+              <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem;">
+                <div>
+                  <label style="font-size: 0.75rem; color: var(--text-secondary); margin-bottom: 0.25rem; display: block;">Grúas</label>
+                  <input type="number" id="calc-gruas-3" value="0" min="0" style="width: 100%; padding: 0.5rem; border: 1px solid var(--border-color); border-radius: 0.375rem; font-size: 0.9rem; text-align: center;">
+                </div>
+                <div>
+                  <label style="font-size: 0.75rem; color: var(--text-secondary); margin-bottom: 0.25rem; display: block;">Coches</label>
+                  <input type="number" id="calc-coches-3" value="0" min="0" style="width: 100%; padding: 0.5rem; border: 1px solid var(--border-color); border-radius: 0.375rem; font-size: 0.9rem; text-align: center;">
                 </div>
               </div>
             </div>
           </div>
 
           <!-- Botones de Acción -->
-          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem; margin-top: 1rem;">
-            <button onclick="reloadOracleData()" class="btn-secondary" style="padding: 0.75rem;">
-              🔄 Recargar Automático
+          <div style="display: grid; grid-template-columns: 1fr; gap: 0.5rem;">
+            <button onclick="saveManualOracleData()" class="btn-primary" style="padding: 0.85rem; font-size: 0.95rem;">
+              ✅ Guardar y Continuar
             </button>
-            <button onclick="saveManualOracleData()" class="btn-primary" style="padding: 0.75rem;">
-              ✅ Guardar Cambios
+            <button onclick="startOracleDataLoad()" class="btn-secondary" style="padding: 0.75rem; font-size: 0.85rem;">
+              🔄 Cargar desde Noray
             </button>
           </div>
         </div>
