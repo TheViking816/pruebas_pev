@@ -1,4 +1,4 @@
-/**
+﻿/**
  * Componente FeatureLock
  * Bloquea features premium y muestra modal de upgrade
  */
@@ -14,21 +14,21 @@ class FeatureLock {
   }
 
   /**
-   * Verifica si el feature está desbloqueado
+   * Verifica si el feature esta desbloqueado
    */
   async verificarAcceso() {
-    console.log(`🔐 [FeatureLock] Verificando acceso para feature: ${this.featureName}`);
-    console.log(`🔐 [FeatureLock] Chapa desde localStorage: ${this.chapa}`);
+    console.log(`[FeatureLock] Verificando acceso para feature: ${this.featureName}`);
+    console.log(`[FeatureLock] Chapa desde localStorage: ${this.chapa}`);
 
     if (!this.chapa) {
-      console.warn(`⚠️ [FeatureLock] No hay chapa en localStorage, bloqueando feature`);
+      console.warn('[FeatureLock] No hay chapa en localStorage, bloqueando feature');
       this.isUnlocked = false;
       return false;
     }
 
-    console.log(`🔐 [FeatureLock] Llamando a tieneAccesoFeature...`);
+    console.log('[FeatureLock] Llamando a tieneAccesoFeature...');
     this.isUnlocked = await tieneAccesoFeature(this.chapa, this.featureName);
-    console.log(`🔐 [FeatureLock] Resultado: ${this.isUnlocked ? '✅ ACCESO PERMITIDO' : '🔒 ACCESO DENEGADO'}`);
+    console.log(`[FeatureLock] Resultado: ${this.isUnlocked ? 'OK ACCESO PERMITIDO' : 'BLOQUEADO ACCESO DENEGADO'}`);
 
     return this.isUnlocked;
   }
@@ -48,24 +48,24 @@ class FeatureLock {
     overlay.className = 'feature-lock-overlay';
     overlay.innerHTML = `
       <div class="feature-lock-content">
-        <div class="feature-lock-icon">🔒</div>
+        <div class="feature-lock-icon">&#128274;</div>
         <h3>Feature Premium</h3>
         <p>Desbloquea ${this.getNombreFeature()} con una suscripción premium</p>
         <button class="premium-button" id="unlock-btn-${this.featureName}">
-          <span class="premium-icon">⭐</span>
+          <span class="premium-icon">&#11088;</span>
           Desbloquear por €4.99/mes
         </button>
         <p class="feature-lock-benefits">
-          ✅ Acceso completo a Sueldómetro<br>
-          ✅ Oráculo con predicciones<br>
-          ✅ Chatbot IA avanzado<br>
-          ✅ Buscador histórico
+          &#10003; Acceso completo a Sueldómetro<br>
+          &#10003; Oráculo con predicciones<br>
+          &#10003; Chatbot IA avanzado<br>
+          &#10003; Buscador histórico
 
         </p>
       </div>
     `;
 
-    // Event listener para botón
+    // Event listener para boton
     overlay.querySelector(`#unlock-btn-${this.featureName}`).addEventListener('click', () => {
       this.handleUnlock();
     });
@@ -79,7 +79,7 @@ class FeatureLock {
   async bloquear(containerSelector) {
     const container = document.querySelector(containerSelector);
     if (!container) {
-      console.error(`? Contenedor no encontrado: ${containerSelector}`);
+      console.error(`[FeatureLock] Contenedor no encontrado: ${containerSelector}`);
       return true;
     }
 
@@ -89,17 +89,17 @@ class FeatureLock {
     const hasAccess = await this.verificarAcceso();
 
     if (hasAccess) {
-      console.log(`? Usuario tiene acceso a ${this.featureName}`);
+      console.log(`[FeatureLock] Usuario tiene acceso a ${this.featureName}`);
       container.classList.remove('feature-lock-pending');
       return false; // No bloqueado
     }
 
-    console.log(`?? Bloqueando feature: ${this.featureName}`);
+    console.log(`[FeatureLock] Bloqueando feature: ${this.featureName}`);
 
-    // A?adir clase de bloqueado
+    // Anadir clase de bloqueado
     container.classList.add('feature-locked');
 
-    // Crear y a?adir overlay
+    // Crear y anadir overlay
     const overlay = this.crearOverlay(container);
     const isPageLock = container.classList.contains('page') || container.id.startsWith('page-');
     if (isPageLock) {
@@ -120,7 +120,7 @@ class FeatureLock {
       return;
     }
 
-    console.log('🔓 Iniciando proceso de suscripción...');
+    console.log('[FeatureLock] Iniciando proceso de suscripción...');
     await redirectToCheckout(this.chapa);
   }
 
@@ -129,17 +129,17 @@ class FeatureLock {
    */
   getNombreFeature() {
     const nombres = {
-      'sueldometro': 'el Sueld?metro',
-      'oraculo': 'el Or?culo',
+      'sueldometro': 'el Sueldómetro',
+      'oraculo': 'el Oráculo',
       'chatbot_ia': 'el Chatbot IA',
-      'buscador_historico': 'el Buscador hist?rico'
+      'buscador_historico': 'el Buscador histórico'
     };
     return nombres[this.featureName] || 'este feature';
   }
 }
 
 /**
- * CSS para el componente (añadir a styles.css)
+ * CSS para el componente (anadir a styles.css)
  */
 export const FEATURE_LOCK_STYLES = `
 .feature-locked {
@@ -226,10 +226,10 @@ export const FEATURE_LOCK_STYLES = `
 }
 `;
 
-// Exportar para usar como módulo
+// Exportar para usar como modulo
 export default FeatureLock;
 
-// También hacer disponible globalmente para scripts no-módulo
+// Tambien hacer disponible globalmente para scripts no-modulo
 if (typeof window !== 'undefined') {
   window.FeatureLock = FeatureLock;
 }

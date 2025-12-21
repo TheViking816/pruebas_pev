@@ -3867,7 +3867,9 @@ body.loading {
   justify-content: center;
   z-index: 1000;
   pointer-events: all;
-  overflow: hidden;
+  overflow: auto;
+  padding: 1.5rem;
+  box-sizing: border-box;
   border-radius: inherit;
 }
 
@@ -3891,6 +3893,10 @@ body.loading {
   text-align: center;
   padding: 2rem;
   max-width: 400px;
+  max-height: 100%;
+  overflow-y: auto;
+  width: 100%;
+  box-sizing: border-box;
 }
 
 .feature-lock-icon {
@@ -3948,6 +3954,7 @@ body.loading {
   margin-top: 1.5rem !important;
   line-height: 1.8;
   text-align: left;
+  margin-bottom: 0;
 }
 
 /* ============================================================================
