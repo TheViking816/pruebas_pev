@@ -488,6 +488,11 @@ class AIEngine {
           /período|periodo.*(prueba|vacaciones)/i,
           /plus|pluses|complemento/i,
           /descanso|descansos/i,
+          /descanso.*12 horas.*jornadas?/i,
+          /descanso.*entre jornadas/i,
+          /obligad.*remate/i,
+          /realizar un remate/i,
+          /remate.*empresa.*pide/i,
           // Nuevos patrones específicos
           /límite.*contratación.*(temporal|indefinida)/i,
           /contratación.*temporal.*indefinida/i,
@@ -2274,6 +2279,41 @@ Escribe tu pregunta abajo ⬇️`,
   }
 
   /**
+   * Prepara la consulta para documentos para forzar busqueda en PDFs
+   */
+  buildDocumentQuery(userMessage, tipo) {
+    const message = (userMessage || '').trim();
+    if (!message) {
+      return message;
+    }
+
+    const lower = message.toLowerCase();
+
+    if (tipo === 'convenio') {
+      if (lower.includes('convenio')) {
+        return message;
+      }
+      return `Segun el convenio colectivo, ${message}`;
+    }
+
+    if (tipo === 'acuerdo_marco') {
+      if (lower.includes('acuerdo marco') || lower.includes('v acuerdo')) {
+        return message;
+      }
+      return `Segun el V acuerdo marco, ${message}`;
+    }
+
+    if (tipo === 'guia_contratacion') {
+      if (lower.includes('guia de contratacion') || lower.includes('contratacion')) {
+        return message;
+      }
+      return `Segun la guia de contratacion, ${message}`;
+    }
+
+    return message;
+  }
+
+  /**
    * Handler para consultar el Convenio Colectivo usando OpenAI Assistant
    */
   async handleConvenioQuery(userMessage) {
@@ -2298,11 +2338,12 @@ Escribe tu pregunta abajo ⬇️`,
 
       // Obtener la chapa del usuario para mantener contexto
       const userId = this.dataBridge?.currentChapa || 'default';
+      const consulta = this.buildDocumentQuery(userMessage, 'convenio');
 
       // Consultar el assistant
       const respuesta = await window.OpenAIAssistants.consultarAssistant(
         'convenio',
-        userMessage,
+        consulta,
         userId
       );
 
@@ -2360,11 +2401,12 @@ Escribe tu pregunta abajo ⬇️`,
 
       // Obtener la chapa del usuario para mantener contexto
       const userId = this.dataBridge?.currentChapa || 'default';
+      const consulta = this.buildDocumentQuery(userMessage, 'acuerdo_marco');
 
       // Consultar el assistant
       const respuesta = await window.OpenAIAssistants.consultarAssistant(
         'acuerdo_marco',
-        userMessage,
+        consulta,
         userId
       );
 
@@ -2422,11 +2464,12 @@ Escribe tu pregunta abajo ⬇️`,
 
       // Obtener la chapa del usuario para mantener contexto
       const userId = this.dataBridge?.currentChapa || 'default';
+      const consulta = this.buildDocumentQuery(userMessage, 'guia_contratacion');
 
       // Consultar el assistant
       const respuesta = await window.OpenAIAssistants.consultarAssistant(
         'guia_contratacion',
-        userMessage,
+        consulta,
         userId
       );
 

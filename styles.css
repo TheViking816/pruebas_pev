@@ -5363,6 +5363,23 @@ body.loading {
   display: none !important;
 }
 
+.login-active #app-header {
+  display: none;
+}
+
+.login-active .main-content {
+  margin-top: 0;
+  min-height: 100vh;
+}
+
+.login-active #login-btn {
+  background: linear-gradient(135deg, var(--puerto-blue-dark) 0%, var(--puerto-blue) 100%);
+}
+
+.login-active #login-btn:hover {
+  box-shadow: var(--shadow-lg);
+}
+
 /* Desktop: Ocultar bottom navbar y mostrar sidebar */
 @media (min-width: 769px) {
   .bottom-navbar {
