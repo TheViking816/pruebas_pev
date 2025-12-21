@@ -3813,6 +3813,7 @@ body.loading {
 @media (max-width: 767px) {
   .app-footer {
     padding: 1.5rem 1rem;
+    padding-bottom: calc(1.5rem + 68px + env(safe-area-inset-bottom));
     margin-top: 2rem;
     margin-left: 0;
   }
@@ -3989,6 +3990,33 @@ body.loading {
     line-height: 1.6;
     margin-top: 1.1rem !important;
   }
+}
+
+.feature-lock-overlay--compact .feature-lock-content {
+  padding: 1rem;
+}
+
+.feature-lock-overlay--compact .feature-lock-icon {
+  font-size: 2.6rem;
+  margin-bottom: 0.5rem;
+}
+
+.feature-lock-overlay--compact .feature-lock-content h3 {
+  font-size: 1.1rem;
+}
+
+.feature-lock-overlay--compact .feature-lock-content p {
+  font-size: 0.85rem;
+  margin-bottom: 0.75rem;
+}
+
+.feature-lock-overlay--compact .premium-button {
+  padding: 0.75rem 1.25rem;
+  font-size: 0.9rem;
+}
+
+.feature-lock-overlay--compact .feature-lock-benefits {
+  display: none;
 }
 
 /* ============================================================================

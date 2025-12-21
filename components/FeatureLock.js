@@ -104,6 +104,8 @@ class FeatureLock {
     const isPageLock = container.classList.contains('page') || container.id.startsWith('page-');
     if (isPageLock) {
       overlay.classList.add('feature-lock-overlay--page');
+    } else if (container.clientHeight && container.clientHeight < 360) {
+      overlay.classList.add('feature-lock-overlay--compact');
     }
     container.appendChild(overlay);
     container.classList.remove('feature-lock-pending');
