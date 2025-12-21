@@ -120,7 +120,8 @@ class FeatureLock {
     const nombres = {
       'sueldometro': 'el Sueldómetro',
       'oraculo': 'el Oráculo',
-      'chatbot_ia': 'el Chatbot IA'
+      'chatbot_ia': 'el Chatbot IA',
+      'buscador_historico': 'el Buscador Histórico'
     };
     return nombres[this.featureName] || 'este feature';
   }

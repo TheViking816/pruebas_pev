@@ -650,11 +650,67 @@ function checkStoredSession() {
     const pageToRestore = lastVisitedPage || 'dashboard';
     console.log('📍 Restaurando última página visitada:', pageToRestore);
     navigateTo(pageToRestore);
+
+    // Actualizar distintivos premium
+    updatePremiumBadges();
+
     return true; // Indica que hay sesión activa
   }
 
   console.log('ℹ️ No se detectó sesión existente');
   return false; // No hay sesión activa
+}
+
+/**
+ * Actualiza los distintivos premium según el estado de suscripción del usuario
+ */
+async function updatePremiumBadges() {
+  const chapa = AppState.usuario?.chapa;
+  if (!chapa) return;
+
+  try {
+    // Verificar acceso a cada feature premium
+    const tieneSueldometro = await window.PremiumService.tieneAccesoFeature(chapa, 'sueldometro');
+    const tieneOraculo = await window.PremiumService.tieneAccesoFeature(chapa, 'oraculo');
+    const tieneChatbot = await window.PremiumService.tieneAccesoFeature(chapa, 'chatbot_ia');
+
+    // Badges del dashboard
+    const sueldometroDashboardBadge = document.getElementById('sueldometro-dashboard-badge');
+    const oraculoDashboardBadge = document.getElementById('oraculo-dashboard-badge');
+
+    // Badges del sidebar
+    const sueldometroSidebarBadge = document.getElementById('sueldometro-sidebar-badge');
+    const oraculoSidebarBadge = document.getElementById('oraculo-sidebar-badge');
+
+    // Badge del chat en el footer
+    const chatPremiumBadge = document.getElementById('chat-premium-badge');
+
+    // Mostrar badges solo si NO tienen acceso premium
+    if (sueldometroDashboardBadge) {
+      sueldometroDashboardBadge.style.display = tieneSueldometro ? 'none' : 'block';
+    }
+    if (sueldometroSidebarBadge) {
+      sueldometroSidebarBadge.style.display = tieneSueldometro ? 'none' : 'inline-block';
+    }
+    if (oraculoDashboardBadge) {
+      oraculoDashboardBadge.style.display = tieneOraculo ? 'none' : 'block';
+    }
+    if (oraculoSidebarBadge) {
+      oraculoSidebarBadge.style.display = tieneOraculo ? 'none' : 'inline-block';
+    }
+    if (chatPremiumBadge) {
+      chatPremiumBadge.style.display = tieneChatbot ? 'none' : 'inline-block';
+    }
+
+    console.log('✅ Distintivos premium actualizados', {
+      sueldometro: tieneSueldometro ? 'Premium' : 'Free',
+      oraculo: tieneOraculo ? 'Premium' : 'Free',
+      chatbot: tieneChatbot ? 'Premium' : 'Free'
+    });
+
+  } catch (error) {
+    console.error('❌ Error actualizando distintivos premium:', error);
+  }
 }
 
 /**
@@ -836,6 +892,9 @@ async function loginUser(chapa, nombre = null) {
     // Navegar al dashboard por defecto
     navigateTo('dashboard');
   }
+
+  // Actualizar distintivos premium
+  updatePremiumBadges();
 }
 
 // Flag para evitar actualizaciones simultáneas del dashboard
@@ -3210,6 +3269,12 @@ async function loadTablon(options = {}) {
   const clearFiltersBtn = document.getElementById('tablon-clear-filters');
 
   if (!container) return;
+
+  // Bloquear buscador histórico si no es premium
+  if (window.FeatureLock) {
+    const buscadorLock = new window.FeatureLock('buscador_historico');
+    await buscadorLock.bloquear('#buscador-historico-container');
+  }
 
   loading.classList.remove('hidden');
   container.innerHTML = '';

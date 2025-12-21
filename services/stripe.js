@@ -45,7 +45,7 @@ export async function redirectToCheckout(chapa) {
       },
       body: JSON.stringify({
         chapa: chapa,
-        priceId: 'price_1SVccrFApc6nOGEvgrJJ1xBR'
+        priceId: 'price_1SglJQFApc6nOGEvpn5MyPA9'
       }),
     });
 

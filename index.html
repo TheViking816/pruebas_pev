@@ -74,17 +74,19 @@
         </svg>
         Inicio
       </button>
-      <button class="nav-link" data-page="sueldometro">
+      <button class="nav-link" data-page="sueldometro" style="position: relative;">
         <svg xmlns="http://www.w3.org/2000/svg" class="nav-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
         </svg>
         Sueldometro
+        <span class="premium-badge" id="sueldometro-sidebar-badge" style="display: none; position: absolute; top: 8px; right: 8px; background: #f59e0b; color: white; font-size: 10px; padding: 2px 4px; border-radius: 4px; font-weight: 600;">★</span>
       </button>
-      <button class="nav-link" data-page="oraculo">
+      <button class="nav-link" data-page="oraculo" style="position: relative;">
         <svg xmlns="http://www.w3.org/2000/svg" class="nav-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
         </svg>
         Oraculo
+        <span class="premium-badge" id="oraculo-sidebar-badge" style="display: none; position: absolute; top: 8px; right: 8px; background: #f59e0b; color: white; font-size: 10px; padding: 2px 4px; border-radius: 4px; font-weight: 600;">★</span>
       </button>
       <button class="nav-link" data-page="jornales">
         <svg xmlns="http://www.w3.org/2000/svg" class="nav-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -283,7 +285,7 @@
 
         <div class="tools-list">
           <!-- Sueldómetro -->
-          <div class="tool-item" data-navigate="sueldometro">
+          <div class="tool-item" data-navigate="sueldometro" style="position: relative;">
             <div class="tool-icon green">
               <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
@@ -296,6 +298,7 @@
             <svg class="chevron-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
               <path fill-rule="evenodd" d="M16.28 11.47a.75.75 0 010 1.06l-7.5 7.5a.75.75 0 01-1.06-1.06L14.69 12 7.72 5.03a.75.75 0 011.06-1.06l7.5 7.5z" clip-rule="evenodd" />
             </svg>
+            <span class="premium-badge" id="sueldometro-dashboard-badge" style="display: none; position: absolute; top: 8px; right: 8px; background: #f59e0b; color: white; font-size: 12px; padding: 3px 6px; border-radius: 6px; font-weight: 700;">★</span>
           </div>
 
           <!-- Mis Jornales -->
@@ -315,7 +318,7 @@
           </div>
 
           <!-- El Oráculo -->
-          <div class="tool-item" data-navigate="oraculo">
+          <div class="tool-item" data-navigate="oraculo" style="position: relative;">
             <div class="tool-icon purple">
               <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
@@ -328,6 +331,7 @@
             <svg class="chevron-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
               <path fill-rule="evenodd" d="M16.28 11.47a.75.75 0 010 1.06l-7.5 7.5a.75.75 0 01-1.06-1.06L14.69 12 7.72 5.03a.75.75 0 011.06-1.06l7.5 7.5z" clip-rule="evenodd" />
             </svg>
+            <span class="premium-badge" id="oraculo-dashboard-badge" style="display: none; position: absolute; top: 8px; right: 8px; background: #f59e0b; color: white; font-size: 12px; padding: 3px 6px; border-radius: 6px; font-weight: 700;">★</span>
           </div>
         </div>
       </div>
@@ -609,7 +613,7 @@
         </div>
 
         <!-- Buscador de jornadas históricas -->
-        <div style="background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%); border: 2px solid #0ea5e9; border-radius: 12px; padding: 1.5rem; margin-top: 3rem; margin-bottom: 2rem; box-shadow: 0 4px 12px rgba(14, 165, 233, 0.1);">
+        <div id="buscador-historico-container" style="background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%); border: 2px solid #0ea5e9; border-radius: 12px; padding: 1.5rem; margin-top: 3rem; margin-bottom: 2rem; box-shadow: 0 4px 12px rgba(14, 165, 233, 0.1); position: relative;">
           <div style="display: flex; align-items: center; gap: 0.75rem; margin-bottom: 1rem;">
             <svg xmlns="http://www.w3.org/2000/svg" style="width: 24px; height: 24px; color: #0ea5e9;" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
@@ -997,6 +1001,15 @@
       </div>
       <span class="bottom-nav-label">Mi Contratación</span>
     </a>
+    <a href="./chatbot/index.html" class="bottom-nav-item" id="chat-nav-item">
+      <div class="bottom-nav-icon-wrapper">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" class="bottom-nav-icon">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z" />
+        </svg>
+        <span class="premium-badge" id="chat-premium-badge" style="display: none; position: absolute; top: 2px; right: 8px; background: #f59e0b; color: white; font-size: 10px; padding: 2px 4px; border-radius: 4px; font-weight: 600;">★</span>
+      </div>
+      <span class="bottom-nav-label">Chat</span>
+    </a>
     <a href="#" class="bottom-nav-item" data-page="puertas">
       <div class="bottom-nav-icon-wrapper">
         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" class="bottom-nav-icon">
@@ -1293,14 +1306,6 @@
       </div>
     </div>
   </div>
-
-  <!-- Botón flotante del Chatbot IA -->
-  <a href="./chatbot/index.html" id="chatbot-fab" class="chatbot-fab" title="Asistente IA" aria-label="Abrir Asistente IA">
-    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
-      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z" />
-    </svg>
-    <span class="chatbot-fab-badge">✨</span>
-  </a>
 
   <!-- Botón de instalación PWA flotante -->
   <button id="install-pwa-btn" class="install-pwa-btn" aria-label="Instalar aplicación">
