@@ -59,7 +59,7 @@ class FeatureLock {
           &#10003; Acceso completo a Sueldómetro<br>
           &#10003; Oráculo con predicciones<br>
           &#10003; Chatbot IA avanzado<br>
-          &#10003; Buscador histórico
+          &#10003; Buscador Jornales Histórico
 
         </p>
       </div>
