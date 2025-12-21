@@ -102,7 +102,8 @@ export async function obtenerInfoSuscripcion(chapa) {
 export const FEATURES_PREMIUM = {
   SUELDOMETRO: 'sueldometro',
   ORACULO: 'oraculo',
-  CHATBOT_IA: 'chatbot_ia'
+  CHATBOT_IA: 'chatbot_ia',
+  BUSCADOR_HISTORICO: 'buscador_historico'
 };
 
 /**

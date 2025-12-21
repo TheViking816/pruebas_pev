@@ -3846,9 +3846,17 @@ body.loading {
   user-select: none;
 }
 
+.feature-lock-pending > * {
+  visibility: hidden;
+}
+
+.feature-lock-pending .feature-lock-overlay {
+  visibility: visible;
+}
+
 .feature-lock-overlay {
-  position: fixed;
-  top: var(--header-height);
+  position: absolute;
+  top: 0;
   left: 0;
   right: 0;
   bottom: 0;
@@ -3860,11 +3868,21 @@ body.loading {
   z-index: 1000;
   pointer-events: all;
   overflow: hidden;
+  border-radius: inherit;
+}
+
+.feature-lock-overlay--page {
+  position: fixed;
+  top: var(--header-height);
+  left: 0;
+  right: 0;
+  bottom: 0;
+  border-radius: 0;
 }
 
 /* En desktop, dejar espacio para sidebar */
 @media (min-width: 769px) {
-  .feature-lock-overlay {
+  .feature-lock-overlay--page {
     left: var(--sidebar-width);
   }
 }
