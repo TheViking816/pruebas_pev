@@ -100,6 +100,45 @@ class AIEngine {
         confidence: 0.95
       },
 
+      // JORNAL MÁS ALTO
+      'jornal_mas_alto': {
+        patterns: [
+          /cu[aá]l.*jornal.*m[aá]s alto/i,
+          /jornal.*mayor/i,
+          /mejor.*jornal/i,
+          /jornal.*m[aá]ximo/i,
+          /m[aá]ximo.*jornal/i
+        ],
+        response: 'consultar_jornal_mas_alto',
+        confidence: 0.95
+      },
+
+      // PRIMA MÁS ALTA
+      'prima_mas_alta': {
+        patterns: [
+          /cu[aá]l.*prima.*m[aá]s alta/i,
+          /prima.*mayor/i,
+          /mejor.*prima/i,
+          /prima.*m[aá]xima/i,
+          /m[aá]xima.*prima/i
+        ],
+        response: 'consultar_prima_mas_alta',
+        confidence: 0.95
+      },
+
+      // EMPRESA MÁS FRECUENTE
+      'empresa_mas_frecuente': {
+        patterns: [
+          /qu[eé].*empresa.*m[aá]s/i,
+          /d[oó]nde.*trabajo.*m[aá]s/i,
+          /empresa.*frecuente/i,
+          /en qu[eé] empresa/i,
+          /empresa.*trabajo/i
+        ],
+        response: 'consultar_empresa_mas_frecuente',
+        confidence: 0.95
+      },
+
       // SALARIO (quincena)
       'salario': {
         patterns: [
@@ -809,6 +848,18 @@ Escribe tu pregunta abajo ⬇️`,
     if (intent.action === 'consultar_salario_anual') {
       console.log('🔹 Usando handleSalarioAnualQuery (año completo)');
       return await this.handleSalarioAnualQuery();
+    }
+
+    if (intent.action === 'consultar_jornal_mas_alto') {
+      return await this.handleJornalMasAltoQuery();
+    }
+
+    if (intent.action === 'consultar_prima_mas_alta') {
+      return await this.handlePrimaMasAltaQuery();
+    }
+
+    if (intent.action === 'consultar_empresa_mas_frecuente') {
+      return await this.handleEmpresaMasFrecuenteQuery();
     }
 
     if (intent.action === 'consultar_jornales_mes_pasado') {
@@ -2694,6 +2745,217 @@ Reformula esta respuesta de forma amigable, conversacional y natural, pero SIN c
       console.error('❌ Error con OpenAI API:', error);
       console.warn('⏳ Fallback a modo local');
       return await this.generateLocalResponse(intent, userMessage);
+    }
+  }
+
+  /**
+   * Jornal más alto
+   */
+  async handleJornalMasAltoQuery() {
+    try {
+      const jornales = await this.dataBridge.getJornalesAnuales();
+
+      if (!jornales || jornales.length === 0) {
+        return {
+          text: "No encontré jornales registrados.",
+          intent: 'jornal_mas_alto',
+          confidence: 0.9
+        };
+      }
+
+      let maxJornal = 0;
+      let mejorJornada = null;
+
+      jornales.forEach(j => {
+        // Verificar que j tiene las propiedades necesarias
+        if (!j || typeof j !== 'object') return;
+
+        const base = parseFloat(j.base) || 0;
+        const prima = parseFloat(j.prima) || 0;
+        const bruto = base + prima;
+
+        if (bruto > maxJornal) {
+          maxJornal = bruto;
+          mejorJornada = j;
+        }
+      });
+
+      // Verificar que encontramos al menos un jornal
+      if (!mejorJornada || maxJornal === 0) {
+        return {
+          text: "No encontré jornales con valores registrados.",
+          intent: 'jornal_mas_alto',
+          confidence: 0.9
+        };
+      }
+
+      const base = parseFloat(mejorJornada.base) || 0;
+      const prima = parseFloat(mejorJornada.prima) || 0;
+
+      const respuesta = `💰 **Tu jornal más alto fue de ${maxJornal.toFixed(2)}€**\n\n` +
+        `💵 Base: ${base.toFixed(2)}€\n` +
+        `⭐ Prima: ${prima.toFixed(2)}€\n\n` +
+        `📅 **Fecha**: ${mejorJornada.fecha || 'No disponible'}\n` +
+        `🏢 **Empresa**: ${mejorJornada.empresa || 'No disponible'}\n` +
+        `⏰ **Jornada**: ${mejorJornada.jornada || 'No disponible'}`;
+
+      return {
+        text: respuesta,
+        intent: 'jornal_mas_alto',
+        confidence: 0.9,
+        data: {
+          type: 'jornal_mas_alto',
+          jornal: maxJornal,
+          jornada: mejorJornada
+        }
+      };
+
+    } catch (error) {
+      console.error('Error en handleJornalMasAltoQuery:', error);
+      return {
+        text: this.responses.error_datos,
+        intent: 'jornal_mas_alto',
+        confidence: 0.9
+      };
+    }
+  }
+
+  /**
+   * Prima más alta
+   */
+  async handlePrimaMasAltaQuery() {
+    try {
+      const jornales = await this.dataBridge.getJornalesAnuales();
+
+      if (!jornales || jornales.length === 0) {
+        return {
+          text: "No encontré jornales registrados.",
+          intent: 'prima_mas_alta',
+          confidence: 0.9
+        };
+      }
+
+      let maxPrima = 0;
+      let mejorJornada = null;
+
+      jornales.forEach(j => {
+        // Verificar que j tiene las propiedades necesarias
+        if (!j || typeof j !== 'object') return;
+
+        const prima = parseFloat(j.prima) || 0;
+        if (prima > maxPrima) {
+          maxPrima = prima;
+          mejorJornada = j;
+        }
+      });
+
+      // Verificar que encontramos al menos una prima
+      if (!mejorJornada || maxPrima === 0) {
+        return {
+          text: "No encontré primas registradas.",
+          intent: 'prima_mas_alta',
+          confidence: 0.9
+        };
+      }
+
+      const base = parseFloat(mejorJornada.base) || 0;
+      const total = base + maxPrima;
+
+      const respuesta = `⭐ **Tu prima más alta fue de ${maxPrima.toFixed(2)}€**\n\n` +
+        `📅 **Fecha**: ${mejorJornada.fecha || 'No disponible'}\n` +
+        `🏢 **Empresa**: ${mejorJornada.empresa || 'No disponible'}\n` +
+        `⏰ **Jornada**: ${mejorJornada.jornada || 'No disponible'}\n` +
+        `💵 **Base del jornal**: ${base.toFixed(2)}€\n` +
+        `💰 **Total (Base + Prima)**: ${total.toFixed(2)}€`;
+
+      return {
+        text: respuesta,
+        intent: 'prima_mas_alta',
+        confidence: 0.9,
+        data: {
+          type: 'prima_mas_alta',
+          prima: maxPrima,
+          jornada: mejorJornada
+        }
+      };
+
+    } catch (error) {
+      console.error('Error en handlePrimaMasAltaQuery:', error);
+      return {
+        text: this.responses.error_datos,
+        intent: 'prima_mas_alta',
+        confidence: 0.9
+      };
+    }
+  }
+
+  /**
+   * Empresa más frecuente
+   */
+  async handleEmpresaMasFrecuenteQuery() {
+    try {
+      const jornales = await this.dataBridge.getJornalesAnuales();
+
+      if (!jornales || jornales.length === 0) {
+        return {
+          text: "No encontré jornales registrados.",
+          intent: 'empresa_mas_frecuente',
+          confidence: 0.9
+        };
+      }
+
+      const empresas = {};
+      jornales.forEach(j => {
+        empresas[j.empresa] = (empresas[j.empresa] || 0) + 1;
+      });
+
+      let maxEmpresa = '';
+      let maxCount = 0;
+      for (const [empresa, count] of Object.entries(empresas)) {
+        if (count > maxCount) {
+          maxCount = count;
+          maxEmpresa = empresa;
+        }
+      }
+
+      const porcentaje = ((maxCount / jornales.length) * 100).toFixed(1);
+
+      let respuesta = `🏢 **La empresa donde más has trabajado es ${maxEmpresa}**\n\n`;
+      respuesta += `📊 **Jornales en esta empresa**: ${maxCount} de ${jornales.length} (${porcentaje}%)\n\n`;
+
+      // Mostrar otras empresas si existen
+      const otrasEmpresas = Object.entries(empresas)
+        .filter(([emp]) => emp !== maxEmpresa)
+        .sort((a, b) => b[1] - a[1])
+        .slice(0, 3);
+
+      if (otrasEmpresas.length > 0) {
+        respuesta += `📋 **Otras empresas**:\n`;
+        otrasEmpresas.forEach(([emp, count]) => {
+          const pct = ((count / jornales.length) * 100).toFixed(1);
+          respuesta += `• ${emp}: ${count} jornales (${pct}%)\n`;
+        });
+      }
+
+      return {
+        text: respuesta,
+        intent: 'empresa_mas_frecuente',
+        confidence: 0.9,
+        data: {
+          type: 'empresa_mas_frecuente',
+          empresa: maxEmpresa,
+          jornales: maxCount,
+          total: jornales.length
+        }
+      };
+
+    } catch (error) {
+      console.error('Error en handleEmpresaMasFrecuenteQuery:', error);
+      return {
+        text: this.responses.error_datos,
+        intent: 'empresa_mas_frecuente',
+        confidence: 0.9
+      };
     }
   }
 

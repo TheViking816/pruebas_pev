@@ -117,12 +117,14 @@ function mostrarBloqueo(mensajeError = null) {
   const content = document.createElement('div');
   content.style.cssText = `
     background: white;
-    border-radius: 20px;
-    padding: 3rem 2rem;
-    max-width: 500px;
-    width: 100%;
+    border-radius: 16px;
+    padding: 1.5rem 1.25rem;
+    max-width: 400px;
+    width: 90%;
     text-align: center;
     box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+    max-height: 90vh;
+    overflow-y: auto;
   `;
 
   if (mensajeError) {
@@ -141,33 +143,33 @@ function mostrarBloqueo(mensajeError = null) {
   } else {
     // Mostrar bloqueo premium normal
     content.innerHTML = `
-      <div style="font-size: 4rem; margin-bottom: 1rem;">🤖✨</div>
-      <h2 style="color: #1a1a2e; margin-bottom: 1rem; font-size: 1.75rem;">Chatbot IA Premium</h2>
-      <p style="color: #64748b; margin-bottom: 1.5rem; line-height: 1.6;">
+      <div style="font-size: 3rem; margin-bottom: 0.75rem;">🤖✨</div>
+      <h2 style="color: #1a1a2e; margin-bottom: 0.5rem; font-size: 1.4rem;">Chatbot IA Premium</h2>
+      <p style="color: #64748b; margin-bottom: 1rem; line-height: 1.5; font-size: 0.9rem;">
         El asistente virtual inteligente está disponible solo para usuarios premium.
       </p>
 
-      <div style="background: #f8fafc; padding: 1.5rem; border-radius: 12px; margin-bottom: 1.5rem; text-align: left;">
-        <p style="font-weight: 600; color: #1a1a2e; margin-bottom: 0.75rem;">✨ Con Premium obtienes:</p>
-        <ul style="color: #64748b; list-style: none; padding: 0; margin: 0; font-size: 0.95rem;">
-          <li style="padding: 0.4rem 0;">✅ Asistente IA conversacional avanzado</li>
-          <li style="padding: 0.4rem 0;">✅ Acceso completo al Sueldómetro</li>
-          <li style="padding: 0.4rem 0;">✅ Predicciones del Oráculo</li>
-          <li style="padding: 0.4rem 0;">✅ Soporte prioritario</li>
+      <div style="background: #f8fafc; padding: 1rem; border-radius: 10px; margin-bottom: 1rem; text-align: left;">
+        <p style="font-weight: 600; color: #1a1a2e; margin-bottom: 0.5rem; font-size: 0.9rem;">✨ Con Premium obtienes:</p>
+        <ul style="color: #64748b; list-style: none; padding: 0; margin: 0; font-size: 0.85rem;">
+          <li style="padding: 0.25rem 0;">✅ Asistente IA conversacional avanzado</li>
+          <li style="padding: 0.25rem 0;">✅ Acceso completo al Sueldómetro</li>
+          <li style="padding: 0.25rem 0;">✅ Predicciones del Oráculo</li>
+          <li style="padding: 0.25rem 0;">✅ Soporte prioritario</li>
         </ul>
       </div>
 
-      <button onclick="window.location.href='../index.html#premium'"
+      <button onclick="redirigirAPasarelaPago()"
         style="background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
-               color: white; border: none; padding: 1rem 2rem; border-radius: 12px;
-               font-size: 1.1rem; font-weight: 600; cursor: pointer; width: 100%;
-               box-shadow: 0 4px 12px rgba(245, 158, 11, 0.3); margin-bottom: 1rem;">
+               color: white; border: none; padding: 0.875rem 1.5rem; border-radius: 10px;
+               font-size: 1rem; font-weight: 600; cursor: pointer; width: 100%;
+               box-shadow: 0 4px 12px rgba(245, 158, 11, 0.3); margin-bottom: 0.75rem;">
         ⭐ Desbloquear Premium
       </button>
 
       <button onclick="window.location.href='../index.html'"
         style="background: transparent; color: #64748b; border: 2px solid #e2e8f0;
-               padding: 0.75rem 2rem; border-radius: 12px; font-size: 1rem;
+               padding: 0.625rem 1.5rem; border-radius: 10px; font-size: 0.9rem;
                font-weight: 600; cursor: pointer; width: 100%;">
         Volver al Portal
       </button>
@@ -213,4 +215,29 @@ function redirigirAlLogin() {
   setTimeout(() => {
     window.location.href = '../index.html';
   }, 1000);
+}
+
+
+/**
+ * Redirige a la pasarela de pago de Stripe
+ */
+async function redirigirAPasarelaPago() {
+  const chapa = localStorage.getItem('currentChapa');
+  if (!chapa) {
+    console.error('❌ No hay chapa en localStorage');
+    alert('Error: No se pudo obtener tu información de usuario');
+    return;
+  }
+
+  try {
+    console.log('🔄 Redirigiendo a pasarela de pago...');
+
+    // Importar dinámicamente el servicio de Stripe desde la app principal
+    const { redirectToCheckout } = await import('../services/stripe.js');
+    await redirectToCheckout(chapa);
+
+  } catch (error) {
+    console.error('❌ Error al redirigir a pasarela:', error);
+    alert('Error al procesar el pago. Por favor, intenta de nuevo.');
+  }
 }

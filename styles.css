@@ -303,6 +303,16 @@ body::before {
   display: block;
 }
 
+/* Prevenir flash de login al recargar - ocultar todo hasta que JS verifique sesión */
+body.loading .page {
+  display: none !important;
+  opacity: 0;
+}
+
+body.loading {
+  background: var(--background);
+}
+
 @keyframes fadeIn {
   from {
     opacity: 0;

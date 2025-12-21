@@ -43,9 +43,17 @@ class FeatureLock {
       existingOverlay.remove();
     }
 
-    // Crear overlay
+    // Crear overlay - IMPORTANTE: position absolute contenido en el padre
     const overlay = document.createElement('div');
     overlay.className = 'feature-lock-overlay';
+    // Asegurar que el overlay esté contenido con estilos inline críticos
+    overlay.style.position = 'absolute';
+    overlay.style.top = '0';
+    overlay.style.left = '0';
+    overlay.style.right = '0';
+    overlay.style.bottom = '0';
+    overlay.style.zIndex = '10';  // z-index bajo para evitar conflictos
+
     overlay.innerHTML = `
       <div class="feature-lock-content">
         <div class="feature-lock-icon">🔒</div>
@@ -58,7 +66,8 @@ class FeatureLock {
         <p class="feature-lock-benefits">
           ✅ Acceso completo a Sueldómetro<br>
           ✅ Oráculo con predicciones<br>
-          ✅ Chatbot IA avanzado
+          ✅ Chatbot IA avanzado<br>
+          ✅ Buscador de jornales histórico
         </p>
       </div>
     `;
@@ -83,11 +92,27 @@ class FeatureLock {
     }
 
     console.log(`🔒 Bloqueando feature: ${this.featureName}`);
+    console.log(`🔍 Buscando contenedor: ${containerSelector}`);
 
     const container = document.querySelector(containerSelector);
     if (!container) {
       console.error(`❌ Contenedor no encontrado: ${containerSelector}`);
       return true;
+    }
+
+    console.log(`✅ Contenedor encontrado:`, container);
+    console.log(`📏 Dimensiones del contenedor:`, {
+      width: container.offsetWidth,
+      height: container.offsetHeight,
+      top: container.offsetTop,
+      left: container.offsetLeft
+    });
+
+    // Asegurar que el contenedor tiene position relative para contener el overlay
+    const computedStyle = window.getComputedStyle(container);
+    if (computedStyle.position === 'static') {
+      container.style.position = 'relative';
+      console.log(`📌 Aplicado position: relative al contenedor`);
     }
 
     // Añadir clase de bloqueado
@@ -96,6 +121,8 @@ class FeatureLock {
     // Crear y añadir overlay
     const overlay = this.crearOverlay(container);
     container.appendChild(overlay);
+
+    console.log(`🔒 Overlay de bloqueo añadido al contenedor`);
 
     return true; // Bloqueado
   }
@@ -132,25 +159,36 @@ class FeatureLock {
  */
 export const FEATURE_LOCK_STYLES = `
 .feature-locked {
-  position: relative;
+  position: relative !important;
+  isolation: isolate;
+  overflow: hidden;
+  /* NO aplicar pointer-events: none aquí para no afectar elementos fuera del overlay */
+}
+
+.feature-locked > *:not(.feature-lock-overlay) {
+  /* Deshabilitar interacción con el contenido real, pero no con el overlay */
   pointer-events: none;
   user-select: none;
 }
 
 .feature-lock-overlay {
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: rgba(255, 255, 255, 0.97);
-  backdrop-filter: blur(8px);
+  position: absolute !important;
+  top: 0 !important;
+  left: 0 !important;
+  right: 0 !important;
+  bottom: 0 !important;
+  background: rgba(255, 255, 255, 0.98);
+  backdrop-filter: blur(10px);
   display: flex;
   align-items: center;
   justify-content: center;
-  z-index: 1000;
+  z-index: 10 !important;
   border-radius: 12px;
   pointer-events: all;
+  /* Asegurar que el overlay está estrictamente contenido */
+  contain: strict;
+  max-width: 100%;
+  max-height: 100%;
 }
 
 .feature-lock-content {

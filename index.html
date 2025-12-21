@@ -27,7 +27,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
 </head>
-<body class="login-active">
+<body class="login-active loading">
   <!-- Skip link para accesibilidad -->
   <a href="#main-content" class="skip-link">Saltar al contenido principal</a>
 
@@ -386,7 +386,10 @@
       <div class="page-hero small">
         <img src="https://i.imgur.com/C3UpaWV.jpeg" alt="Sueldómetro">
         <div class="page-hero-content">
-          <h2>💰 Sueldómetro</h2>
+          <div style="display: flex; align-items: center; gap: 0.75rem;">
+            <h2 style="margin: 0;">💰 Sueldómetro</h2>
+            <span class="premium-badge" id="sueldometro-page-badge" style="display: none; background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); color: white; font-size: 12px; padding: 5px 12px; border-radius: 8px; font-weight: 700; box-shadow: 0 2px 8px rgba(245, 158, 11, 0.3); letter-spacing: 0.5px;">★ PREMIUM</span>
+          </div>
           <p>Estimación de tu salario por quincena</p>
         </div>
       </div>
@@ -614,11 +617,12 @@
 
         <!-- Buscador de jornadas históricas -->
         <div id="buscador-historico-container" style="background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%); border: 2px solid #0ea5e9; border-radius: 12px; padding: 1.5rem; margin-top: 3rem; margin-bottom: 2rem; box-shadow: 0 4px 12px rgba(14, 165, 233, 0.1); position: relative;">
-          <div style="display: flex; align-items: center; gap: 0.75rem; margin-bottom: 1rem;">
+          <div style="display: flex; align-items: center; gap: 0.75rem; margin-bottom: 1rem; position: relative;">
             <svg xmlns="http://www.w3.org/2000/svg" style="width: 24px; height: 24px; color: #0ea5e9;" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
             </svg>
             <h3 style="margin: 0; font-size: 1.125rem; font-weight: 700; color: #0c4a6e;">Buscar Jornada Histórica</h3>
+            <span class="premium-badge" id="buscador-historico-badge" style="display: none; background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); color: white; font-size: 11px; padding: 4px 10px; border-radius: 8px; font-weight: 700; box-shadow: 0 2px 8px rgba(245, 158, 11, 0.3); letter-spacing: 0.5px;">★ PREMIUM</span>
           </div>
           <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; align-items: end;">
             <!-- Selector de Fecha -->
@@ -743,7 +747,10 @@
       <div class="page-hero small">
         <img src="https://i.imgur.com/guKCoFy.jpeg" alt="Calculadora Estiba">
         <div class="page-hero-content">
-          <h2>El Oraculo</h2>
+          <div style="display: flex; align-items: center; gap: 0.75rem;">
+            <h2 style="margin: 0;">El Oraculo</h2>
+            <span class="premium-badge" id="oraculo-page-badge" style="display: none; background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); color: white; font-size: 12px; padding: 5px 12px; border-radius: 8px; font-weight: 700; box-shadow: 0 2px 8px rgba(245, 158, 11, 0.3); letter-spacing: 0.5px;">★ PREMIUM</span>
+          </div>
           <p>Calcula en que turno del dia vas a entrar</p>
         </div>
       </div>

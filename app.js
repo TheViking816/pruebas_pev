@@ -654,10 +654,15 @@ function checkStoredSession() {
     // Actualizar distintivos premium
     updatePremiumBadges();
 
+    // Remover clase loading para prevenir flash de login
+    document.body.classList.remove('loading');
+
     return true; // Indica que hay sesión activa
   }
 
   console.log('ℹ️ No se detectó sesión existente');
+  // Remover clase loading para mostrar login
+  document.body.classList.remove('loading');
   return false; // No hay sesión activa
 }
 
@@ -673,6 +678,7 @@ async function updatePremiumBadges() {
     const tieneSueldometro = await window.PremiumService.tieneAccesoFeature(chapa, 'sueldometro');
     const tieneOraculo = await window.PremiumService.tieneAccesoFeature(chapa, 'oraculo');
     const tieneChatbot = await window.PremiumService.tieneAccesoFeature(chapa, 'chatbot_ia');
+    const tieneBuscadorHistorico = await window.PremiumService.tieneAccesoFeature(chapa, 'buscador_historico');
 
     // Badges del dashboard
     const sueldometroDashboardBadge = document.getElementById('sueldometro-dashboard-badge');
@@ -685,6 +691,11 @@ async function updatePremiumBadges() {
     // Badge del chat en el footer
     const chatPremiumBadge = document.getElementById('chat-premium-badge');
 
+    // Badges de las páginas
+    const sueldometroPageBadge = document.getElementById('sueldometro-page-badge');
+    const oraculoPageBadge = document.getElementById('oraculo-page-badge');
+    const buscadorHistoricoBadge = document.getElementById('buscador-historico-badge');
+
     // Mostrar badges solo si NO tienen acceso premium
     if (sueldometroDashboardBadge) {
       sueldometroDashboardBadge.style.display = tieneSueldometro ? 'none' : 'block';
@@ -692,20 +703,30 @@ async function updatePremiumBadges() {
     if (sueldometroSidebarBadge) {
       sueldometroSidebarBadge.style.display = tieneSueldometro ? 'none' : 'inline-block';
     }
+    if (sueldometroPageBadge) {
+      sueldometroPageBadge.style.display = tieneSueldometro ? 'none' : 'inline-block';
+    }
     if (oraculoDashboardBadge) {
       oraculoDashboardBadge.style.display = tieneOraculo ? 'none' : 'block';
     }
     if (oraculoSidebarBadge) {
       oraculoSidebarBadge.style.display = tieneOraculo ? 'none' : 'inline-block';
     }
+    if (oraculoPageBadge) {
+      oraculoPageBadge.style.display = tieneOraculo ? 'none' : 'inline-block';
+    }
     if (chatPremiumBadge) {
       chatPremiumBadge.style.display = tieneChatbot ? 'none' : 'inline-block';
+    }
+    if (buscadorHistoricoBadge) {
+      buscadorHistoricoBadge.style.display = tieneBuscadorHistorico ? 'none' : 'inline-block';
     }
 
     console.log('✅ Distintivos premium actualizados', {
       sueldometro: tieneSueldometro ? 'Premium' : 'Free',
       oraculo: tieneOraculo ? 'Premium' : 'Free',
-      chatbot: tieneChatbot ? 'Premium' : 'Free'
+      chatbot: tieneChatbot ? 'Premium' : 'Free',
+      buscadorHistorico: tieneBuscadorHistorico ? 'Premium' : 'Free'
     });
 
   } catch (error) {
@@ -1515,7 +1536,7 @@ async function handlePasswordChange() {
 /**
  * Navega a una página
  */
-function navigateTo(pageName) {
+async function navigateTo(pageName) {
   // LIMPIEZA PREVENTIVA: Si se navega explícitamente a login, limpiar localStorage
   if (pageName === 'login') {
     console.log('🧹 Limpieza preventiva: Navegando a login, eliminando sesiones residuales');
@@ -1562,7 +1583,12 @@ function navigateTo(pageName) {
       loadCenso();
       break;
     case 'tablon':
-      loadTablon();
+      await loadTablon();
+      // Bloquear solo el buscador histórico si no es premium
+      if (window.FeatureLock) {
+        const buscadorLock = new window.FeatureLock('buscador_historico');
+        await buscadorLock.bloquear('#buscador-historico-container');
+      }
       break;
     case 'foro':
       loadForo();
@@ -3269,12 +3295,6 @@ async function loadTablon(options = {}) {
   const clearFiltersBtn = document.getElementById('tablon-clear-filters');
 
   if (!container) return;
-
-  // Bloquear buscador histórico si no es premium
-  if (window.FeatureLock) {
-    const buscadorLock = new window.FeatureLock('buscador_historico');
-    await buscadorLock.bloquear('#buscador-historico-container');
-  }
 
   loading.classList.remove('hidden');
   container.innerHTML = '';

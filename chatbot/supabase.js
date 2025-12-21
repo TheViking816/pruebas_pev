@@ -1943,9 +1943,9 @@ const SheetsAPI = {
         return null;
       }
 
-      const LIMITE_SP = 443;
-      const INICIO_OC = 444;
-      const FIN_OC = 519;
+      const LIMITE_SP = 455;  // Posiciones 1-455 son SP (SYNC con app principal)
+      const INICIO_OC = 456;  // OC empieza en 456
+      const FIN_OC = 519;     // OC termina en 519
 
       const esUsuarioSP = posicionUsuario <= LIMITE_SP;
 
@@ -2096,7 +2096,7 @@ const SheetsAPI = {
         return null;
       }
 
-      const LIMITE_SP = 449;
+      const LIMITE_SP = 455;  // SYNC con app principal
       const esUsuarioSP = posicionUsuario <= LIMITE_SP;
 
       // Si el usuario es OC, no hacer cálculo de trinca
