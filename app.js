@@ -1838,7 +1838,9 @@ async function loadContratacion() {
       'VTEU': 'https://i.imgur.com/3nNCkw5.jpeg',
       'MSC': 'https://i.imgur.com/kX4Ujxf.jpeg',
       'ERH': 'https://i.imgur.com/OHDp62K.png',
-      'ERSHIP': 'https://i.imgur.com/OHDp62K.png'
+      'ERSHIP': 'https://i.imgur.com/OHDp62K.png',
+      'TRASMEDITERRANEA': 'https://i.imgur.com/f02AnqL.png',
+      'TRASMED': 'https://i.imgur.com/f02AnqL.png'
     };
 
     const getEmpresaLogo = (empresa) => {
@@ -3378,7 +3380,9 @@ async function loadTablon(options = {}) {
       'CSP': 'https://i.imgur.com/8Tjx3KP.jpeg',
       'VTEU': 'https://i.imgur.com/3nNCkw5.jpeg',
       'MSC': 'https://i.imgur.com/kX4Ujxf.jpeg',
-      'ERH': 'https://i.imgur.com/OHDp62K.png'
+      'ERH': 'https://i.imgur.com/OHDp62K.png',
+      'TRASMEDITERRANEA': 'https://i.imgur.com/f02AnqL.png',
+      'TRASMED': 'https://i.imgur.com/f02AnqL.png'
     };
 
     // Imagen genérica de buque

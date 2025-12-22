@@ -16,7 +16,8 @@
       "WebFetch(domain:script.googleusercontent.com)",
       "WebFetch(domain:noray-scraper.onrender.com)",
       "WebFetch(domain:noray.cpevalencia.com)",
-      "Bash(echo:*)"
+      "Bash(echo:*)",
+      "WebFetch(domain:imgur.com)"
     ],
     "deny": [],
     "ask": []
