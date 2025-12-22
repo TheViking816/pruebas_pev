@@ -1359,13 +1359,13 @@
      * - Se oculta en la página de login
      */
     function controlarVisibilidadChatbot() {
-      const chatbotFab = document.getElementById('chatbot-fab');
-      if (!chatbotFab) return;
+      const chatNavItem = document.getElementById('chat-nav-item');
+      if (!chatNavItem) return;
 
       // Verificar configuración
       const config = window.FEATURES_CONFIG?.CHATBOT_IA;
       if (!config || !config.mostrarBoton) {
-        chatbotFab.style.display = 'none';
+        chatNavItem.style.display = 'none';
         console.log('🤖 Chatbot IA: Oculto (configuración: mostrarBoton = false)');
         return;
       }
@@ -1373,7 +1373,7 @@
       // Verificar que el usuario esté logueado
       const currentChapa = localStorage.getItem('currentChapa');
       if (!currentChapa) {
-        chatbotFab.style.display = 'none';
+        chatNavItem.style.display = 'none';
         console.log('🤖 Chatbot IA: Oculto (usuario no logueado)');
         return;
       }
@@ -1381,13 +1381,13 @@
       // Verificar que NO estemos en la página de login
       const loginPage = document.getElementById('page-login');
       if (loginPage && loginPage.classList.contains('active')) {
-        chatbotFab.style.display = 'none';
+        chatNavItem.style.display = 'none';
         console.log('🤖 Chatbot IA: Oculto (página de login)');
         return;
       }
 
-      // Si pasó todas las verificaciones, mostrar el botón
-      chatbotFab.style.display = 'flex'; // flex para que mantenga el centrado
+      // Si pasó todas las verificaciones, mostrar el icono del footer
+      chatNavItem.style.display = 'flex';
       console.log('🤖 Chatbot IA: Visible');
     }
 
