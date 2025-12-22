@@ -128,6 +128,14 @@
       </button>
       <!-- FIN DE LA SECCIÓN AÑADIDA: BOTÓN PARA NOTIFICACIONES PUSH -->
 
+      <!-- BOTÓN PARA INFORMACIÓN PREMIUM -->
+      <button class="nav-link" data-page="info-premium">
+        <svg xmlns="http://www.w3.org/2000/svg" class="nav-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z" />
+        </svg>
+        Info Premium
+      </button>
+
     </nav>
   </aside>
 
@@ -987,6 +995,259 @@
     </section>
     <!-- FIN DE LA SECCIÓN AÑADIDA: PÁGINA PARA GESTIONAR NOTIFICACIONES PUSH -->
 
+    <!-- PÁGINA INFORMACIÓN PREMIUM -->
+    <section id="page-info-premium" class="page">
+      <div class="page-hero small">
+        <img src="https://i.imgur.com/Q91Pi44.png" alt="Portal Estiba VLC Premium">
+        <div class="page-hero-content">
+          <h2>⭐ Portal Estiba VLC Premium</h2>
+          <p>Todo lo que necesitas saber sobre el sistema Premium</p>
+        </div>
+      </div>
+
+      <div class="container">
+
+        <!-- Aviso importante -->
+        <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 1.5rem; border-radius: 12px; margin: 1.5rem 0; box-shadow: 0 4px 12px rgba(0,0,0,0.15);">
+          <h3 style="margin: 0 0 0.5rem 0; font-size: 1.3rem; display: flex; align-items: center; gap: 0.5rem;">
+            <svg xmlns="http://www.w3.org/2000/svg" style="width: 24px; height: 24px;" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            Período de Prueba Gratis
+          </h3>
+          <p style="margin: 0; font-size: 1rem; line-height: 1.5;">
+            <strong>Todos los usuarios actuales tienen acceso Premium GRATIS hasta el 1 de enero de 2026.</strong>
+            Después de esta fecha, necesitarás una suscripción activa para usar las funciones Premium.
+          </p>
+        </div>
+
+        <!-- Comparativa Free vs Premium -->
+        <div style="background: white; border-radius: 12px; padding: 1.5rem; margin: 1.5rem 0; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+          <h3 style="margin: 0 0 1rem 0; font-size: 1.4rem; color: #1e40af;">¿Qué incluye cada versión?</h3>
+
+          <div style="display: grid; gap: 1.5rem;">
+
+            <!-- Versión FREE -->
+            <div style="border: 2px solid #e5e7eb; border-radius: 8px; padding: 1rem;">
+              <h4 style="margin: 0 0 0.75rem 0; color: #6b7280; font-size: 1.2rem; display: flex; align-items: center; gap: 0.5rem;">
+                <svg xmlns="http://www.w3.org/2000/svg" style="width: 20px; height: 20px;" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                </svg>
+                Versión FREE
+              </h4>
+              <ul style="margin: 0; padding-left: 1.5rem; color: #4b5563; line-height: 1.8;">
+                <li>Dashboard principal con información de contratación</li>
+                <li>Mi Contratación (asignaciones diarias)</li>
+                <li>Mis Jornales (histórico de jornales)</li>
+                <li>Puertas (puertas contratadas SP y OC)</li>
+                <li>Censo (listado de trabajadores)</li>
+                <li>Enlaces Útiles</li>
+                <li>Noticias y Avisos</li>
+                <li>Tablón de Anuncios</li>
+              </ul>
+            </div>
+
+            <!-- Versión PREMIUM -->
+            <div style="border: 2px solid #f59e0b; background: linear-gradient(to bottom, #fffbeb, white); border-radius: 8px; padding: 1rem;">
+              <h4 style="margin: 0 0 0.75rem 0; color: #f59e0b; font-size: 1.2rem; display: flex; align-items: center; gap: 0.5rem;">
+                <svg xmlns="http://www.w3.org/2000/svg" style="width: 20px; height: 20px;" fill="currentColor" viewBox="0 0 24 24">
+                  <path d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z" />
+                </svg>
+                Versión PREMIUM (€4.99/mes)
+              </h4>
+              <p style="margin: 0 0 0.75rem 0; color: #78350f; font-size: 0.95rem;"><strong>Todo lo de FREE, más:</strong></p>
+              <ul style="margin: 0; padding-left: 1.5rem; color: #92400e; line-height: 1.8; font-weight: 500;">
+                <li><strong>Sueldómetro:</strong> Cálculo automático de salario por quincena con IRPF y complementos</li>
+                <li><strong>El Oráculo:</strong> Predicción de probabilidades de trabajar según tu posición</li>
+                <li><strong>Chatbot IA:</strong> Asistente inteligente con OpenAI GPT-4 (disponible próximamente)</li>
+                <li><strong>Buscador Histórico:</strong> Búsqueda avanzada en el histórico de jornales</li>
+              </ul>
+            </div>
+
+          </div>
+        </div>
+
+        <!-- FAQ -->
+        <div style="background: white; border-radius: 12px; padding: 1.5rem; margin: 1.5rem 0; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+          <h3 style="margin: 0 0 1rem 0; font-size: 1.4rem; color: #1e40af;">Preguntas Frecuentes (FAQ)</h3>
+
+          <!-- Pregunta 1 -->
+          <div style="border-bottom: 1px solid #e5e7eb; padding: 1rem 0;">
+            <h4 style="margin: 0 0 0.5rem 0; color: #1e40af; font-size: 1.1rem;">💰 ¿Cuánto cuesta la suscripción Premium?</h4>
+            <p style="margin: 0; color: #4b5563; line-height: 1.6;">
+              La suscripción Premium cuesta <strong>€4.99 al mes</strong>. Se cobra mensualmente de forma automática.
+            </p>
+          </div>
+
+          <!-- Pregunta 2 -->
+          <div style="border-bottom: 1px solid #e5e7eb; padding: 1rem 0;">
+            <h4 style="margin: 0 0 0.5rem 0; color: #1e40af; font-size: 1.1rem;">📅 Si me suscribo el 4 de enero, ¿hasta cuándo dura mi suscripción?</h4>
+            <p style="margin: 0; color: #4b5563; line-height: 1.6;">
+              Tu suscripción dura <strong>exactamente 1 mes desde la fecha de suscripción</strong>. Por ejemplo:
+            </p>
+            <ul style="margin: 0.5rem 0 0 1.5rem; color: #4b5563; line-height: 1.6;">
+              <li>Si te suscribes el <strong>4 de enero</strong>, tu suscripción dura hasta el <strong>4 de febrero</strong></li>
+              <li>Si te suscribes el <strong>15 de marzo</strong>, tu suscripción dura hasta el <strong>15 de abril</strong></li>
+            </ul>
+            <p style="margin: 0.5rem 0 0 0; color: #4b5563; line-height: 1.6;">
+              El sistema se basa en la fecha de suscripción, <strong>no en el mes calendario</strong>.
+            </p>
+          </div>
+
+          <!-- Pregunta 3 -->
+          <div style="border-bottom: 1px solid #e5e7eb; padding: 1rem 0;">
+            <h4 style="margin: 0 0 0.5rem 0; color: #1e40af; font-size: 1.1rem;">🔄 ¿Se renueva automáticamente?</h4>
+            <p style="margin: 0; color: #4b5563; line-height: 1.6;">
+              <strong>Sí, la suscripción se renueva automáticamente cada mes.</strong> El pago se realiza el mismo día que te suscribiste originalmente. Por ejemplo, si te suscribiste el día 4, cada mes se cobrará el día 4.
+            </p>
+            <p style="margin: 0.5rem 0 0 0; color: #4b5563; line-height: 1.6;">
+              No necesitas hacer nada, tu acceso Premium continuará sin interrupciones mientras la tarjeta esté activa.
+            </p>
+          </div>
+
+          <!-- Pregunta 4 -->
+          <div style="border-bottom: 1px solid #e5e7eb; padding: 1rem 0;">
+            <h4 style="margin: 0 0 0.5rem 0; color: #1e40af; font-size: 1.1rem;">❌ ¿Cómo cancelo mi suscripción?</h4>
+            <p style="margin: 0 0 0.75rem 0; color: #4b5563; line-height: 1.6;">
+              Puedes cancelar tu suscripción en cualquier momento de forma <strong>totalmente autónoma</strong>, sin necesidad de contactar a nadie:
+            </p>
+            <ol style="margin: 0.5rem 0 0.75rem 1.5rem; color: #4b5563; line-height: 1.8;">
+              <li>Ve a la página <strong>"Info Premium"</strong> en el menú lateral de la PWA</li>
+              <li>Si tienes una suscripción activa, verás un botón <strong>"Abrir Portal de Gestión"</strong></li>
+              <li>Haz clic en ese botón (te redirigirá al portal oficial de Stripe)</li>
+              <li>En el portal de Stripe podrás:
+                <ul style="margin: 0.25rem 0 0 1.5rem; list-style-type: circle;">
+                  <li>Cancelar tu suscripción</li>
+                  <li>Ver todas tus facturas y descargarlas</li>
+                  <li>Actualizar tu método de pago</li>
+                  <li>Ver el historial de pagos</li>
+                </ul>
+              </li>
+            </ol>
+            <div style="background: #f0f9ff; border-left: 4px solid #3b82f6; padding: 0.75rem; margin: 0.75rem 0 0 0; border-radius: 4px;">
+              <p style="margin: 0; color: #1e40af; font-weight: 600; font-size: 0.95rem;">
+                ℹ️ Importante sobre la cancelación:
+              </p>
+              <p style="margin: 0.5rem 0 0 0; color: #1e40af; line-height: 1.6; font-size: 0.9rem;">
+                Aunque canceles, <strong>mantendrás acceso Premium hasta el final del período que ya pagaste</strong>. Por ejemplo, si cancelas el 10 de enero pero tu renovación era el 4 de febrero, seguirás teniendo acceso hasta el 4 de febrero.
+              </p>
+            </div>
+            <p style="margin: 0.75rem 0 0 0; color: #6b7280; font-size: 0.9rem; font-style: italic;">
+              <strong>Nota:</strong> No necesitas crear ninguna cuenta adicional. El portal de Stripe te identifica automáticamente con tu suscripción.
+            </p>
+          </div>
+
+          <!-- Pregunta 5 -->
+          <div style="border-bottom: 1px solid #e5e7eb; padding: 1rem 0;">
+            <h4 style="margin: 0 0 0.5rem 0; color: #1e40af; font-size: 1.1rem;">💳 ¿Qué pasa si falla el pago?</h4>
+            <p style="margin: 0; color: #4b5563; line-height: 1.6;">
+              Si el pago falla (por ejemplo, tarjeta vencida o sin fondos):
+            </p>
+            <ul style="margin: 0.5rem 0 0 1.5rem; color: #4b5563; line-height: 1.6;">
+              <li>Perderás el acceso a las funciones Premium temporalmente</li>
+              <li>Stripe intentará cobrar automáticamente varios días más</li>
+              <li>Recibirás notificaciones por email para actualizar tu método de pago</li>
+              <li>Una vez actualizado el pago, tu acceso Premium se restaurará inmediatamente</li>
+            </ul>
+          </div>
+
+          <!-- Pregunta 6 -->
+          <div style="border-bottom: 1px solid #e5e7eb; padding: 1rem 0;">
+            <h4 style="margin: 0 0 0.5rem 0; color: #1e40af; font-size: 1.1rem;">🎁 ¿Qué es el período de prueba gratis?</h4>
+            <p style="margin: 0; color: #4b5563; line-height: 1.6;">
+              <strong>Todos los usuarios actuales tienen acceso Premium GRATIS hasta el 1 de enero de 2026.</strong>
+              Esto te permite probar todas las funciones Premium sin ningún costo ni necesidad de ingresar tarjeta.
+            </p>
+            <p style="margin: 0.5rem 0 0 0; color: #4b5563; line-height: 1.6;">
+              Después del 1 de enero de 2026, necesitarás suscribirte para continuar usando las funciones Premium.
+            </p>
+          </div>
+
+          <!-- Pregunta 7 -->
+          <div style="border-bottom: 1px solid #e5e7eb; padding: 1rem 0;">
+            <h4 style="margin: 0 0 0.5rem 0; color: #1e40af; font-size: 1.1rem;">🔒 ¿Es seguro el pago?</h4>
+            <p style="margin: 0; color: #4b5563; line-height: 1.6;">
+              <strong>Absolutamente.</strong> Usamos Stripe, uno de los procesadores de pagos más seguros del mundo, utilizado por empresas como Amazon, Google y Shopify.
+            </p>
+            <ul style="margin: 0.5rem 0 0 1.5rem; color: #4b5563; line-height: 1.6;">
+              <li>Tus datos de tarjeta nunca pasan por nuestros servidores</li>
+              <li>Stripe cumple con PCI-DSS nivel 1 (máximo nivel de seguridad)</li>
+              <li>Encriptación de 256 bits en todas las transacciones</li>
+            </ul>
+          </div>
+
+          <!-- Pregunta 8 -->
+          <div style="border-bottom: 1px solid #e5e7eb; padding: 1rem 0;">
+            <h4 style="margin: 0 0 0.5rem 0; color: #1e40af; font-size: 1.1rem;">📧 ¿Recibiré factura?</h4>
+            <p style="margin: 0; color: #4b5563; line-height: 1.6;">
+              <strong>Sí.</strong> Stripe enviará automáticamente una factura a tu email cada vez que se realice un cobro. Puedes descargar todas tus facturas desde tu panel de Stripe en cualquier momento.
+            </p>
+          </div>
+
+          <!-- Pregunta 9 -->
+          <div style="border-bottom: 1px solid #e5e7eb; padding: 1rem 0;">
+            <h4 style="margin: 0 0 0.5rem 0; color: #1e40af; font-size: 1.1rem;">🌐 ¿Puedo usar Premium en varios dispositivos?</h4>
+            <p style="margin: 0; color: #4b5563; line-height: 1.6;">
+              <strong>Sí.</strong> Una vez que tengas Premium activo, puedes usar todas las funciones en cualquier dispositivo donde inicies sesión con tu cuenta (mismo número de chapa).
+            </p>
+          </div>
+
+          <!-- Pregunta 10 -->
+          <div style="padding: 1rem 0;">
+            <h4 style="margin: 0 0 0.5rem 0; color: #1e40af; font-size: 1.1rem;">🆘 ¿Qué pasa si tengo problemas con mi suscripción?</h4>
+            <p style="margin: 0 0 0.5rem 0; color: #4b5563; line-height: 1.6;">
+              Si tienes cualquier problema con tu suscripción, pagos o acceso Premium:
+            </p>
+            <ol style="margin: 0.5rem 0 0 1.5rem; color: #4b5563; line-height: 1.8;">
+              <li><strong>Portal de Gestión (recomendado):</strong> Ve a "Info Premium" en el menú y haz clic en "Abrir Portal de Gestión". Ahí puedes ver el estado de tu suscripción, facturas y resolver la mayoría de problemas.</li>
+              <li><strong>Contactar al administrador:</strong> Si el problema persiste, contacta al administrador del portal con los detalles de tu situación.</li>
+            </ol>
+            <p style="margin: 0.75rem 0 0 0; color: #4b5563; line-height: 1.6;">
+              La mayoría de problemas (pagos rechazados, actualizar tarjeta, ver facturas) se pueden resolver directamente desde el Portal de Gestión sin necesidad de contactar a nadie.
+            </p>
+          </div>
+
+        </div>
+
+        <!-- Información adicional -->
+        <div style="background: #f9fafb; border-left: 4px solid #1e40af; padding: 1rem; margin: 1.5rem 0; border-radius: 4px;">
+          <h4 style="margin: 0 0 0.5rem 0; color: #1e40af; font-size: 1.1rem;">ℹ️ Información Técnica</h4>
+          <ul style="margin: 0; padding-left: 1.5rem; color: #4b5563; line-height: 1.6; font-size: 0.95rem;">
+            <li><strong>Procesador de pagos:</strong> Stripe</li>
+            <li><strong>Métodos de pago aceptados:</strong> Tarjetas de crédito y débito (Visa, Mastercard, American Express)</li>
+            <li><strong>Moneda:</strong> EUR (€)</li>
+            <li><strong>Período de facturación:</strong> Mensual</li>
+            <li><strong>Política de cancelación:</strong> Puedes cancelar en cualquier momento, sin penalizaciones</li>
+            <li><strong>Reembolsos:</strong> No se realizan reembolsos por períodos parciales, pero mantienes acceso hasta el final del período pagado</li>
+          </ul>
+        </div>
+
+        <!-- Call to action -->
+        <div style="background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); color: white; padding: 2rem; border-radius: 12px; margin: 1.5rem 0; text-align: center; box-shadow: 0 4px 12px rgba(0,0,0,0.15);">
+          <h3 style="margin: 0 0 0.5rem 0; font-size: 1.5rem;">¿Listo para empezar?</h3>
+          <p style="margin: 0 0 1rem 0; font-size: 1rem; opacity: 0.95;">
+            Después del 1 de enero de 2026, suscríbete para acceder a todas las funciones Premium
+          </p>
+          <p style="margin: 0; font-size: 0.9rem; opacity: 0.9;">
+            Las funciones Premium bloqueadas mostrarán un botón de suscripción cuando sea necesario
+          </p>
+        </div>
+
+        <!-- Gestión de suscripción (solo visible si ya tiene Premium) -->
+        <div id="manage-subscription-section" style="background: white; border: 2px solid #e5e7eb; border-radius: 12px; padding: 2rem; margin: 1.5rem 0; text-align: center; display: none;">
+          <h3 style="margin: 0 0 0.5rem 0; font-size: 1.3rem; color: #1e40af;">⚙️ Gestionar mi Suscripción</h3>
+          <p style="margin: 0 0 1.5rem 0; color: #6b7280; font-size: 0.95rem;">
+            Accede al portal de gestión para ver facturas, actualizar método de pago o cancelar tu suscripción
+          </p>
+          <button id="btn-manage-subscription" style="background: linear-gradient(135deg, #1e40af 0%, #3b82f6 100%); color: white; border: none; padding: 12px 32px; font-size: 1rem; font-weight: 600; border-radius: 8px; cursor: pointer; box-shadow: 0 4px 12px rgba(30, 64, 175, 0.3); transition: transform 0.2s, box-shadow 0.2s;">
+            Abrir Portal de Gestión
+          </button>
+        </div>
+
+      </div>
+    </section>
+    <!-- FIN DE LA PÁGINA INFORMACIÓN PREMIUM -->
+
   </main>
 
   <!-- Bottom Navigation Bar Global -->
@@ -1404,6 +1665,97 @@
       });
 
       // Observar cambios en las páginas
+      setTimeout(() => {
+        const mainContent = document.getElementById('main-content');
+        if (mainContent) {
+          observer.observe(mainContent, {
+            attributes: true,
+            subtree: true,
+            attributeFilter: ['class']
+          });
+        }
+      }, 500);
+    }
+  </script>
+
+  <!-- Control del botón de gestión de suscripción -->
+  <script type="module">
+    import { redirectToCustomerPortal } from './services/stripe.js';
+    import { tienePremium } from './services/premium.js';
+
+    /**
+     * Muestra el botón de gestión de suscripción si el usuario tiene Premium activo
+     */
+    async function mostrarBotonGestionSuscripcion() {
+      const currentChapa = localStorage.getItem('currentChapa');
+
+      // Solo verificar si estamos en la página de info-premium
+      const infoPremiumPage = document.getElementById('page-info-premium');
+      if (!infoPremiumPage || !infoPremiumPage.classList.contains('active')) {
+        return;
+      }
+
+      if (!currentChapa) {
+        console.log('📋 No hay usuario logueado, ocultando botón de gestión');
+        return;
+      }
+
+      try {
+        // Verificar si tiene Premium activo
+        const esPremium = await tienePremium(currentChapa);
+
+        const manageSection = document.getElementById('manage-subscription-section');
+
+        if (esPremium && manageSection) {
+          manageSection.style.display = 'block';
+          console.log('✅ Usuario Premium detectado, mostrando botón de gestión');
+        } else {
+          if (manageSection) {
+            manageSection.style.display = 'none';
+          }
+          console.log('📋 Usuario sin Premium, ocultando botón de gestión');
+        }
+      } catch (error) {
+        console.error('❌ Error verificando Premium para botón de gestión:', error);
+      }
+    }
+
+    // Ejecutar cuando la página cargue
+    document.addEventListener('DOMContentLoaded', () => {
+      // Esperar a que el DOM esté listo
+      setTimeout(mostrarBotonGestionSuscripcion, 200);
+
+      // Configurar el botón de gestión
+      const btnManageSubscription = document.getElementById('btn-manage-subscription');
+      if (btnManageSubscription) {
+        btnManageSubscription.addEventListener('click', async () => {
+          const currentChapa = localStorage.getItem('currentChapa');
+          if (currentChapa) {
+            console.log('🔄 Abriendo portal de gestión...');
+            await redirectToCustomerPortal(currentChapa);
+          } else {
+            alert('Debes iniciar sesión para gestionar tu suscripción');
+          }
+        });
+
+        // Añadir efecto hover
+        btnManageSubscription.addEventListener('mouseenter', function() {
+          this.style.transform = 'translateY(-2px)';
+          this.style.boxShadow = '0 6px 16px rgba(30, 64, 175, 0.4)';
+        });
+        btnManageSubscription.addEventListener('mouseleave', function() {
+          this.style.transform = 'translateY(0)';
+          this.style.boxShadow = '0 4px 12px rgba(30, 64, 175, 0.3)';
+        });
+      }
+    });
+
+    // Observar cambios de página para mostrar/ocultar el botón según sea necesario
+    if (typeof MutationObserver !== 'undefined') {
+      const observer = new MutationObserver(() => {
+        mostrarBotonGestionSuscripcion();
+      });
+
       setTimeout(() => {
         const mainContent = document.getElementById('main-content');
         if (mainContent) {

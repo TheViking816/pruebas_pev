@@ -111,12 +111,12 @@ export const FEATURES_PREMIUM = {
  */
 export const PRECIOS = {
   MENSUAL: {
-    precio: 9.99,
+    precio: 4.99,
     moneda: 'EUR',
     intervalo: 'mes'
   },
   ANUAL: {
-    precio: 99.00,
+    precio: 49.99,
     moneda: 'EUR',
     intervalo: 'año',
     descuento: '17%'

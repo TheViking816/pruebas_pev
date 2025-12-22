@@ -84,7 +84,12 @@ export async function redirectToCheckout(chapa) {
  */
 export async function redirectToCustomerPortal(chapa) {
   try {
-    const response = await fetch('/api/create-portal-session', {
+    // URL del backend (Vercel)
+    const BACKEND_URL = 'https://portalestiba-push-backend-one.vercel.app';
+
+    console.log('🔄 Abriendo portal de gestión para chapa:', chapa);
+
+    const response = await fetch(`${BACKEND_URL}/api/create-portal-session`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -92,17 +97,24 @@ export async function redirectToCustomerPortal(chapa) {
       body: JSON.stringify({ chapa }),
     });
 
+    if (!response.ok) {
+      const errorText = await response.text();
+      throw new Error(`Backend error: ${response.status} - ${errorText}`);
+    }
+
     const session = await response.json();
 
     if (session.error) {
       throw new Error(session.error);
     }
 
+    console.log('✅ Portal session creada, redirigiendo...');
+
     // Redirigir al portal de cliente
     window.location.href = session.url;
 
   } catch (error) {
     console.error('❌ Error abriendo portal:', error);
-    alert('Error al abrir el portal de gestión.');
+    alert(`Error al abrir el portal de gestión: ${error.message}\n\nAsegúrate de tener una suscripción activa.`);
   }
 }
