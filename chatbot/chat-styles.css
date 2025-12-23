@@ -20,6 +20,7 @@
   --success: #10b981;
   --error: #ef4444;
   --warning: #f59e0b;
+  --quick-actions-height: 60px;
 }
 
 * {
@@ -533,7 +534,7 @@ body::after {
    ============================================================================= */
 .input-area {
   position: fixed;
-  bottom: 60px; /* Espacio para quick actions */
+  bottom: var(--quick-actions-height); /* Espacio para quick actions */
   left: 0;
   right: 0;
   background: var(--surface);
@@ -681,6 +682,7 @@ body::after {
   background: var(--surface);
   border-top: 1px solid var(--border);
   padding: 0.75rem;
+  min-height: var(--quick-actions-height);
   display: flex;
   gap: 0.5rem;
   overflow-x: auto;
@@ -932,6 +934,10 @@ body::after {
    RESPONSIVE
    ============================================================================= */
 @media (max-width: 480px) {
+  :root {
+    --quick-actions-height: 55px;
+  }
+
   .chat-header {
     padding: 0.75rem;
   }
@@ -950,7 +956,7 @@ body::after {
 
   .input-area {
     padding: 0.75rem;
-    bottom: 55px;
+    bottom: var(--quick-actions-height);
   }
 
   .chat-container {

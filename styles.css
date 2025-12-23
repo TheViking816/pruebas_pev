@@ -2187,13 +2187,17 @@ body.loading {
   .fab-add-jornal {
     width: 56px;
     height: 56px;
-    bottom: 1.5rem;
+    bottom: calc(68px + 1rem + env(safe-area-inset-bottom));
     right: 1.5rem;
   }
 
   .fab-add-jornal svg {
     width: 24px;
     height: 24px;
+  }
+
+  .fab-btn {
+    bottom: calc(68px + 1rem + env(safe-area-inset-bottom));
   }
 }
 
