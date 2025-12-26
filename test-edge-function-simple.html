@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Test Edge Function - Diagnóstico</title>
+  <style>
+    body {
+      font-family: monospace;
+      padding: 20px;
+      background: #1a1a1a;
+      color: #fff;
+    }
+    .test {
+      background: #2a2a2a;
+      padding: 15px;
+      margin: 10px 0;
+      border-radius: 8px;
+      border-left: 4px solid #666;
+    }
+    .test.success { border-color: #22c55e; }
+    .test.error { border-color: #ef4444; }
+    button {
+      background: #3b82f6;
+      color: white;
+      border: none;
+      padding: 10px 20px;
+      border-radius: 5px;
+      cursor: pointer;
+      margin: 5px;
+    }
+    button:hover { background: #2563eb; }
+    pre {
+      background: #000;
+      padding: 10px;
+      border-radius: 5px;
+      overflow-x: auto;
+    }
+  </style>
+</head>
+<body>
+  <h1>🔍 Diagnóstico Edge Function</h1>
+  
+  <button onclick="test1()">Test 1: Sin autenticación</button>
+  <button onclick="test2()">Test 2: Con anon key</button>
+  <button onclick="test3()">Test 3: Con service key</button>
+  <button onclick="test4()">Test 4: GET request</button>
+  
+  <div id="results"></div>
+
+  <script>
+    const SUPABASE_URL = 'https://icszzxkdxatfytpmoviq.supabase.co';
+    const ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imljc3p6eGtkeGF0Znl0cG1vdmlxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjI2Mzk2NjUsImV4cCI6MjA3ODIxNTY2NX0.hmQWNB3sCyBh39gdNgQLjjlIvliwJje-OYf0kkPObVA';
+    const FUNCTION_URL = `${SUPABASE_URL}/functions/v1/daily-oracle-notifications`;
+
+    function addResult(title, success, data) {
+      const results = document.getElementById('results');
+      const div = document.createElement('div');
+      div.className = `test ${success ? 'success' : 'error'}`;
+      div.innerHTML = `
+        <h3>${success ? '✅' : '❌'} ${title}</h3>
+        <pre>${JSON.stringify(data, null, 2)}</pre>
+      `;
+      results.insertBefore(div, results.firstChild);
+    }
+
+    async function test1() {
+      console.log('Test 1: Sin autenticación');
+      try {
+        const response = await fetch(FUNCTION_URL, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({ test_chapa: '816' })
+        });
+
+        const data = await response.text();
+        addResult('Test 1: Sin auth', response.ok, {
+          status: response.status,
+          statusText: response.statusText,
+          body: data
+        });
+      } catch (error) {
+        addResult('Test 1: Sin auth', false, {
+          error: error.message
+        });
+      }
+    }
+
+    async function test2() {
+      console.log('Test 2: Con anon key');
+      try {
+        const response = await fetch(FUNCTION_URL, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${ANON_KEY}`,
+            'apikey': ANON_KEY
+          },
+          body: JSON.stringify({ test_chapa: '816' })
+        });
+
+        const data = await response.text();
+        addResult('Test 2: Con anon key', response.ok, {
+          status: response.status,
+          statusText: response.statusText,
+          body: data
+        });
+      } catch (error) {
+        addResult('Test 2: Con anon key', false, {
+          error: error.message
+        });
+      }
+    }
+
+    async function test3() {
+      console.log('Test 3: Con service key (introducir manualmente)');
+      const serviceKey = prompt('Introduce el SERVICE_ROLE_KEY:');
+      if (!serviceKey) return;
+
+      try {
+        const response = await fetch(FUNCTION_URL, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${serviceKey}`,
+            'apikey': serviceKey
+          },
+          body: JSON.stringify({ test_chapa: '816' })
+        });
+
+        const data = await response.text();
+        addResult('Test 3: Con service key', response.ok, {
+          status: response.status,
+          statusText: response.statusText,
+          body: data
+        });
+      } catch (error) {
+        addResult('Test 3: Con service key', false, {
+          error: error.message
+        });
+      }
+    }
+
+    async function test4() {
+      console.log('Test 4: GET request');
+      try {
+        const response = await fetch(FUNCTION_URL, {
+          method: 'GET',
+          headers: {
+            'Authorization': `Bearer ${ANON_KEY}`,
+            'apikey': ANON_KEY
+          }
+        });
+
+        const data = await response.text();
+        addResult('Test 4: GET request', response.ok, {
+          status: response.status,
+          statusText: response.statusText,
+          body: data
+        });
+      } catch (error) {
+        addResult('Test 4: GET request', false, {
+          error: error.message
+        });
+      }
+    }
+  </script>
+</body>
+</html>

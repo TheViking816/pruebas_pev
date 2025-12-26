@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Push Notification</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 600px;
+            margin: 50px auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #333;
+            margin-bottom: 20px;
+        }
+        button {
+            background-color: #007bff;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            margin-top: 20px;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        button:disabled {
+            background-color: #ccc;
+            cursor: not-allowed;
+        }
+        .status {
+            margin-top: 20px;
+            padding: 15px;
+            border-radius: 5px;
+            display: none;
+        }
+        .status.success {
+            background-color: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        .status.error {
+            background-color: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        .status.loading {
+            background-color: #d1ecf1;
+            color: #0c5460;
+            border: 1px solid #bee5eb;
+        }
+        pre {
+            background-color: #f8f9fa;
+            padding: 10px;
+            border-radius: 5px;
+            overflow-x: auto;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+        }
+        .input-group {
+            margin-bottom: 15px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            color: #555;
+            font-weight: bold;
+        }
+        input, textarea {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+        textarea {
+            resize: vertical;
+            min-height: 80px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔔 Test Push Notification</h1>
+        <p>Enviar notificación de prueba de nueva contratación</p>
+
+        <div class="input-group">
+            <label for="chapa">Chapa del usuario:</label>
+            <input type="text" id="chapa" value="816" placeholder="816">
+        </div>
+
+        <div class="input-group">
+            <label for="title">Título de la notificación:</label>
+            <input type="text" id="title" value="🎉 ¡Notificación de Prueba!">
+        </div>
+
+        <div class="input-group">
+            <label for="body">Mensaje:</label>
+            <textarea id="body">Esta es una notificación de prueba enviada a la chapa 816</textarea>
+        </div>
+
+        <div class="input-group">
+            <label for="url">URL (opcional):</label>
+            <input type="text" id="url" value="/?page=contratacion" placeholder="/?page=contratacion">
+        </div>
+
+        <div class="input-group">
+            <label for="page">Página (opcional):</label>
+            <input type="text" id="page" value="contratacion" placeholder="contratacion">
+        </div>
+
+        <button id="sendBtn" onclick="sendTestNotification()">Enviar Notificación de Prueba</button>
+
+        <div id="status" class="status"></div>
+    </div>
+
+    <script>
+        const BACKEND_API_URL = 'https://portalestiba-push-backend-one.vercel.app';
+
+        async function sendTestNotification() {
+            const sendBtn = document.getElementById('sendBtn');
+            const statusDiv = document.getElementById('status');
+
+            const chapa = document.getElementById('chapa').value;
+            const title = document.getElementById('title').value;
+            const body = document.getElementById('body').value;
+            const url = document.getElementById('url').value;
+            const page = document.getElementById('page').value;
+
+            // Validar que se ingresó una chapa
+            if (!chapa || chapa.trim() === '') {
+                statusDiv.className = 'status error';
+                statusDiv.style.display = 'block';
+                statusDiv.innerHTML = '❌ Por favor ingresa un número de chapa';
+                return;
+            }
+
+            // Mostrar estado de carga
+            statusDiv.className = 'status loading';
+            statusDiv.style.display = 'block';
+            statusDiv.innerHTML = '⏳ Enviando notificación...';
+            sendBtn.disabled = true;
+
+            try {
+                const notificationPayload = {
+                    title: title,
+                    body: body,
+                    url: url || '/?page=contratacion',
+                    page: page || 'contratacion',
+                    icon: 'https://i.imgur.com/Q91Pi44.png',
+                    badge: 'https://i.imgur.com/Q91Pi44.png',
+                    chapa_target: chapa
+                };
+
+                console.log('📤 Enviando notificación:', notificationPayload);
+
+                const response = await fetch(`${BACKEND_API_URL}/api/push/notify-new-hire`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(notificationPayload)
+                });
+
+                const responseData = await response.json();
+
+                if (response.ok) {
+                    statusDiv.className = 'status success';
+                    statusDiv.innerHTML = `
+                        <strong>✅ Notificación enviada exitosamente</strong>
+                        <pre>${JSON.stringify(responseData, null, 2)}</pre>
+                    `;
+                } else {
+                    statusDiv.className = 'status error';
+                    statusDiv.innerHTML = `
+                        <strong>❌ Error al enviar la notificación</strong>
+                        <p>Status: ${response.status}</p>
+                        <pre>${JSON.stringify(responseData, null, 2)}</pre>
+                    `;
+                }
+            } catch (error) {
+                statusDiv.className = 'status error';
+                statusDiv.innerHTML = `
+                    <strong>❌ Error de conexión</strong>
+                    <p>${error.message}</p>
+                `;
+                console.error('Error:', error);
+            } finally {
+                sendBtn.disabled = false;
+            }
+        }
+    </script>
+</body>
+</html>

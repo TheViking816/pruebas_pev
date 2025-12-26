@@ -1,0 +1,320 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Asistente IA - Portal Estiba VLC</title>
+
+  <!-- PWA Meta Tags -->
+  <meta name="description" content="Asistente virtual inteligente para trabajadores del Puerto de Valencia">
+  <meta name="theme-color" content="#1a1a2e">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+
+  <!-- PWA Manifest -->
+  <link rel="manifest" href="./manifest.json">
+
+  <!-- Icons -->
+  <link rel="icon" type="image/png" href="https://i.imgur.com/Q91Pi44.png">
+
+  <!-- Styles -->
+  <link rel="stylesheet" href="chat-styles.css?v=14">
+
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+  <!-- Header -->
+  <header class="chat-header">
+    <div class="header-content">
+      <button id="back-btn" class="icon-btn" title="Volver a PWA Principal">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
+        </svg>
+      </button>
+      <div class="header-title">
+        <h1>Asistente IA</h1>
+        <p id="status-text">En línea</p>
+      </div>
+      <button id="settings-btn" class="icon-btn" title="Configuración">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4" />
+        </svg>
+      </button>
+    </div>
+  </header>
+
+  <!-- Chat Container -->
+  <main id="chat-container" class="chat-container">
+    <!-- Welcome message -->
+    <div class="welcome-card">
+      <div class="welcome-header">
+        <div class="port-image">
+          <!-- Imagen del puerto de Valencia -->
+          <img src="https://images.unsplash.com/photo-1494412685616-a5d310fbb07d?w=800&q=80" alt="Puerto de Valencia" />
+        </div>
+        <div class="welcome-overlay">
+          <div class="welcome-icon">⚓</div>
+          <h2>¡Hola, <span id="user-name">trabajador</span>!</h2>
+          <p class="subtitle">Asistente IA del Puerto de Valencia</p>
+        </div>
+      </div>
+      <div class="welcome-content">
+        <p><strong>Pregúntame cualquier cosa sobre tus datos:</strong></p>
+
+        <div class="examples-section">
+          <h4>🔮 Predicción (El Oráculo)</h4>
+<ul class="examples-list">
+  <li>"¿Cuándo voy a trabajar?"</li>
+  <li>"¿Cuáles son las puertas de hoy?"</li>
+</ul>
+
+<h4>📊 Jornales</h4>
+<ul class="examples-list">
+  <li>"¿Cuántos jornales llevo esta quincena?"</li>
+  <li>"¿Cuántos jornales he hecho en el mes pasado?"</li>
+  <li>"¿Cuántos jornales de 20-02 llevo?"</li>
+</ul>
+
+<h4>💰 Salario</h4>
+<ul class="examples-list">
+  <li>"¿Cuánto llevo ganado esta quincena?"</li>
+  <li>"¿Cuál fue mi jornal más alto?"</li>
+  <li>"¿Cuál fue mi prima más alta?"</li>
+</ul>
+
+<h4>🎯 Posición</h4>
+<ul class="examples-list">
+  <li>"¿A cuántas posiciones estoy?"</li>
+  <li>"¿En qué empresa trabajo más?"</li>
+</ul>
+
+<h4>📅 Festivos</h4>
+<ul class="examples-list">
+  <li>"¿Qué días son festivos no laborables en el puerto?"</li>
+</ul>
+
+<h4>💵 Tarifas</h4>
+<ul class="examples-list">
+  <li>"¿Cuánto es el jornal de 14-20 el domingo?"</li>
+  <li>"¿A cuánto está la barra de trinca 20-02 laborable?"</li>
+  <li>"¿Cuánto se paga la barra de destrinca en 08-14 festivo?"</li>
+</ul>
+
+<h4>💰 Calendario de Pago</h4>
+<ul class="examples-list">
+  <li>"¿Cuándo voy a cobrar?"</li>
+  <li>"¿Cuándo me pagan esta quincena?"</li>
+  <li>"¿Qué día es el pago?"</li>
+  <li>"¿Cuándo me ingresan el sueldo?"</li>
+</ul>
+
+<h4>🟢 Censo</h4>
+<ul class="examples-list">
+  <li>"¿Cuántas chapas disponibles hay?"</li>
+</ul>
+
+<h4>📋 V Acuerdo Marco y📜 Convenio Colectivo</h4>
+<ul class="examples-list">
+  <li>"¿Qué es el V Acuerdo Marco?"</li>
+  <li class="section-title"><strong>Contratación y Estabilidad</strong></li>
+  <li>"¿Cuál es el límite de contratación temporal frente a indefinida?"</li>
+  <li>"¿Qué pasa si una empresa se separa del CPE?"</li>
+
+  <li class="section-title"><strong>Operativa Diaria y Rotación</strong></li>
+  <li>"¿Cuáles son las reglas para hacer una jornada de 12 horas?"</li>
+  <li>"¿Qué se considera tiempo de trabajo efectivo?"</li>
+
+  <li class="section-title"><strong>Salario y Garantías</strong></li>
+  <li>"¿Cuáles son los pluses salariales según el tipo de jornada?"</li>
+
+  <li class="section-title"><strong>Régimen Disciplinario y Salud</strong></li>
+  <li>"¿Qué pasa si doy positivo en alcohol o drogas?"</li>
+  <li>"¿Cuáles son las faltas muy graves que llevan al despido?"</li>
+
+  <li class="section-title"><strong>Formación y Categorías</strong></li>
+  <li>"¿Cuáles son las funciones de cada Grupo Profesional?"</li>
+  <li>"¿Cuál es la diferencia entre Grupo I (Capataz) y Grupo II?"</li>
+
+  <li class="section-title"><strong>Permisos y Vacaciones</strong></li>
+  <li>"¿Cuántos días de vacaciones tengo?"</li>
+  <li>"¿Qué dice el convenio sobre permisos?"</li>
+  <li>"¿Cuántos días de permiso tengo por matrimonio o traslado?"</li>
+  <li>"¿Cómo solicito un permiso no retribuido de larga duración?"</li>
+
+  <li class="section-title"><strong>Descansos y Remates</strong></li>
+  <li>"Tengo derecho de descanso de 12 horas entre jornadas?"</li>
+  <li>"Estoy obligado a realizar un remate si la empresa me lo pide?"</li>
+
+  <li class="section-title"><strong>Horas y Jornadas</strong></li>
+  <li>"¿Cuál es el máximo de horas extraordinarias anuales?"</li>
+</ul>
+
+<h4>📝 Guía de Contratación</h4>
+<ul class="examples-list">
+  <li class="section-title"><strong>Horarios y Jornadas</strong></li>
+  <li>"¿Cuándo se contrata la jornada de 02-08?"</li>
+  <li>"¿Cuándo se contrata el segundo festivo si hay 2 seguidos?"</li>
+  <li>"¿Cómo funciona el sistema de Doble Puerta (Súper vs Diurno)?"</li>
+  <li>"¿A qué hora se publica la asignación para cada jornada?"</li>
+
+  <li class="section-title"><strong>Localización y Disponibilidad</strong></li>
+  <li>"¿Cuál es la hora límite para estar localizable?"</li>
+  <li>"¿Qué implica estar reservado y qué obligaciones tengo?"</li>
+  <li>"¿Qué ocurre si falto estando reservado o anticipado?"</li>
+  <li>"¿A qué hora se publican las órdenes anticipadas?"</li>
+
+  <li class="section-title"><strong>Prioridades y Asignación</strong></li>
+  <li>"¿Qué prioridad tengo para hacer un doble?"</li>
+  <li>"¿En qué orden se asignan las especialidades?"</li>
+  <li>"¿Cuándo se activa la polivalencia por delante de especialidad?"</li>
+  <li>"¿Cómo afecta el turno de apoyo a mi posición en listas?"</li>
+  <li>"¿Qué lista se usa si piden personal después del llamamiento?"</li>
+
+  <li class="section-title"><strong>Sustituciones y Festivos</strong></li>
+  <li>"¿Cómo se gestionan los nombramientos en festivos consecutivos?"</li>
+  <li>"¿Cuál es el orden para cubrir una sustitución durante turno?"</li>
+  <li>"¿Qué hago si me nombran para dos jornadas solapadas?"</li>
+
+  <li class="section-title"><strong>Controles y Normativa</strong></li>
+  <li>"¿Cómo se realizan los controles de alcohol y drogas?"</li>
+  <li>"¿Cuál es el margen entre positivo inicial y contraste?"</li>
+</ul>
+
+<h4>🔧 Acciones Rápidas</h4>
+<ul class="examples-list">
+  <li>"Quiero ponerme no disponible"</li>
+  <li>"Ponme el punto"</li>
+</ul>
+
+        </div>
+
+        <p class="tip-new">💡 <strong>Escribe natural</strong> - analizo todos tus datos del sueldómetro</p>
+      </div>
+    </div>
+
+    <!-- Messages will be inserted here -->
+    <div id="messages-area"></div>
+  </main>
+
+  <!-- Input Area -->
+  <div class="input-area">
+    <div class="input-container">
+      <button id="voice-btn" class="voice-btn" title="Hablar por voz">
+        <svg id="mic-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z" />
+        </svg>
+      </button>
+
+      <textarea
+        id="message-input"
+        placeholder="Escribe tu pregunta o mantén presionado el micrófono..."
+        rows="1"
+        maxlength="500"
+      ></textarea>
+
+      <button id="send-btn" class="send-btn" title="Enviar mensaje">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
+        </svg>
+      </button>
+    </div>
+
+    <!-- Voice indicator -->
+    <div id="voice-indicator" class="voice-indicator hidden">
+      <div class="voice-animation">
+        <span></span>
+        <span></span>
+        <span></span>
+        <span></span>
+      </div>
+      <p>Escuchando...</p>
+    </div>
+  </div>
+
+  <!-- Quick Actions (Chips) -->
+  <div id="quick-actions" class="quick-actions">
+    <button class="chip" data-action="cuando-trabajo">¿Cuándo trabajo?</button>
+    <button class="chip" data-action="posicion">Mi posición</button>
+    <button class="chip" data-action="jornales">Mis jornales</button>
+    <button class="chip" data-action="salario">Mi salario</button>
+    <button class="chip" data-action="donde-trabajo">¿Dónde trabajo hoy?</button>
+    <button class="chip" data-action="no-disponible">No disponible</button>
+  </div>
+
+  <!-- Loading Overlay -->
+  <div id="loading-overlay" class="loading-overlay hidden">
+    <div class="spinner"></div>
+    <p>Pensando...</p>
+  </div>
+
+  <!-- Settings Modal -->
+  <div id="settings-modal" class="modal hidden">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3>Configuración del Asistente</h3>
+        <button id="close-settings" class="close-btn">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div class="setting-item">
+          <label>
+            <input type="checkbox" id="voice-response-toggle">
+            <span>Respuestas por voz</span>
+          </label>
+        </div>
+        <div class="setting-item">
+          <label>
+            <input type="checkbox" id="quick-actions-toggle" checked>
+            <span>Mostrar acciones rápidas</span>
+          </label>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Scripts -->
+  <!-- Supabase Library -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+  <!-- Stripe SDK para pagos premium -->
+  <script src="https://js.stripe.com/v3/"></script>
+
+  <!-- Data Layer (debe cargarse ANTES de todo) -->
+  <script src="./supabase.js?v=15"></script>
+
+  <!-- Verificación de acceso Premium (IMPORTANTE: debe cargarse después de supabase.js) -->
+  <script src="./premium-check.js?v=3"></script>
+
+  <!-- Voice Handler -->
+  <script src="./voice-handler.js?v=14"></script>
+
+  <!-- Data Bridge (acceso a datos PWA) -->
+  <script src="./pwa-data-bridge.js?v=14"></script>
+
+  <!-- Configuración Local de OpenAI (NO se sube a Git) -->
+  <script src="./config.local.js?v=2" onerror="console.warn('config.local.js no encontrado - Configurar API key manualmente')"></script>
+
+  <!-- OpenAI Assistants Manager (para consultas de PDFs) -->
+  <script src="./openai-assistants.js?v=7"></script>
+
+  <!-- AI Engine -->
+  <script src="./ai-engine.js?v=20"></script>
+
+  <!-- Main Chat App (último, coordina todo) -->
+  <script src="./chat-app.js?v=14"></script>
+
+  <!-- PWA Service Worker -->
+  <script>
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('./service-worker.js')
+          .then(registration => console.log('✅ Service Worker registrado'))
+          .catch(error => console.warn('❌ Error registrando Service Worker:', error));
+      });
+    }
+  </script>
+</body>
+</html>

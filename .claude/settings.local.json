@@ -1,0 +1,27 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(git:*)",
+      "Bash(powershell:*)",
+      "Bash(cd:*)",
+      "Bash(mkdir:*)",
+      "Bash(npm:*)",
+      "Bash(node:*)",
+      "Bash(cat:*)",
+      "Bash(del:*)",
+      "Bash(curl:*)",
+      "Bash(supabase:*)",
+      "Bash(xxd:*)",
+      "WebFetch(domain:script.google.com)",
+      "WebFetch(domain:script.googleusercontent.com)",
+      "WebFetch(domain:noray-scraper.onrender.com)",
+      "WebFetch(domain:noray.cpevalencia.com)",
+      "Bash(echo:*)",
+      "WebFetch(domain:imgur.com)",
+      "Bash(dir:*)",
+      "Bash(python replace_code.py:*)"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}

@@ -1,0 +1,104 @@
+========================================
+  EJEMPLOS DE NOMBRES DE ARCHIVO
+========================================
+
+IMPORTANTE: Todos los archivos deben ser .jpg
+
+Compañías Navieras Comunes:
+------------------------------------------
+
+MSC (Mediterranean Shipping Company):
+  MSC POSITANO          → msc-positano.jpg
+  MSC FLAMINIA          → msc-flaminia.jpg
+  MSC GÜLSÜN            → msc-gulsun.jpg
+  MSC MAYA              → msc-maya.jpg
+
+CMA CGM:
+  CMA CGM ALMAVIVA      → cma-cgm-almaviva.jpg
+  CMA CGM BOUGAINVILLE  → cma-cgm-bougainville.jpg
+  CMA CGM TROCADERO     → cma-cgm-trocadero.jpg
+
+MAERSK:
+  MAERSK ESSEN          → maersk-essen.jpg
+  MAERSK ELBA           → maersk-elba.jpg
+  MAERSK MC-KINNEY      → maersk-mc-kinney.jpg
+
+COSCO:
+  COSCO SHIPPING GALAXY → cosco-shipping-galaxy.jpg
+  COSCO SHIPPING VIRGO  → cosco-shipping-virgo.jpg
+
+HAPAG-LLOYD:
+  HAPAG-LLOYD LEIPZIG   → hapag-lloyd-leipzig.jpg
+  SAJIR                 → sajir.jpg
+
+ONE (Ocean Network Express):
+  ONE INNOVATION        → one-innovation.jpg
+  ONE APUS              → one-apus.jpg
+  ONE TRUST             → one-trust.jpg
+
+EVERGREEN:
+  EVER GIVEN            → ever-given.jpg
+  EVER GLORY            → ever-glory.jpg
+  EVER ACE              → ever-ace.jpg
+
+
+Barcos de Coches (RoRo / Car Carriers):
+------------------------------------------
+
+EUKOR:
+  EUKOR MORNING SPRINTER → eukor-morning-sprinter.jpg
+  EUKOR MORNING CHERRY   → eukor-morning-cherry.jpg
+
+HÖEGH:
+  HÖEGH TRAPPER         → hoegh-trapper.jpg
+  HÖEGH TRIGGER         → hoegh-trigger.jpg
+
+GLOVIS:
+  GLOVIS CENTURY        → glovis-century.jpg
+  GLOVIS COSMOS         → glovis-cosmos.jpg
+
+WALLENIUS WILHELMSEN:
+  TOSCANA               → toscana.jpg
+  TORINO                → torino.jpg
+
+
+Otros:
+------------------------------------------
+  Trincadores           → trincadores.jpg
+  R/E                   → r-e.jpg
+
+
+========================================
+DÓNDE ENCONTRAR IMÁGENES
+========================================
+
+1. Google Imágenes: "[nombre barco] ship"
+   Ejemplo: "MSC POSITANO ship"
+
+2. Sitios especializados:
+   - marinetraffic.com
+   - vesselfinder.com
+   - shipspotting.com
+   - fleetmon.com
+
+3. Sitios de las navieras:
+   - msc.com
+   - cma-cgm.com
+   - maersk.com
+   - etc.
+
+
+========================================
+CHECKLIST ANTES DE GUARDAR
+========================================
+
+[ ] La imagen es de buena calidad (mínimo 800px ancho)
+[ ] El nombre está todo en minúsculas
+[ ] Los espacios están reemplazados por guiones (-)
+[ ] NO tiene caracteres especiales (ñ, á, ü, /, etc.)
+[ ] La extensión es .jpg (no .jpeg, no .png)
+[ ] Está guardada en: assets/barcos/
+[ ] El tamaño es razonable (< 500KB idealmente)
+
+
+========================================
